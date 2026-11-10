@@ -1,5 +1,6 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { AdminLayout } from './AdminLayout';
 import { NotFoundPage } from './NotFoundPage';
@@ -21,6 +22,7 @@ export const routes: RouteObject[] = [
                 errorElement: <RouteError />,
                 children: [
                   { index: true, element: <DashboardPage /> },
+                  { path: '/categories', element: <CategoriesPage /> },
                   { path: '*', element: <NotFoundPage /> },
                 ],
               },
