@@ -15,7 +15,7 @@ jobs:
       # Only used to build. The real address is set where the app is deployed.
       VITE_API_URL: https://api.example.com
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v4
         with:
           node-version: 24
