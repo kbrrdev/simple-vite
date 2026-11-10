@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Navigate, useSearchParams } from 'react-router';
+import { Navigate } from 'react-router';
+import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -10,28 +11,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { errorMessage } from '@/lib/api';
+import { usePageParam } from '@/lib/use-page-param';
 import { pageSize, useCategories, type Category } from './api';
 import { CategoryFormDialog } from './CategoryFormDialog';
 import { DeleteCategoryDialog } from './DeleteCategoryDialog';
 
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
-/** The page number from `?page=`, or 1 when it is missing or not a positive whole number. */
-function readPage(searchParams: URLSearchParams) {
-  const page = Number(searchParams.get('page'));
-  return Number.isInteger(page) && page >= 1 ? page : 1;
-}
-
 export function CategoriesPage() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const page = readPage(searchParams);
+  const [page, setPage] = usePageParam();
   const [editing, setEditing] = useState<Category | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
   const categories = useCategories(page);
 
   const totalPages = Math.max(1, Math.ceil((categories.data?.meta.total ?? 0) / pageSize));
-
-  const goToPage = (newPage: number) => setSearchParams({ page: String(newPage) });
 
   // A delete can empty the last page, so step back to the new last page.
   if (categories.data && !categories.isPlaceholderData && page > totalPages) {
@@ -100,27 +93,12 @@ export function CategoriesPage() {
             </TableBody>
           </Table>
 
-          <nav aria-label="Pagination" className="flex items-center justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page <= 1}
-              onClick={() => goToPage(page - 1)}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-muted-foreground">
-              Page {page} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              disabled={page >= totalPages || categories.isPlaceholderData}
-              onClick={() => goToPage(page + 1)}
-            >
-              Next
-            </Button>
-          </nav>
+          <Pagination
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            loading={categories.isPlaceholderData}
+          />
         </>
       )}
 

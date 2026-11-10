@@ -6,6 +6,7 @@ import { useLogout, useSession } from '@/lib/auth';
 const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/categories', label: 'Categories' },
+  { to: '/files', label: 'Files' },
 ];
 
 export function AdminLayout() {

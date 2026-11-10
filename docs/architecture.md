@@ -134,5 +134,5 @@ Tests run with Vitest and React Testing Library. They render components as a use
 - Serve them from a web server such as Caddy, on the same Ubuntu server setup as the backend.
 - Send unknown paths to `index.html`, so that React Router can handle them.
 - Cache files in `dist/assets/` for a long time, as their names change with every build. Do not cache `index.html`.
-- Set security headers, including a Content Security Policy, at the web server.
+- Set security headers, including a Content Security Policy, at the web server. Its `img-src` must allow the origin of uploaded images, which is the API or the S3 public URL.
 - Never use the Vite dev server in production.
