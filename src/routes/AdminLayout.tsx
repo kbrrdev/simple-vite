@@ -3,7 +3,10 @@ import { Button } from '@/components/ui/button';
 import { useLogout, useSession } from '@/lib/auth';
 
 // Each feature adds its link here when its screens are built.
-const links = [{ to: '/', label: 'Dashboard' }];
+const links = [
+  { to: '/', label: 'Dashboard' },
+  { to: '/categories', label: 'Categories' },
+];
 
 export function AdminLayout() {
   const { data: user } = useSession();
