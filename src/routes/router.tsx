@@ -2,6 +2,7 @@ import { createBrowserRouter, type RouteObject } from 'react-router';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { DashboardPage } from '@/features/dashboard/DashboardPage';
+import { FilesPage } from '@/features/files/FilesPage';
 import { AdminLayout } from './AdminLayout';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAdmin } from './RequireAdmin';
@@ -23,6 +24,7 @@ export const routes: RouteObject[] = [
                 children: [
                   { index: true, element: <DashboardPage /> },
                   { path: '/categories', element: <CategoriesPage /> },
+                  { path: '/files', element: <FilesPage /> },
                   { path: '*', element: <NotFoundPage /> },
                 ],
               },
