@@ -63,18 +63,39 @@ describe('the categories list', () => {
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
 
-  it('pages through the categories', async () => {
+  function twoPages() {
     api((_path, options) =>
       options?.query?.page === 2
         ? { ...listOf([category('Socks')], 21), meta: { page: 2, limit: 20, total: 21 } }
         : listOf([category('Shirts')], 21),
     );
-    renderApp('/categories');
+  }
+
+  it('pages through the categories and keeps the page in the URL', async () => {
+    twoPages();
+    const { router } = renderApp('/categories');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Next' }));
 
     expect(await screen.findByRole('cell', { name: 'Socks' })).toBeInTheDocument();
     expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+    expect(router.state.location.search).toBe('?page=2');
+  });
+
+  it('opens the page given in the URL', async () => {
+    twoPages();
+    renderApp('/categories?page=2');
+
+    expect(await screen.findByRole('cell', { name: 'Socks' })).toBeInTheDocument();
+    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
+  });
+
+  it('opens the first page when the URL has an invalid page', async () => {
+    twoPages();
+    renderApp('/categories?page=abc');
+
+    expect(await screen.findByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
+    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
   });
 });
 
@@ -176,16 +197,16 @@ describe('deleting', () => {
       }
       return listOf([category('Shirts')], total);
     });
-    renderApp('/categories');
+    const { router } = renderApp('/categories?page=2');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Next' }));
     await userEvent.click(await screen.findByRole('button', { name: 'Delete Socks' }));
     await userEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }),
     );
 
     expect(await screen.findByText('Page 1 of 1')).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
+    expect(router.state.location.search).toBe('?page=1');
+    expect(await screen.findByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
   });
 
   it('explains when products still use the category', async () => {

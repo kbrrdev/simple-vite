@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Navigate, useSearchParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -15,17 +16,26 @@ import { DeleteCategoryDialog } from './DeleteCategoryDialog';
 
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
+/** The page number from `?page=`, or 1 when it is missing or not a positive whole number. */
+function readPage(searchParams: URLSearchParams) {
+  const page = Number(searchParams.get('page'));
+  return Number.isInteger(page) && page >= 1 ? page : 1;
+}
+
 export function CategoriesPage() {
-  const [page, setPage] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const page = readPage(searchParams);
   const [editing, setEditing] = useState<Category | 'new' | null>(null);
   const [deleting, setDeleting] = useState<Category | null>(null);
   const categories = useCategories(page);
 
   const totalPages = Math.max(1, Math.ceil((categories.data?.meta.total ?? 0) / pageSize));
 
+  const goToPage = (newPage: number) => setSearchParams({ page: String(newPage) });
+
   // A delete can empty the last page, so step back to the new last page.
   if (categories.data && !categories.isPlaceholderData && page > totalPages) {
-    setPage(totalPages);
+    return <Navigate to={`?page=${totalPages}`} replace />;
   }
 
   return (
@@ -95,7 +105,7 @@ export function CategoriesPage() {
               variant="outline"
               size="sm"
               disabled={page <= 1}
-              onClick={() => setPage(page - 1)}
+              onClick={() => goToPage(page - 1)}
             >
               Previous
             </Button>
@@ -106,7 +116,7 @@ export function CategoriesPage() {
               variant="outline"
               size="sm"
               disabled={page >= totalPages || categories.isPlaceholderData}
-              onClick={() => setPage(page + 1)}
+              onClick={() => goToPage(page + 1)}
             >
               Next
             </Button>
