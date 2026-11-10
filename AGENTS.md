@@ -8,7 +8,6 @@
 - React Router
 - TanStack Query
 - Tailwind CSS
-- shadcn/ui components on Radix UI, in `src/components/ui/`
 - shadcn/ui
 - openapi-typescript
 - Vitest and React Testing Library

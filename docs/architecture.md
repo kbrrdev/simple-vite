@@ -39,7 +39,7 @@ src/
 ├── main.tsx          Entry point, providers, and router
 ├── config/           Environment variables, validated at startup
 ├── lib/              API client, token store, generated API types, money formatting
-├── components/       Shared UI, with shadcn/ui components in components/ui/
+├── components/       Shared UI
 │   └── ui/           shadcn/ui components
 ├── routes/           Route table, layouts, and the admin guard
 ├── features/
