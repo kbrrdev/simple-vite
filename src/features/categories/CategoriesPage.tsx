@@ -23,6 +23,11 @@ export function CategoriesPage() {
 
   const totalPages = Math.max(1, Math.ceil((categories.data?.meta.total ?? 0) / pageSize));
 
+  // A delete can empty the last page, so step back to the new last page.
+  if (categories.data && !categories.isPlaceholderData && page > totalPages) {
+    setPage(totalPages);
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">

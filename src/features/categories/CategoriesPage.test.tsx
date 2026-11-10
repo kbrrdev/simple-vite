@@ -163,6 +163,31 @@ describe('deleting', () => {
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', { method: 'DELETE' });
   });
 
+  it('steps back a page when a delete empties the last one', async () => {
+    let deleted = false;
+    api((_path, options) => {
+      if (options?.method === 'DELETE') {
+        deleted = true;
+        return undefined;
+      }
+      const total = deleted ? 20 : 21;
+      if (options?.query?.page === 2) {
+        return { data: deleted ? [] : [category('Socks')], meta: { page: 2, limit: 20, total } };
+      }
+      return listOf([category('Shirts')], total);
+    });
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Next' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete Socks' }));
+    await userEvent.click(
+      within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }),
+    );
+
+    expect(await screen.findByText('Page 1 of 1')).toBeInTheDocument();
+    expect(screen.getByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
+  });
+
   it('explains when products still use the category', async () => {
     api((_path, options) => {
       if (options?.method === 'DELETE') {
