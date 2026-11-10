@@ -6,8 +6,6 @@ This is a single-page admin app (CMS) built with Vite, React, and TypeScript. It
 
 Features are organized into folders, each with its pages, components, and API hooks.
 
-The project has not been scaffolded yet. This document describes the structure and conventions to follow when it is.
-
 `GET /api/products/admin/:id` requires a simple-express version that includes it.
 
 ## Request Lifecycle
@@ -41,7 +39,7 @@ src/
 ├── main.tsx          Entry point, providers, and router
 ├── config/           Environment variables, validated at startup
 ├── lib/              API client, token store, generated API types, money formatting
-├── components/       Shared UI
+├── components/       Shared UI, with shadcn/ui components in components/ui/
 │   └── ui/           shadcn/ui components
 ├── routes/           Route table, layouts, and the admin guard
 ├── features/
@@ -107,10 +105,12 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Data Fetching
 
-- Each feature has its own query and mutation hooks, built on the shared API client.
+- Each feature keeps its query and mutation hooks in `features/<name>/api.ts`, built on `request` from `src/lib/api.ts`.
 - Query keys start with the feature name, such as `['products', filters]`.
 - List filters and the page number are read from the URL's search parameters.
 - After a mutation, invalidate the queries it affects.
+- A failed mutation shows a toast by default. Forms that show errors inline set `meta: { toast: false }`.
+- Use `errorMessage()` from `src/lib/api.ts` for error text. It adds the `requestId` on `500` errors.
 
 ## Styling
 
@@ -124,6 +124,9 @@ Configuration comes from `VITE_` environment variables, documented in `.env.exam
 ## Testing
 
 Tests run with Vitest and React Testing Library. They render components as a user sees them, and mock the API client rather than the network.
+
+- Render screens with `renderApp(path)` from `src/test/render.tsx`.
+- Mock `request` and `refreshSession` with `vi.mock('@/lib/api', ...)`, and answer `/api/auth/me` with an admin user. See `src/routes/routes.test.tsx`.
 
 ## Build and Deployment
 

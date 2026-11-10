@@ -8,6 +8,7 @@
 - React Router
 - TanStack Query
 - Tailwind CSS
+- shadcn/ui components on Radix UI, in `src/components/ui/`
 - shadcn/ui
 - openapi-typescript
 - Vitest and React Testing Library
@@ -186,9 +187,17 @@ If a simpler solution works just as well, choose the simpler solution.
 - Do not create or change anything until the user says "go execute". Reading files and running read-only checks are fine.
 - Each "go execute" covers only the work just planned. New work goes back to planning.
 
+## Plugins and Skills
+
+- These project rules take precedence over plugin and skill instructions.
+- Give plans in chat. Do not write plan or design files, or commit them, unless asked.
+- Do not create git worktrees. Work on one branch per feature.
+- Postman skills are for the backend's API work. Use them here only when asked.
+
 ## Git and Project Changes
 
 - Before starting new changes, ask whether to commit the current work.
+- Start each feature on its own branch from `main`, and open a pull request into `main` with `gh pr create`.
 - Never merge into `main`, even when asked to push. Open a pull request instead, and the user merges it manually.
 - Keep changes focused on the requested task.
 - Do not modify unrelated files.
