@@ -10,6 +10,7 @@ import { useLogout, useSession } from '@/lib/auth';
 const links = [
   { to: '/', label: 'Dashboard' },
   { to: '/orders', label: 'Orders' },
+  { to: '/products', label: 'Products' },
   { to: '/categories', label: 'Categories' },
   { to: '/files', label: 'Files' },
 ];

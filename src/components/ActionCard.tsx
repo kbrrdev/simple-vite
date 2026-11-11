@@ -11,7 +11,7 @@ interface Props {
  * A card with its actions in a footer bar. The main action sits on the right, or on top on
  * phones, and side-by-side cards keep their footers on one line.
  */
-export function OrderCard({ title, children, actions }: Props) {
+export function ActionCard({ title, children, actions }: Props) {
   const headingId = useId();
 
   return (

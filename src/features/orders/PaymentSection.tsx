@@ -3,9 +3,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { formatCents } from '@/lib/money';
 import { useConfirmPayment, useRefundPayment, useRejectPayment, type Order } from './api';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { canRefund } from './labels';
-import { OrderCard } from './OrderCard';
+import { ActionCard } from '@/components/ActionCard';
 import { Steps } from './Steps';
 import { paymentSteps } from './order-steps';
 
@@ -71,7 +71,7 @@ export function PaymentSection({ order }: { order: Order }) {
   }
 
   return (
-    <OrderCard title="Payment" actions={actions}>
+    <ActionCard title="Payment" actions={actions}>
       <Steps label="Payment steps" steps={paymentSteps(order)}>
         {submitted && (
           <div className="pt-1">
@@ -111,6 +111,6 @@ export function PaymentSection({ order }: { order: Order }) {
           onClose={close}
         />
       )}
-    </OrderCard>
+    </ActionCard>
   );
 }
