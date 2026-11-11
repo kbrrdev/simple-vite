@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { env } from '@/config/env';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useLogin, useSession } from '@/lib/auth';
 
@@ -40,7 +41,7 @@ export function LoginPage() {
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>
-            <h1>Store Admin</h1>
+            <h1>{env.storeName}</h1>
           </CardTitle>
         </CardHeader>
         <CardContent>

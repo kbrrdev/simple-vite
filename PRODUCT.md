@@ -38,7 +38,7 @@ The admin holds no business rules. The backend owns prices, stock, orders, payme
 
 White-label. The product name is the generic "Store Admin", with no store branding of its own.
 
-Open: whether each deployment can set its own store name or logo.
+Each deployment sets its store name with `VITE_STORE_NAME`, which defaults to "Store Admin". A per-store logo is not supported yet.
 
 ## Evidence on Hand
 
