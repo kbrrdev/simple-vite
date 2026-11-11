@@ -51,7 +51,7 @@ src/
 | Screen          | Status  | Backend routes                                                                                                                                         |
 | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Products        | Partly  | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
+| Products        | Built   | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
 | Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Built   | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
 | Payment methods | Planned | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
@@ -82,11 +82,12 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Products
 
-The list, the New product form, and the product details are built. Managing images and editing variants come next.
-
 - The list searches by name and filters by category, which includes subcategories. Search, category, sort, and page are kept in the URL.
 - New products are created with all their variants at once. The form builds a variant for each combination of option values, and prices are typed in pesos and sent as cents.
 - Images can only be added after a product exists, so creating one opens its page.
+- The first image is the main one. Moving an image renumbers the positions 0, 1, 2, and so on, with one `PATCH` for each image that changes, as positions can tie after a removal.
+- A new variant cannot have an image, as the backend's create body has none. Staff give it one with Edit, from the product's own images.
+- Editing a variant sends only the fields that changed, so that a price change cannot overwrite a stock change made meanwhile.
 
 - `GET /api/products/admin/:id` requires a simple-express version that includes it.
 - Deleting a product or variant deactivates it, so that orders can keep referencing it. The UI calls this **Deactivate**, and an inactive item can be turned back on.

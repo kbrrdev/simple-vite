@@ -42,7 +42,8 @@ function useProductMutation<T, R>(send: (variables: T) => Promise<R>) {
   return useMutation({
     mutationFn: send,
     meta: { toast: false },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
+    // Settled, not success: a reorder can fail halfway, and the page must show what was saved.
+    onSettled: () => queryClient.invalidateQueries({ queryKey: ['products'] }),
   });
 }
 
@@ -64,5 +65,96 @@ export function useSetProductActive() {
     active
       ? request(`/api/products/${id}`, { method: 'PATCH', body: { active: true } })
       : request(`/api/products/${id}`, { method: 'DELETE' }),
+  );
+}
+
+export function useAddImage() {
+  return useProductMutation(
+    ({ productId, assetId, altText }: { productId: string; assetId: string; altText: string }) =>
+      request(`/api/products/${productId}/images`, {
+        method: 'POST',
+        body: { assetId, altText } satisfies Schemas['AddProductImage'],
+      }),
+  );
+}
+
+export function useUpdateImageAltText() {
+  return useProductMutation(
+    ({ productId, imageId, altText }: { productId: string; imageId: string; altText: string }) =>
+      request(`/api/products/${productId}/images/${imageId}`, {
+        method: 'PATCH',
+        body: { altText } satisfies Schemas['UpdateProductImage'],
+      }),
+  );
+}
+
+/** Removes an image from the product. The file stays in Files. */
+export function useRemoveImage() {
+  return useProductMutation(({ productId, imageId }: { productId: string; imageId: string }) =>
+    request(`/api/products/${productId}/images/${imageId}`, { method: 'DELETE' }),
+  );
+}
+
+/**
+ * Saves a new image order by numbering the images 0, 1, 2, and so on. Only the images whose
+ * number changes are sent, one at a time, as the backend updates one image per request.
+ */
+export function useReorderImages() {
+  return useProductMutation(
+    async ({ product, imageIds }: { product: Product; imageIds: string[] }) => {
+      for (const [position, imageId] of imageIds.entries()) {
+        const image = product.images.find((item) => item.id === imageId);
+        if (image?.position === position) continue;
+
+        await request(`/api/products/${product.id}/images/${imageId}`, {
+          method: 'PATCH',
+          body: { position } satisfies Schemas['UpdateProductImage'],
+        });
+      }
+    },
+  );
+}
+
+export type VariantChanges = Partial<Schemas['UpdateVariant']>;
+
+export function useAddVariant() {
+  return useProductMutation(
+    ({ productId, body }: { productId: string; body: Schemas['CreateVariant'] }) =>
+      request(`/api/products/${productId}/variants`, { method: 'POST', body }),
+  );
+}
+
+export function useUpdateVariant() {
+  return useProductMutation(
+    ({
+      productId,
+      variantId,
+      body,
+    }: {
+      productId: string;
+      variantId: string;
+      body: VariantChanges;
+    }) => request(`/api/products/${productId}/variants/${variantId}`, { method: 'PATCH', body }),
+  );
+}
+
+/** Deactivating keeps the variant for past orders. Turning it back on is a plain update. */
+export function useSetVariantActive() {
+  return useProductMutation(
+    ({
+      productId,
+      variantId,
+      active,
+    }: {
+      productId: string;
+      variantId: string;
+      active: boolean;
+    }) =>
+      active
+        ? request(`/api/products/${productId}/variants/${variantId}`, {
+            method: 'PATCH',
+            body: { active: true },
+          })
+        : request(`/api/products/${productId}/variants/${variantId}`, { method: 'DELETE' }),
   );
 }

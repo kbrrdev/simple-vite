@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
-import { formatCents } from '@/lib/money';
 import {
   useProduct,
   useSetProductActive,
@@ -16,8 +15,9 @@ import {
   type Product,
   type UpdateProductBody,
 } from './api';
+import { ImagesCard } from './ImagesCard';
 import { ProductFields, type ProductFieldValues } from './ProductFields';
-import { variantLabel } from './variants';
+import { VariantsCard } from './VariantsCard';
 
 const detailsFormId = 'product-details';
 
@@ -175,51 +175,6 @@ function DetailsCard({ product }: { product: Product }) {
             setConfirmingDeactivate(false);
           }}
         />
-      )}
-    </ActionCard>
-  );
-}
-
-function VariantsCard({ product }: { product: Product }) {
-  return (
-    <ActionCard title={`Variants (${product.variants.length})`}>
-      <ul aria-label="Variants" className="-mx-4 -my-4">
-        {product.variants.map((variant, index) => (
-          <li
-            key={variant.id}
-            className={`flex items-center gap-3 px-4 py-3 text-sm ${index > 0 ? 'border-t' : ''}`}
-          >
-            <span className="min-w-0 flex-1 truncate font-medium">{variantLabel(variant)}</span>
-            {!variant.active && <Badge variant="secondary">Inactive</Badge>}
-            <span className="text-muted-foreground tabular-nums">{variant.stock} in stock</span>
-            <span className="w-24 text-right font-medium tabular-nums">
-              {formatCents(variant.priceCents)}
-            </span>
-          </li>
-        ))}
-      </ul>
-    </ActionCard>
-  );
-}
-
-function ImagesCard({ product }: { product: Product }) {
-  return (
-    <ActionCard title={`Images (${product.images.length} of 10)`}>
-      {product.images.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No images yet.</p>
-      ) : (
-        <ul className="grid grid-cols-3 gap-2 sm:grid-cols-5">
-          {product.images.map((image) => (
-            <li key={image.id}>
-              <img
-                src={image.url}
-                alt={image.altText}
-                loading="lazy"
-                className="aspect-square w-full rounded-md bg-muted object-cover"
-              />
-            </li>
-          ))}
-        </ul>
       )}
     </ActionCard>
   );

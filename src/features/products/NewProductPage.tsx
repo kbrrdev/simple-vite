@@ -8,15 +8,7 @@ import { useCreateProduct, type CreateProductBody } from './api';
 import { ProductFields, type ProductFieldValues } from './ProductFields';
 import { useVariantBuilder, type VariantBuilderState } from './use-variant-builder';
 import { VariantBuilder } from './VariantBuilder';
-import { maxVariants } from './variants';
-
-const maxInteger = 2147483647;
-
-function parseStock(text: string) {
-  if (!/^\d+$/.test(text.trim())) return null;
-  const stock = Number(text);
-  return stock <= maxInteger ? stock : null;
-}
+import { maxVariants, parseStock } from './variants';
 
 /** Checks the form before sending. The backend still decides, and its errors are shown too. */
 function validate(fields: ProductFieldValues, builder: VariantBuilderState) {
