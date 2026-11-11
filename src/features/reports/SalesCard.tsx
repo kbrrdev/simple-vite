@@ -33,7 +33,7 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
 
   return (
     <ActionCard title="Sales">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div role="group" aria-label="Group by" className="flex gap-1">
           {intervals.map((item) => (
             <Button

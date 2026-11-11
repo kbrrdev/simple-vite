@@ -138,6 +138,26 @@ describe('the summary', () => {
     ).toBeInTheDocument();
   });
 
+  it('keeps each secondary figure paired with its label', async () => {
+    serve();
+    renderApp('/');
+
+    await screen.findByRole('region', { name: 'Summary' });
+    const more = screen.getByLabelText('More figures');
+    const pairs = Array.from(more.children).map((pair) => [
+      pair.querySelector('dt')?.textContent,
+      pair.querySelector('dd')?.textContent,
+    ]);
+    expect(pairs).toEqual([
+      ['Items sold', '112'],
+      ['Refunded', '₱1,200.00'],
+      ['Cancelled orders', '2'],
+      ['New customers', '9'],
+      ['Tax', '₱5,170.00'],
+      ['Shipping', '₱4,350.00'],
+    ]);
+  });
+
   it('lists each tax rate when the rate changed during the range', async () => {
     serve((path) =>
       path === '/api/reports/summary'

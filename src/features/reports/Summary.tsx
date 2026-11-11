@@ -39,17 +39,23 @@ export function Summary({ range }: { range: DateRange }) {
     <section aria-label="Summary" className="space-y-4">
       <dl className="grid grid-cols-2 gap-x-4 gap-y-4 md:grid-cols-4">
         {headline.map((item) => (
-          <div key={item.label}>
+          <div key={item.label} className="min-w-0">
             <dt className="text-sm text-muted-foreground">{item.label}</dt>
-            <dd className="text-2xl font-semibold tabular-nums">{item.value}</dd>
+            <dd className="text-xl font-semibold break-words tabular-nums md:text-2xl">
+              {item.value}
+            </dd>
           </div>
         ))}
       </dl>
-      <dl className="flex flex-wrap gap-x-6 gap-y-1 text-sm">
+      {/* A grid keeps each label over its own value, so pairs never mix when they wrap. */}
+      <dl
+        aria-label="More figures"
+        className="grid grid-cols-2 gap-x-4 gap-y-3 border-t pt-4 sm:grid-cols-3 lg:grid-cols-6"
+      >
         {more.map((item) => (
-          <div key={item.label} className="flex gap-1.5">
-            <dt className="text-muted-foreground">{item.label}</dt>
-            <dd className="font-medium tabular-nums">{item.value}</dd>
+          <div key={item.label} className="min-w-0">
+            <dt className="text-xs text-muted-foreground">{item.label}</dt>
+            <dd className="font-medium break-words tabular-nums">{item.value}</dd>
           </div>
         ))}
       </dl>

@@ -76,7 +76,7 @@ export default function SalesChart({ sales }: { sales: ReportSales }) {
             minTickGap={16}
           />
           <YAxis
-            width={64}
+            width={52}
             tickLine={false}
             axisLine={false}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
