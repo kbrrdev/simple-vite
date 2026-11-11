@@ -18,16 +18,18 @@ The app runs at `http://localhost:5173`, which the backend allows by default. Lo
 
 ## Scripts
 
-| Script              | Description                                                |
-| ------------------- | ---------------------------------------------------------- |
-| `npm run dev`       | Development server                                         |
-| `npm run build`     | Type-checks and builds static files into `dist/`           |
-| `npm run preview`   | Serves the build locally                                   |
-| `npm run typecheck` | TypeScript                                                 |
-| `npm run lint`      | ESLint                                                     |
-| `npm run format`    | Prettier                                                   |
-| `npm test`          | Vitest                                                     |
-| `npm run api:types` | Regenerates `src/lib/api-schema.d.ts` from the running API |
+| Script                 | Description                                                |
+| ---------------------- | ---------------------------------------------------------- |
+| `npm run dev`          | Development server                                         |
+| `npm run build`        | Type-checks and builds static files into `dist/`           |
+| `npm run preview`      | Serves the build locally                                   |
+| `npm run typecheck`    | TypeScript                                                 |
+| `npm run lint`         | ESLint                                                     |
+| `npm run format`       | Prettier                                                   |
+| `npm run format:check` | Prettier, without writing changes                          |
+| `npm test`             | Vitest                                                     |
+| `npm run test:watch`   | Vitest in watch mode                                       |
+| `npm run api:types`    | Regenerates `src/lib/api-schema.d.ts` from the running API |
 
 Run `npm run api:types` whenever the backend's API changes, and commit the result.
 

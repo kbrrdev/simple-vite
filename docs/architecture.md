@@ -6,8 +6,6 @@ This is a single-page admin app (CMS) built with Vite, React, and TypeScript. It
 
 Features are organized into folders, each with its pages, components, and API hooks.
 
-`GET /api/products/admin/:id` requires a simple-express version that includes it.
-
 ## Request Lifecycle
 
 ```text
@@ -36,12 +34,12 @@ Rendered result, or loading, error, and empty states
 
 ```text
 src/
-├── main.tsx          Entry point, providers, and router
+├── main.tsx          Entry point and providers
 ├── config/           Environment variables, validated at startup
-├── lib/              API client, token store, generated API types, money formatting
+├── lib/              API client and access token, auth hooks, generated API types, money formatting
 ├── components/       Shared UI
 │   └── ui/           shadcn/ui components
-├── routes/           Route table, layouts, and the admin guard
+├── routes/           Router, layouts, and the admin guard
 ├── features/
 │   └── <name>/       Pages, components, and hooks for one area, such as products
 ├── styles/           Tailwind entry point
@@ -50,15 +48,15 @@ src/
 
 ## Screens and Backend Modules
 
-| Screen          | Backend routes                                                                                                                                         |
-| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login           | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Products        | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
-| Categories      | `GET /api/categories`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                                |
-| Orders          | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
-| Payment methods | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
-| Blogs           | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
-| Files           | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
+| Screen          | Status  | Backend routes                                                                                                                                         |
+| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
+| Products        | Planned | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
+| Categories      | Built   | `GET /api/categories`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                                |
+| Orders          | Planned | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
+| Payment methods | Planned | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Blogs           | Planned | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Files           | Built   | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -66,6 +64,9 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Products
 
+The Products screen is planned. These are the backend rules it must follow.
+
+- `GET /api/products/admin/:id` requires a simple-express version that includes it.
 - Deleting a product or variant deactivates it, so that orders can keep referencing it. The UI calls this **Deactivate**, and an inactive item can be turned back on.
 - A product has up to two options, such as Size and Color. They can be renamed, but not added or removed after creation.
 - Each variant has its option values, price, stock, and an optional image from the product's images.

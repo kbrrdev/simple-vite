@@ -26,37 +26,16 @@ This is the admin app (CMS) for the `simple-express` backend.
 - The backend's OpenAPI document is the contract. Do not redefine API types by hand.
 - This app has its own repository. There is no monorepo.
 
-## Core Principles
+## Principles
 
-- Keep the implementation simple and maintainable.
-- Prioritize readability over clever solutions.
-- Follow conventional software engineering practices.
-- Avoid overengineering and unnecessary abstractions.
-- Prefer established project patterns over introducing new ones.
-- Use async/await for asynchronous operations.
-- Handle errors consistently.
+- Choose the simplest solution that is correct, secure, and maintainable.
+- Prefer existing project patterns, components, hooks, and utilities over new ones.
+- Add abstractions, files, or dependencies only for a clear technical reason.
+- Solve the requested requirement. Do not build for imagined future ones.
+- Prefer readable code over clever or compact code.
+- Comment only what the code cannot say for itself.
+- Use async/await, and handle errors consistently.
 - Never expose secrets in the bundle, and never log tokens or personal data.
-
-## AI Coding Philosophy
-
-Write code like an experienced, pragmatic senior software engineer.
-
-The goal is to produce production-quality code that is simple, readable, and easy to maintain.
-
-- Prefer straightforward solutions over complicated implementations.
-- Do not write code just to demonstrate advanced programming techniques.
-- Avoid unnecessary design patterns and abstraction layers.
-- Do not create abstractions just to make code reusable.
-- Avoid excessive interfaces, wrappers, factories, and helper functions.
-- Do not split simple logic into multiple files without a good reason.
-- Avoid deeply nested logic and unnecessarily complex conditions.
-- Avoid clever one-liners when a few readable lines are clearer.
-- Do not add unnecessary comments explaining obvious code.
-- Do not generate excessive documentation for simple implementations.
-- Do not anticipate requirements that have not been requested.
-- Do not introduce unnecessary dependencies.
-- Reuse existing utilities, components, and hooks whenever appropriate.
-- Only introduce complexity when there is a clear technical reason.
 
 ### Before Implementing
 
@@ -67,18 +46,6 @@ The goal is to produce production-quality code that is simple, readable, and eas
 5. Consider the impact on existing functionality.
 6. Avoid modifying unrelated files.
 7. Do not introduce new dependencies without a good reason.
-
-### Code Review Mindset
-
-Before considering an implementation complete, ask:
-
-- Is this more complicated than necessary?
-- Can this be implemented with fewer abstractions?
-- Is the code easy for another developer to understand?
-- Am I solving an actual requirement or anticipating unnecessary future requirements?
-- Would an experienced developer consider this a reasonable implementation?
-
-If a simpler solution works just as well, choose the simpler solution.
 
 ## Project Architecture
 
@@ -146,13 +113,8 @@ If a simpler solution works just as well, choose the simpler solution.
 
 ## Code Quality
 
-- Follow ESLint rules.
-- Use Prettier for code formatting.
 - Avoid duplicated code.
-- Use meaningful variable, function, and component names.
 - Remove unused code, imports, and debugging statements.
-- Keep functions and components focused and easy to understand.
-- Prefer readable implementations over unnecessarily compact code.
 
 ## Environment and Build
 
@@ -185,6 +147,7 @@ If a simpler solution works just as well, choose the simpler solution.
 - Treat every request as planning, even when it sounds like an instruction to build.
 - Do not create or change anything until the user says "go execute". Reading files and running read-only checks are fine.
 - Each "go execute" covers only the work just planned. New work goes back to planning.
+- After "go execute", first ask whether to commit the current work, then branch from `main`.
 
 ## Plugins and Skills
 
@@ -215,9 +178,3 @@ If a simpler solution works just as well, choose the simpler solution.
 - Apply Prettier formatting.
 - Fix errors introduced by the changes.
 - Summarize what was implemented and mention any important decisions.
-
-## Final Rule
-
-Always choose the simplest solution that meets the requirements without sacrificing correctness, security, or maintainability.
-
-Write code that another developer can easily understand, maintain, and extend.
