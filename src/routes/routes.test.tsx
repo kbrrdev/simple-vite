@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
@@ -145,6 +145,29 @@ describe('logging in', () => {
 
     expect(await screen.findByText('"email" must be a valid email')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+  });
+});
+
+describe('the layout', () => {
+  it('shows the store name', async () => {
+    signedInAs(admin);
+    renderApp('/');
+
+    await screen.findByRole('heading', { name: 'Dashboard' });
+    expect(screen.getAllByText('Store Admin').length).toBeGreaterThan(0);
+  });
+
+  it('opens the phone menu and closes it after navigating', async () => {
+    signedInAs(admin);
+    const { router } = renderApp('/');
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Open menu' }));
+    const menu = await screen.findByRole('dialog', { name: 'Store Admin' });
+    await user.click(within(menu).getByRole('link', { name: 'Categories' }));
+
+    expect(router.state.location.pathname).toBe('/categories');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
 

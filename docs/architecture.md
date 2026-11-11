@@ -122,6 +122,9 @@ The Products screen is planned. These are the backend rules it must follow.
 
 Configuration comes from `VITE_` environment variables, documented in `.env.example` and read only through `src/config/`. They are built into the bundle, so they are public.
 
+- `VITE_API_URL` is the simple-express API, and is required.
+- `VITE_STORE_NAME` is shown in the header, on the login page, and in the browser tab. It defaults to "Store Admin".
+
 ## Testing
 
 Tests run with Vitest and React Testing Library. They render components as a user sees them, and mock the API client rather than the network.

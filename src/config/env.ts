@@ -9,4 +9,5 @@ function readApiUrl() {
 
 export const env = {
   apiUrl: readApiUrl(),
+  storeName: import.meta.env.VITE_STORE_NAME?.trim() || 'Store Admin',
 };
