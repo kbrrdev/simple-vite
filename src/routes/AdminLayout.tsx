@@ -28,7 +28,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
             end
             onClick={onNavigate}
             className={({ isActive }) =>
-              `rounded-md px-2 py-2 text-sm md:py-1.5 ${isActive ? 'bg-sidebar-accent font-medium' : 'hover:bg-sidebar-accent'}`
+              `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'}`
             }
           >
             {link.label}
@@ -55,8 +55,7 @@ export function AdminLayout() {
 
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
-      <header className="sticky top-0 z-40 flex items-center justify-between border-b bg-sidebar px-4 py-2 md:hidden">
-        <p className="truncate font-semibold">{env.storeName}</p>
+      <header className="sticky top-0 z-40 flex items-center gap-2 border-b bg-sidebar px-2 py-1 md:hidden">
         <Button
           variant="ghost"
           size="icon"
@@ -65,6 +64,7 @@ export function AdminLayout() {
         >
           <MenuIcon />
         </Button>
+        <p className="truncate font-semibold">{env.storeName}</p>
       </header>
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>

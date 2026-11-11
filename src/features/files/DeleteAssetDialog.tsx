@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -40,7 +41,14 @@ export function DeleteAssetDialog({ asset, onClose }: Props) {
           <Button
             variant="destructive"
             disabled={remove.isPending}
-            onClick={() => remove.mutate(asset.id, { onSuccess: onClose })}
+            onClick={() =>
+              remove.mutate(asset.id, {
+                onSuccess: () => {
+                  toast.success('Image deleted');
+                  onClose();
+                },
+              })
+            }
           >
             {remove.isPending ? 'Deleting…' : 'Delete'}
           </Button>

@@ -19,7 +19,7 @@ export function Pagination({ page, totalPages, onPageChange, loading = false }: 
       >
         Previous
       </Button>
-      <span className="text-sm text-muted-foreground">
+      <span className="text-sm text-muted-foreground tabular-nums">
         Page {page} of {totalPages}
       </span>
       <Button

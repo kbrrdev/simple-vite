@@ -1,0 +1,275 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T18:00:00+08:00",
+  "title": "Design System: Store Admin",
+  "extensions": {
+    "colorMeta": {
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(0.145 0 0)",
+        "tonalRamp": [
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.269 0 0)",
+          "oklch(0.371 0 0)",
+          "oklch(0.439 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.87 0 0)"
+        ]
+      },
+      "charcoal": {
+        "role": "primary",
+        "displayName": "Charcoal",
+        "canonical": "oklch(0.205 0 0)",
+        "tonalRamp": [
+          "oklch(0.145 0 0)",
+          "oklch(0.205 0 0)",
+          "oklch(0.269 0 0)",
+          "oklch(0.371 0 0)",
+          "oklch(0.439 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.87 0 0)"
+        ]
+      },
+      "slate-text": {
+        "role": "neutral",
+        "displayName": "Slate Text",
+        "canonical": "oklch(0.556 0 0)",
+        "tonalRamp": [
+          "oklch(0.269 0 0)",
+          "oklch(0.371 0 0)",
+          "oklch(0.439 0 0)",
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.87 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.97 0 0)"
+        ]
+      },
+      "hairline": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "oklch(0.922 0 0)",
+        "tonalRamp": [
+          "oklch(0.556 0 0)",
+          "oklch(0.708 0 0)",
+          "oklch(0.87 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)",
+          "oklch(0.985 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "mist": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "oklch(0.97 0 0)",
+        "tonalRamp": [
+          "oklch(0.708 0 0)",
+          "oklch(0.87 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)",
+          "oklch(0.98 0 0)",
+          "oklch(0.985 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "paper-shade": {
+        "role": "neutral",
+        "displayName": "Paper Shade",
+        "canonical": "oklch(0.985 0 0)",
+        "tonalRamp": [
+          "oklch(0.87 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)",
+          "oklch(0.98 0 0)",
+          "oklch(0.985 0 0)",
+          "oklch(0.993 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "paper": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(1 0 0)",
+        "tonalRamp": [
+          "oklch(0.87 0 0)",
+          "oklch(0.922 0 0)",
+          "oklch(0.95 0 0)",
+          "oklch(0.97 0 0)",
+          "oklch(0.98 0 0)",
+          "oklch(0.985 0 0)",
+          "oklch(0.993 0 0)",
+          "oklch(1 0 0)"
+        ]
+      },
+      "alarm-red": {
+        "role": "tertiary",
+        "displayName": "Alarm Red",
+        "canonical": "oklch(0.577 0.245 27.325)",
+        "tonalRamp": [
+          "oklch(0.25 0.09 27)",
+          "oklch(0.35 0.13 27)",
+          "oklch(0.45 0.18 27)",
+          "oklch(0.577 0.245 27.325)",
+          "oklch(0.68 0.19 25)",
+          "oklch(0.78 0.12 24)",
+          "oklch(0.88 0.06 22)",
+          "oklch(0.95 0.025 20)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "headline": { "displayName": "Headline", "purpose": "The single page title on each screen." },
+      "title": { "displayName": "Title", "purpose": "Dialog and sheet titles." },
+      "body": {
+        "displayName": "Body",
+        "purpose": "List text, descriptions, and messages. Inputs use 1rem on phones."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Form labels, legends, and item names in lists."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "File details and the reason under a disabled menu item."
+      }
+    },
+    "shadows": [
+      {
+        "name": "dialog-ring",
+        "value": "0 0 0 1px oklch(0.145 0 0 / 10%)",
+        "purpose": "Outlines dialogs and the image picker above the dimmed page."
+      },
+      {
+        "name": "menu",
+        "value": "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)",
+        "purpose": "Dropdown menus."
+      },
+      {
+        "name": "sheet",
+        "value": "0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1)",
+        "purpose": "The phone menu sheet."
+      }
+    ],
+    "motion": [
+      {
+        "name": "overlay-fade",
+        "value": "100ms fade and 95% zoom",
+        "purpose": "Dialogs and menus opening and closing."
+      },
+      {
+        "name": "sheet-slide",
+        "value": "200ms ease-in-out, slide from the left",
+        "purpose": "The phone menu sheet."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one main action on a screen, such as New category or Save.",
+      "html": "<button class=\"ds-btn ds-btn-primary\">New category</button>",
+      "css": ".ds-btn { display: inline-flex; align-items: center; justify-content: center; height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid transparent; font: 500 0.875rem/1 'Geist Variable', sans-serif; cursor: pointer; transition: background-color 0.15s; } .ds-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.556 0 0); } .ds-btn-primary { background: oklch(0.205 0 0); color: oklch(0.985 0 0); } .ds-btn-primary:hover { background: oklch(0.205 0 0 / 80%); }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Secondary actions in a row, such as Edit and Cancel.",
+      "html": "<button class=\"ds-btn-outline\">Edit</button>",
+      "css": ".ds-btn-outline { display: inline-flex; align-items: center; height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); color: oklch(0.145 0 0); font: 500 0.8rem/1 'Geist Variable', sans-serif; cursor: pointer; } .ds-btn-outline:hover { background: oklch(0.97 0 0); } .ds-btn-outline:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.556 0 0); }"
+    },
+    {
+      "name": "Destructive Button",
+      "kind": "button",
+      "refersTo": "button-destructive",
+      "description": "The final confirm button in a delete, refund, or reject dialog. Never directly in a list row.",
+      "html": "<button class=\"ds-btn-danger\">Delete</button>",
+      "css": ".ds-btn-danger { display: inline-flex; align-items: center; height: 44px; padding: 0 12px; border-radius: 10px; border: 1px solid transparent; background: oklch(0.577 0.245 27.325); color: #fff; font: 500 0.875rem/1 'Geist Variable', sans-serif; cursor: pointer; } .ds-btn-danger:hover { background: oklch(0.577 0.245 27.325 / 90%); } .ds-btn-danger:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.577 0.245 27.325 / 40%); }"
+    },
+    {
+      "name": "Text Field",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "A labelled input with its error linked below.",
+      "html": "<div class=\"ds-field\"><label class=\"ds-label\" for=\"ds-name\">Name</label><input id=\"ds-name\" class=\"ds-input\" value=\"Shoes\" aria-invalid=\"true\" aria-describedby=\"ds-name-error\"><p id=\"ds-name-error\" class=\"ds-error\">Category name already exists</p></div>",
+      "css": ".ds-field { display: grid; gap: 8px; max-width: 320px; } .ds-label { font: 500 0.875rem/1 'Geist Variable', sans-serif; color: oklch(0.145 0 0); } .ds-input { height: 44px; padding: 4px 10px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); font: 400 1rem 'Geist Variable', sans-serif; color: oklch(0.145 0 0); } .ds-input:focus-visible { outline: none; border-color: oklch(0.556 0 0); box-shadow: 0 0 0 3px oklch(0.556 0 0); } .ds-input[aria-invalid='true'] { border-color: oklch(0.577 0.245 27.325); } .ds-error { margin: 0; font: 400 0.875rem/1.43 'Geist Variable', sans-serif; color: oklch(0.577 0.245 27.325); }"
+    },
+    {
+      "name": "Navigation",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Sidebar links: Slate Text when inactive, Hairline background when active.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-link\" href=\"#\">Dashboard</a><a class=\"ds-nav-link ds-active\" href=\"#\" aria-current=\"page\">Categories</a><a class=\"ds-nav-link\" href=\"#\">Files</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; width: 192px; padding: 16px; background: oklch(0.985 0 0); } .ds-nav-link { display: flex; align-items: center; min-height: 44px; padding: 0 8px; border-radius: 8px; font: 400 0.875rem 'Geist Variable', sans-serif; color: oklch(0.556 0 0); text-decoration: none; } .ds-nav-link:hover { background: oklch(0.922 0 0 / 50%); color: oklch(0.145 0 0); } .ds-nav-link:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.556 0 0); } .ds-active { background: oklch(0.922 0 0); color: oklch(0.205 0 0); font-weight: 500; }"
+    },
+    {
+      "name": "Category Row",
+      "kind": "custom",
+      "description": "A list row: thumbnail, name, one visible action, and a More actions menu.",
+      "html": "<ul class=\"ds-list\"><li class=\"ds-row\"><span class=\"ds-thumb\"></span><span class=\"ds-name\">Men</span><button class=\"ds-row-btn\">Edit</button><button class=\"ds-more\" aria-label=\"More actions for Men\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg></button></li><li class=\"ds-row ds-indent\"><span class=\"ds-thumb\"></span><span class=\"ds-name\">Shoes</span><button class=\"ds-row-btn\">Edit</button><button class=\"ds-more\" aria-label=\"More actions for Shoes\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\"><circle cx=\"12\" cy=\"12\" r=\"1\"/><circle cx=\"19\" cy=\"12\" r=\"1\"/><circle cx=\"5\" cy=\"12\" r=\"1\"/></svg></button></li></ul>",
+      "css": ".ds-list { list-style: none; margin: 0; padding: 0; max-width: 420px; border: 1px solid oklch(0.922 0 0); border-radius: 10px; overflow: hidden; } .ds-row { display: flex; align-items: center; gap: 12px; padding: 8px 16px; border-top: 1px solid oklch(0.922 0 0); font: 500 0.875rem 'Geist Variable', sans-serif; color: oklch(0.145 0 0); } .ds-row:first-child { border-top: 0; } .ds-indent { padding-left: 40px; } .ds-thumb { width: 40px; height: 40px; flex-shrink: 0; border-radius: 8px; background: oklch(0.97 0 0); } .ds-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .ds-row-btn { height: 40px; padding: 0 12px; border-radius: 10px; border: 1px solid oklch(0.922 0 0); background: oklch(1 0 0); font: 500 0.8rem 'Geist Variable', sans-serif; cursor: pointer; } .ds-row-btn:hover { background: oklch(0.97 0 0); } .ds-more { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border: 0; border-radius: 10px; background: transparent; color: oklch(0.145 0 0); cursor: pointer; } .ds-more:hover { background: oklch(0.97 0 0); } .ds-row-btn:focus-visible, .ds-more:focus-visible { outline: none; box-shadow: 0 0 0 3px oklch(0.556 0 0); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Quiet Back Office",
+    "overview": "Store Admin is the room behind the shop. Staff come in to confirm a payment, fix a price, or add a category, and they leave. The interface stays neutral so that any store can run it under its own name, and quiet so that the one thing that needs attention, an error, a destructive action, the current page, is the only thing that speaks.\n\nThe system is shadcn/ui's neutral theme, owned and tuned for use on a phone. It is achromatic by design: the store's identity lives in its storefront, not here. Restraint is the brand. Quality shows in precise details instead: 44px touch targets on phones, aligned figures, a visible focus ring, and errors placed beside the field they describe.",
+    "keyCharacteristics": [
+      "Achromatic neutrals, with red reserved for danger.",
+      "Flat surfaces separated by hairlines, not shadows.",
+      "Phone first: 44px controls below `md`, the desktop density from `md` up.",
+      "One page title, then content; no decorative headers.",
+      "Feedback for every action: a status line while loading, a toast on success, a message beside the field on error."
+    ],
+    "rules": [
+      {
+        "name": "The Red Means Stop Rule",
+        "body": "Alarm Red appears only where something can go wrong or is irreversible: Delete, Refund, Reject, Cancel, and error text. It is never decoration, a brand accent, or a status for something that is fine.",
+        "section": "colors"
+      },
+      {
+        "name": "The No Store Color Rule",
+        "body": "The admin carries no store's brand color. A store's identity reaches the admin only through `VITE_STORE_NAME`.",
+        "section": "colors"
+      },
+      {
+        "name": "The Aligned Figures Rule",
+        "body": "Any number that can sit above or beside another number, such as page counts, file sizes, money, and quantities, uses tabular figures (`tabular-nums`).",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat Page Rule",
+        "body": "Anything that sits in the page is flat. Only things that float above it, such as dialogs, menus, and sheets, get depth.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** keep every tappable control at least 44px tall below `md` (768px).",
+      "**Do** use one primary button per screen, and outline or ghost buttons for everything else.",
+      "**Do** put a destructive action behind a menu or a confirmation dialog, and use solid Alarm Red only on the final confirm button.",
+      "**Do** show the backend's error message next to the field it names, and link it with `aria-describedby`.",
+      "**Do** use `tabular-nums` for any number that can align with another.",
+      "**Do** separate rows and regions with Hairline borders instead of shadows."
+    ],
+    "donts": [
+      "**Don't** add a store's brand color, logo color, or any second accent to the admin.",
+      "**Don't** use Alarm Red for anything that is not an error or a destructive action.",
+      "**Don't** add shadows to things that sit in the page, such as rows, cards, and the sidebar.",
+      "**Don't** show three or more equal-weight buttons on a list row; move the extra actions into the \"More actions\" menu.",
+      "**Don't** invent figures, stat tiles, or sample data to fill an empty screen."
+    ]
+  }
+}

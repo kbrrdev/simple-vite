@@ -1,5 +1,12 @@
 import { useState } from 'react';
+import { MoreHorizontalIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { errorMessage } from '@/lib/api';
 import { useCategoryTree, type CategoryNode } from './api';
 import { CategoryFormDialog } from './CategoryFormDialog';
@@ -18,52 +25,62 @@ interface ItemProps {
 
 /** One category, with its subcategories in a nested list below it. */
 function CategoryItem({ category, depth, onAdd, onEdit, onDelete }: ItemProps) {
+  const hasChildren = category.children.length > 0;
+
   return (
     <li>
-      <div className="flex flex-col gap-2 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex min-w-0 items-center gap-3">
-          {category.imageUrl ? (
-            <img
-              src={category.imageUrl}
-              alt=""
-              loading="lazy"
-              className="size-10 shrink-0 rounded-md bg-muted object-cover"
-            />
-          ) : (
-            <div className="size-10 shrink-0 rounded-md bg-muted" />
-          )}
-          <span className="truncate font-medium">{category.name}</span>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          {depth < maxDepth && (
-            <Button
-              variant="outline"
-              size="sm"
-              aria-label={`Add a subcategory to ${category.name}`}
-              onClick={() => onAdd(category)}
-            >
-              Add subcategory
+      <div className="flex items-center gap-3 border-t px-4 py-2">
+        {category.imageUrl ? (
+          <img
+            src={category.imageUrl}
+            alt=""
+            loading="lazy"
+            className="size-10 shrink-0 rounded-md bg-muted object-cover"
+          />
+        ) : (
+          <div className="size-10 shrink-0 rounded-md bg-muted" />
+        )}
+        <span className="min-w-0 flex-1 truncate font-medium">{category.name}</span>
+        <Button
+          variant="outline"
+          size="sm"
+          aria-label={`Edit ${category.name}`}
+          onClick={() => onEdit(category)}
+        >
+          Edit
+        </Button>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${category.name}`}>
+              <MoreHorizontalIcon />
             </Button>
-          )}
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={`Edit ${category.name}`}
-            onClick={() => onEdit(category)}
-          >
-            Edit
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            aria-label={`Delete ${category.name}`}
-            onClick={() => onDelete(category)}
-          >
-            Delete
-          </Button>
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="min-w-52">
+            {depth < maxDepth && (
+              <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={() => onAdd(category)}>
+                Add subcategory
+              </DropdownMenuItem>
+            )}
+            {hasChildren ? (
+              <DropdownMenuItem disabled className="min-h-11 flex-col items-start gap-0 md:min-h-8">
+                Delete
+                <span className="text-xs text-muted-foreground">
+                  Remove its subcategories first
+                </span>
+              </DropdownMenuItem>
+            ) : (
+              <DropdownMenuItem
+                variant="destructive"
+                className="min-h-11 md:min-h-8"
+                onSelect={() => onDelete(category)}
+              >
+                Delete
+              </DropdownMenuItem>
+            )}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
-      {category.children.length > 0 && (
+      {hasChildren && (
         <ul aria-label={`Subcategories of ${category.name}`} className="pl-6">
           {category.children.map((child) => (
             <CategoryItem
@@ -93,7 +110,11 @@ export function CategoriesPage() {
         <Button onClick={() => setEditing({})}>New category</Button>
       </div>
 
-      {tree.isPending && <p className="text-muted-foreground">Loading…</p>}
+      {tree.isPending && (
+        <p role="status" className="text-muted-foreground">
+          Loading…
+        </p>
+      )}
 
       {tree.isError && (
         <div className="space-y-4">

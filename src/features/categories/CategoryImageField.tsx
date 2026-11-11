@@ -52,7 +52,7 @@ export function CategoryImageField({ image, onChange, error, onUploadingChange }
         {image?.url ? (
           <img
             src={image.url}
-            alt="Category image"
+            alt="Selected image"
             className="size-16 shrink-0 rounded-md bg-muted object-cover"
           />
         ) : (

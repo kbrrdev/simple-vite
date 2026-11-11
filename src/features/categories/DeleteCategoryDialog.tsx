@@ -1,3 +1,4 @@
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -40,7 +41,14 @@ export function DeleteCategoryDialog({ category, onClose }: Props) {
           <Button
             variant="destructive"
             disabled={remove.isPending}
-            onClick={() => remove.mutate(category.id, { onSuccess: onClose })}
+            onClick={() =>
+              remove.mutate(category.id, {
+                onSuccess: () => {
+                  toast.success('Category deleted');
+                  onClose();
+                },
+              })
+            }
           >
             {remove.isPending ? 'Deleting…' : 'Delete'}
           </Button>

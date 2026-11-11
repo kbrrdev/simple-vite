@@ -3,3 +3,5 @@ node_modules
 package-lock.json
 coverage
 src/lib/api-schema.d.ts
+.impeccable/hook.cache.json
+.impeccable/critique/
