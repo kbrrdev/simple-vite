@@ -42,21 +42,27 @@ export function BestSellers({ range, sort, onSortChange }: Props) {
         <p className="text-sm text-muted-foreground">No sales in this range.</p>
       )}
       {items && items.length > 0 && (
-        <ol aria-label="Best sellers" className="-mx-4 -mb-4">
+        // A container query, as the card is half width on larger screens: narrow cards put the
+        // figures on a second line, and wide ones keep the row on one line.
+        <ol aria-label="Best sellers" className="@container -mx-4 -mb-4">
           {items.map((item, index) => (
             <li key={item.productId} className="border-t">
               <Link
                 to={`/products/${item.productId}`}
-                className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
+                className="flex min-h-11 items-start gap-3 px-4 py-2 text-sm outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset @md:items-center"
               >
-                <span className="w-5 text-muted-foreground tabular-nums">{index + 1}</span>
-                <span className="flex min-w-0 flex-1 items-center gap-2">
-                  <span className="truncate font-medium">{item.name}</span>
-                  {!item.active && <Badge variant="secondary">Inactive</Badge>}
-                </span>
-                <span className="text-muted-foreground tabular-nums">{item.quantity} sold</span>
-                <span className="w-24 text-right font-medium tabular-nums">
-                  {formatCents(item.revenueCents)}
+                <span className="w-5 shrink-0 text-muted-foreground tabular-nums">{index + 1}</span>
+                <span className="min-w-0 flex-1 @md:flex @md:items-center @md:gap-3">
+                  <span className="flex min-w-0 items-center gap-2 @md:flex-1">
+                    <span className="truncate font-medium">{item.name}</span>
+                    {!item.active && <Badge variant="secondary">Inactive</Badge>}
+                  </span>
+                  <span className="flex gap-3 tabular-nums @md:contents">
+                    <span className="text-muted-foreground">{item.quantity} sold</span>
+                    <span className="font-medium @md:w-24 @md:text-right">
+                      {formatCents(item.revenueCents)}
+                    </span>
+                  </span>
                 </span>
               </Link>
             </li>

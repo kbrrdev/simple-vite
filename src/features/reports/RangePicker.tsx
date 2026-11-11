@@ -42,7 +42,7 @@ export function RangePicker({ range, today, onChange }: Props) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="w-full space-y-3 sm:w-auto">
       <div className="space-y-2 sm:w-48">
         <Label htmlFor="report-range">Range</Label>
         <NativeSelect
