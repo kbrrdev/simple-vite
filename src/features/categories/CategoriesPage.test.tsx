@@ -1,8 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
+import type { Asset } from '@/features/files/api';
 import { renderApp } from '@/test/render';
-import type { Category } from './api';
+import type { CategoryNode } from './api';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
@@ -13,11 +14,33 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 const requestMock = vi.mocked(request);
 
 const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
+const date = '2026-11-01T00:00:00.000Z';
 
-function category(name: string): Category {
-  const date = '2026-11-01T00:00:00.000Z';
-  return { id: `id-${name}`, name, createdAt: date, updatedAt: date };
+function category(
+  name: string,
+  children: CategoryNode[] = [],
+  image: { imageAssetId: string; imageUrl: string } | null = null,
+): CategoryNode {
+  const id = `id-${name}`;
+  return {
+    id,
+    parentId: null,
+    name,
+    imageAssetId: image?.imageAssetId ?? null,
+    imageUrl: image?.imageUrl ?? null,
+    createdAt: date,
+    updatedAt: date,
+    children: children.map((child) => ({ ...child, parentId: id })),
+  };
 }
+
+const photo: Asset = {
+  id: 'asset-1',
+  url: 'https://cdn.example.com/asset-1.jpg',
+  mimeType: 'image/jpeg',
+  sizeBytes: 204800,
+  createdAt: date,
+};
 
 /** Answers the session check, then hands other requests to the given handler. */
 function api(handler: (path: string, options?: Parameters<typeof request>[1]) => unknown) {
@@ -26,8 +49,8 @@ function api(handler: (path: string, options?: Parameters<typeof request>[1]) =>
   );
 }
 
-function listOf(categories: Category[], total = categories.length) {
-  return { data: categories, meta: { page: 1, limit: 20, total } };
+function treeOf(categories: CategoryNode[]) {
+  return { data: categories };
 }
 
 beforeEach(() => {
@@ -35,19 +58,33 @@ beforeEach(() => {
   vi.mocked(refreshSession).mockResolvedValue(true);
 });
 
-describe('the categories list', () => {
-  it('shows a loading state, then the categories', async () => {
-    api(() => listOf([category('Shirts'), category('Hats')]));
+describe('the categories tree', () => {
+  it('shows a loading state, then the categories with their subcategories', async () => {
+    api(() =>
+      treeOf([category('Men', [category('Shoes', [category('Running')])]), category('Hats')]),
+    );
     renderApp('/categories');
 
     expect(await screen.findByText('Loading…')).toBeInTheDocument();
-    expect(await screen.findByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
-    expect(screen.getByRole('cell', { name: 'Hats' })).toBeInTheDocument();
-    expect(screen.getByText('Page 1 of 1')).toBeInTheDocument();
+    const men = await screen.findByRole('list', { name: 'Subcategories of Men' });
+    expect(within(men).getByText('Shoes')).toBeInTheDocument();
+    expect(within(men).getByText('Running')).toBeInTheDocument();
+    expect(screen.getByText('Hats')).toBeInTheDocument();
+  });
+
+  it('offers subcategories only above the third level', async () => {
+    api(() => treeOf([category('Men', [category('Shoes', [category('Running')])])]));
+    renderApp('/categories');
+
+    await screen.findByText('Running');
+    expect(screen.getByRole('button', { name: 'Add a subcategory to Shoes' })).toBeInTheDocument();
+    expect(
+      screen.queryByRole('button', { name: 'Add a subcategory to Running' }),
+    ).not.toBeInTheDocument();
   });
 
   it('shows an empty state', async () => {
-    api(() => listOf([]));
+    api(() => treeOf([]));
     renderApp('/categories');
 
     expect(await screen.findByText(/No categories yet/)).toBeInTheDocument();
@@ -62,52 +99,17 @@ describe('the categories list', () => {
     expect(await screen.findByRole('alert')).toHaveTextContent('Reference: req-123');
     expect(screen.getByRole('button', { name: 'Try again' })).toBeInTheDocument();
   });
-
-  function twoPages() {
-    api((_path, options) =>
-      options?.query?.page === 2
-        ? { ...listOf([category('Socks')], 21), meta: { page: 2, limit: 20, total: 21 } }
-        : listOf([category('Shirts')], 21),
-    );
-  }
-
-  it('pages through the categories and keeps the page in the URL', async () => {
-    twoPages();
-    const { router } = renderApp('/categories');
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Next' }));
-
-    expect(await screen.findByRole('cell', { name: 'Socks' })).toBeInTheDocument();
-    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
-    expect(router.state.location.search).toBe('?page=2');
-  });
-
-  it('opens the page given in the URL', async () => {
-    twoPages();
-    renderApp('/categories?page=2');
-
-    expect(await screen.findByRole('cell', { name: 'Socks' })).toBeInTheDocument();
-    expect(screen.getByText('Page 2 of 2')).toBeInTheDocument();
-  });
-
-  it('opens the first page when the URL has an invalid page', async () => {
-    twoPages();
-    renderApp('/categories?page=abc');
-
-    expect(await screen.findByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
-    expect(screen.getByText('Page 1 of 2')).toBeInTheDocument();
-  });
 });
 
-describe('creating and renaming', () => {
-  it('creates a category and refreshes the list', async () => {
+describe('creating and editing', () => {
+  it('creates a top-level category and refreshes the tree', async () => {
     let created = false;
     api((_path, options) => {
       if (options?.method === 'POST') {
         created = true;
         return { data: category('Socks') };
       }
-      return listOf(created ? [category('Shirts'), category('Socks')] : [category('Shirts')]);
+      return treeOf(created ? [category('Shirts'), category('Socks')] : [category('Shirts')]);
     });
     renderApp('/categories');
 
@@ -115,16 +117,57 @@ describe('creating and renaming', () => {
     await userEvent.type(screen.getByLabelText('Name'), '  Socks  ');
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
-    expect(await screen.findByRole('cell', { name: 'Socks' })).toBeInTheDocument();
+    expect(await screen.findByText('Socks')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/categories', {
       method: 'POST',
-      body: { name: 'Socks' },
+      body: { name: 'Socks', parentId: null, imageAssetId: null },
+    });
+  });
+
+  it('creates a subcategory under the chosen parent', async () => {
+    api(() => treeOf([category('Men')]));
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Add a subcategory to Men' }));
+    const dialog = screen.getByRole('dialog', { name: 'New subcategory' });
+    expect(within(dialog).getByLabelText('Parent')).toHaveValue('id-Men');
+
+    await userEvent.type(within(dialog).getByLabelText('Name'), 'Shoes');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(requestMock).toHaveBeenCalledWith('/api/categories', {
+      method: 'POST',
+      body: { name: 'Shoes', parentId: 'id-Men', imageAssetId: null },
+    });
+  });
+
+  it('moves a category by changing its parent, without offering its own subtree', async () => {
+    api(() =>
+      treeOf([category('Men', [category('Shoes', [category('Running')])]), category('Women')]),
+    );
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Shoes' }));
+    const dialog = screen.getByRole('dialog', { name: 'Edit category' });
+    const parent = within(dialog).getByLabelText('Parent');
+    const labels = within(parent)
+      .getAllByRole('option')
+      .map((option) => option.textContent);
+    // Shoes has a subcategory, so it only fits at the top level or one level down.
+    expect(labels).toEqual(['None (top level)', 'Men', 'Women']);
+
+    await userEvent.selectOptions(parent, 'Women');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Shoes', {
+      method: 'PATCH',
+      body: { name: 'Shoes', parentId: 'id-Women', imageAssetId: null },
     });
   });
 
   it('asks for a name before sending', async () => {
-    api(() => listOf([]));
+    api(() => treeOf([]));
     renderApp('/categories');
 
     await userEvent.click(await screen.findByRole('button', { name: 'New category' }));
@@ -142,11 +185,11 @@ describe('creating and renaming', () => {
       if (options?.method === 'PATCH') {
         throw new ApiError(409, { error: { message: 'Category name already exists' } });
       }
-      return listOf([category('Shirts'), category('Hats')]);
+      return treeOf([category('Shirts'), category('Hats')]);
     });
     renderApp('/categories');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Rename Hats' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
     const dialog = screen.getByRole('dialog');
     const input = within(dialog).getByLabelText('Name');
     expect(input).toHaveValue('Hats');
@@ -156,9 +199,86 @@ describe('creating and renaming', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
 
     expect(await within(dialog).findByText('Category name already exists')).toBeInTheDocument();
+  });
+
+  it('shows a rejected move from the backend', async () => {
+    api((_path, options) => {
+      if (options?.method === 'PATCH') {
+        throw new ApiError(400, { error: { message: 'Categories can be at most 3 levels deep' } });
+      }
+      return treeOf([category('Men'), category('Women')]);
+    });
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Men' }));
+    const dialog = screen.getByRole('dialog');
+    await userEvent.selectOptions(within(dialog).getByLabelText('Parent'), 'Women');
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent(
+      'Categories can be at most 3 levels deep',
+    );
+  });
+});
+
+describe('category images', () => {
+  it('uploads an image and saves it with the category', async () => {
+    api((path, options) => {
+      if (path === '/api/assets' && options?.method === 'POST') return { data: photo };
+      return treeOf([category('Hats')]);
+    });
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    const dialog = screen.getByRole('dialog');
+    const file = new File(['x'], 'hat.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(within(dialog).getByLabelText('Image file'), file);
+
+    expect(await within(dialog).findByRole('img', { name: 'Category image' })).toHaveAttribute(
+      'src',
+      photo.url,
+    );
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Save' }));
+
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Shirts' },
+      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1' },
+    });
+  });
+
+  it('chooses an image from Files', async () => {
+    api((path) =>
+      path === '/api/assets'
+        ? { data: [photo], meta: { page: 1, limit: 24, total: 1 } }
+        : treeOf([category('Hats')]),
+    );
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Choose from Files' }));
+    await userEvent.click(
+      await screen.findByRole('button', { name: /^Choose JPEG image uploaded/ }),
+    );
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
+      method: 'PATCH',
+      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1' },
+    });
+  });
+
+  it('removes an image', async () => {
+    api(() => treeOf([category('Hats', [], { imageAssetId: photo.id, imageUrl: photo.url })]));
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Remove image' }));
+    expect(screen.getByText('No image')).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
+      method: 'PATCH',
+      body: { name: 'Hats', parentId: null, imageAssetId: null },
     });
   });
 });
@@ -171,7 +291,7 @@ describe('deleting', () => {
         deleted = true;
         return undefined;
       }
-      return listOf(deleted ? [] : [category('Hats')]);
+      return treeOf(deleted ? [] : [category('Hats')]);
     });
     renderApp('/categories');
 
@@ -184,46 +304,21 @@ describe('deleting', () => {
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', { method: 'DELETE' });
   });
 
-  it('steps back a page when a delete empties the last one', async () => {
-    let deleted = false;
+  it('explains when the category still has subcategories', async () => {
     api((_path, options) => {
       if (options?.method === 'DELETE') {
-        deleted = true;
-        return undefined;
+        throw new ApiError(409, { error: { message: 'Category has subcategories' } });
       }
-      const total = deleted ? 20 : 21;
-      if (options?.query?.page === 2) {
-        return { data: deleted ? [] : [category('Socks')], meta: { page: 2, limit: 20, total } };
-      }
-      return listOf([category('Shirts')], total);
-    });
-    const { router } = renderApp('/categories?page=2');
-
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Socks' }));
-    await userEvent.click(
-      within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }),
-    );
-
-    expect(await screen.findByText('Page 1 of 1')).toBeInTheDocument();
-    expect(router.state.location.search).toBe('?page=1');
-    expect(await screen.findByRole('cell', { name: 'Shirts' })).toBeInTheDocument();
-  });
-
-  it('explains when products still use the category', async () => {
-    api((_path, options) => {
-      if (options?.method === 'DELETE') {
-        throw new ApiError(409, { error: { message: 'Category is in use by products' } });
-      }
-      return listOf([category('Hats')]);
+      return treeOf([category('Men', [category('Shoes')])]);
     });
     renderApp('/categories');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Hats' }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Delete Men' }));
     const dialog = screen.getByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-      'Category is in use by products',
+      'Category has subcategories',
     );
   });
 });

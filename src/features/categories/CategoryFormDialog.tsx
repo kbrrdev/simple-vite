@@ -11,16 +11,26 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
-import { useSaveCategory, type Category } from './api';
+import { useSaveCategory, type CategoryNode } from './api';
+import { CategoryImageField, type CategoryImage } from './CategoryImageField';
+import { parentOptions } from './tree';
 
 interface Props {
-  /** The category to rename. Leave it out to create a new one. */
-  category?: Category;
+  tree: CategoryNode[];
+  /** The category to edit. Leave it out to create a new one. */
+  category?: CategoryNode;
+  /** The parent a new category starts under. */
+  parentId?: string;
   onClose: () => void;
 }
 
-export function CategoryFormDialog({ category, onClose }: Props) {
+export function CategoryFormDialog({ tree, category, parentId: initialParentId, onClose }: Props) {
   const [name, setName] = useState(category?.name ?? '');
+  const [parentId, setParentId] = useState(category?.parentId ?? initialParentId ?? '');
+  const [image, setImage] = useState<CategoryImage | null>(
+    category?.imageAssetId ? { id: category.imageAssetId, url: category.imageUrl } : null,
+  );
+  const [uploading, setUploading] = useState(false);
   const [emptyName, setEmptyName] = useState(false);
   const save = useSaveCategory();
 
@@ -31,24 +41,40 @@ export function CategoryFormDialog({ category, onClose }: Props) {
     setEmptyName(!trimmed);
     if (!trimmed) return;
 
-    save.mutate({ id: category?.id, name: trimmed }, { onSuccess: onClose });
+    save.mutate(
+      {
+        id: category?.id,
+        name: trimmed,
+        parentId: parentId || null,
+        imageAssetId: image?.id ?? null,
+      },
+      { onSuccess: onClose },
+    );
   }
 
-  // A duplicate name is a 409, which belongs next to the field like a validation error.
   const apiError = save.error instanceof ApiError ? save.error : undefined;
+  const detail = (field: string) => apiError?.details.find((item) => item.field === field)?.message;
+  // A duplicate name is a 409, which belongs next to the field like a validation error.
   const nameError = emptyName
     ? 'Enter a name.'
-    : (apiError?.details.find((detail) => detail.field === 'name')?.message ??
-      (apiError?.status === 409 ? apiError.message : undefined));
+    : (detail('name') ?? (apiError?.status === 409 ? apiError.message : undefined));
+  const parentError = detail('parentId');
+  const imageError = detail('imageAssetId');
+  const otherError = save.error && !nameError && !parentError && !imageError;
+
+  let title = 'New category';
+  if (category) title = 'Edit category';
+  else if (initialParentId) title = 'New subcategory';
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
       <DialogContent>
         <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
           <DialogHeader>
-            <DialogTitle>{category ? 'Rename category' : 'New category'}</DialogTitle>
-            <DialogDescription>Customers see this name in the store.</DialogDescription>
+            <DialogTitle>{title}</DialogTitle>
+            <DialogDescription>Customers see the name and image in the store.</DialogDescription>
           </DialogHeader>
+
           <div className="space-y-2">
             <Label htmlFor="category-name">Name</Label>
             <Input
@@ -61,16 +87,44 @@ export function CategoryFormDialog({ category, onClose }: Props) {
             />
             {nameError && <p className="text-sm text-destructive">{nameError}</p>}
           </div>
-          {save.error && !nameError && (
+
+          <div className="space-y-2">
+            <Label htmlFor="category-parent">Parent</Label>
+            <select
+              id="category-parent"
+              aria-invalid={Boolean(parentError)}
+              value={parentId}
+              onChange={(event) => setParentId(event.target.value)}
+              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm dark:bg-input/30"
+            >
+              <option value="">None (top level)</option>
+              {parentOptions(tree, category).map((option) => (
+                <option key={option.id} value={option.id}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+            {parentError && <p className="text-sm text-destructive">{parentError}</p>}
+          </div>
+
+          <CategoryImageField
+            image={image}
+            onChange={setImage}
+            error={imageError}
+            onUploadingChange={setUploading}
+          />
+
+          {otherError && (
             <p role="alert" className="text-sm text-destructive">
               {errorMessage(save.error)}
             </p>
           )}
+
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={save.isPending}>
+            <Button type="submit" disabled={save.isPending || uploading}>
               {save.isPending ? 'Saving…' : 'Save'}
             </Button>
           </DialogFooter>

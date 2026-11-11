@@ -1,30 +1,31 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { request, type Schemas } from '@/lib/api';
 
-export type Category = Schemas['Category'];
+export type CategoryNode = Schemas['CategoryNode'];
 
-export const pageSize = 20;
+export interface CategoryInput {
+  name: string;
+  parentId: string | null;
+  imageAssetId: string | null;
+}
 
-export function useCategories(page: number) {
+/** Every category, nested under its parent. Stores have few, so the backend returns them all. */
+export function useCategoryTree() {
   return useQuery({
-    queryKey: ['categories', { page }],
-    queryFn: () =>
-      request<{ data: Category[]; meta: Schemas['PageMeta'] }>('/api/categories', {
-        query: { page, limit: pageSize },
-      }),
-    placeholderData: keepPreviousData,
+    queryKey: ['categories', 'tree'],
+    queryFn: () => request<{ data: CategoryNode[] }>('/api/categories/tree'),
   });
 }
 
-/** Creates a category, or renames it when an id is given. */
+/** Creates a category, or updates it when an id is given. A new parent moves its subcategories too. */
 export function useSaveCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, name }: { id?: string; name: string }) =>
+    mutationFn: ({ id, ...body }: CategoryInput & { id?: string }) =>
       id
-        ? request<{ data: Category }>(`/api/categories/${id}`, { method: 'PATCH', body: { name } })
-        : request<{ data: Category }>('/api/categories', { method: 'POST', body: { name } }),
+        ? request(`/api/categories/${id}`, { method: 'PATCH', body })
+        : request('/api/categories', { method: 'POST', body }),
     meta: { toast: false },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
   });

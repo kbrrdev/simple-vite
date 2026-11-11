@@ -1,110 +1,136 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router';
-import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { errorMessage } from '@/lib/api';
-import { usePageParam } from '@/lib/use-page-param';
-import { pageSize, useCategories, type Category } from './api';
+import { useCategoryTree, type CategoryNode } from './api';
 import { CategoryFormDialog } from './CategoryFormDialog';
 import { DeleteCategoryDialog } from './DeleteCategoryDialog';
+import { maxDepth } from './tree';
 
-const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
+type Editing = { category?: CategoryNode; parentId?: string };
+
+interface ItemProps {
+  category: CategoryNode;
+  depth: number;
+  onAdd: (parent: CategoryNode) => void;
+  onEdit: (category: CategoryNode) => void;
+  onDelete: (category: CategoryNode) => void;
+}
+
+/** One category, with its subcategories in a nested list below it. */
+function CategoryItem({ category, depth, onAdd, onEdit, onDelete }: ItemProps) {
+  return (
+    <li>
+      <div className="flex flex-col gap-2 border-t px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          {category.imageUrl ? (
+            <img
+              src={category.imageUrl}
+              alt=""
+              loading="lazy"
+              className="size-10 shrink-0 rounded-md bg-muted object-cover"
+            />
+          ) : (
+            <div className="size-10 shrink-0 rounded-md bg-muted" />
+          )}
+          <span className="truncate font-medium">{category.name}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {depth < maxDepth && (
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={`Add a subcategory to ${category.name}`}
+              onClick={() => onAdd(category)}
+            >
+              Add subcategory
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={`Edit ${category.name}`}
+            onClick={() => onEdit(category)}
+          >
+            Edit
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={`Delete ${category.name}`}
+            onClick={() => onDelete(category)}
+          >
+            Delete
+          </Button>
+        </div>
+      </div>
+      {category.children.length > 0 && (
+        <ul aria-label={`Subcategories of ${category.name}`} className="pl-6">
+          {category.children.map((child) => (
+            <CategoryItem
+              key={child.id}
+              category={child}
+              depth={depth + 1}
+              onAdd={onAdd}
+              onEdit={onEdit}
+              onDelete={onDelete}
+            />
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
 
 export function CategoriesPage() {
-  const [page, setPage] = usePageParam();
-  const [editing, setEditing] = useState<Category | 'new' | null>(null);
-  const [deleting, setDeleting] = useState<Category | null>(null);
-  const categories = useCategories(page);
-
-  const totalPages = Math.max(1, Math.ceil((categories.data?.meta.total ?? 0) / pageSize));
-
-  // A delete can empty the last page, so step back to the new last page.
-  if (categories.data && !categories.isPlaceholderData && page > totalPages) {
-    return <Navigate to={`?page=${totalPages}`} replace />;
-  }
+  const [editing, setEditing] = useState<Editing | null>(null);
+  const [deleting, setDeleting] = useState<CategoryNode | null>(null);
+  const tree = useCategoryTree();
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Categories</h1>
-        <Button onClick={() => setEditing('new')}>New category</Button>
+        <Button onClick={() => setEditing({})}>New category</Button>
       </div>
 
-      {categories.isPending && <p className="text-muted-foreground">Loading…</p>}
+      {tree.isPending && <p className="text-muted-foreground">Loading…</p>}
 
-      {categories.isError && (
+      {tree.isError && (
         <div className="space-y-4">
-          <p role="alert">{errorMessage(categories.error)}</p>
-          <Button variant="outline" onClick={() => categories.refetch()}>
+          <p role="alert">{errorMessage(tree.error)}</p>
+          <Button variant="outline" onClick={() => tree.refetch()}>
             Try again
           </Button>
         </div>
       )}
 
-      {categories.data?.meta.total === 0 && (
+      {tree.data?.data.length === 0 && (
         <p className="text-muted-foreground">No categories yet. Create one to get started.</p>
       )}
 
-      {categories.data && categories.data.meta.total > 0 && (
-        <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Last updated</TableHead>
-                <TableHead>
-                  <span className="sr-only">Actions</span>
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {categories.data.data.map((category) => (
-                <TableRow key={category.id}>
-                  <TableCell className="font-medium">{category.name}</TableCell>
-                  <TableCell>{dateFormat.format(new Date(category.updatedAt))}</TableCell>
-                  <TableCell className="space-x-2 text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      aria-label={`Rename ${category.name}`}
-                      onClick={() => setEditing(category)}
-                    >
-                      Rename
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      aria-label={`Delete ${category.name}`}
-                      onClick={() => setDeleting(category)}
-                    >
-                      Delete
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={categories.isPlaceholderData}
-          />
-        </>
+      {tree.data && tree.data.data.length > 0 && (
+        <ul
+          aria-label="Categories"
+          className="overflow-hidden rounded-lg border [&>li:first-child>div]:border-t-0"
+        >
+          {tree.data.data.map((category) => (
+            <CategoryItem
+              key={category.id}
+              category={category}
+              depth={1}
+              onAdd={(parent) => setEditing({ parentId: parent.id })}
+              onEdit={(category) => setEditing({ category })}
+              onDelete={setDeleting}
+            />
+          ))}
+        </ul>
       )}
 
-      {editing && (
+      {editing && tree.data && (
         <CategoryFormDialog
-          category={editing === 'new' ? undefined : editing}
+          tree={tree.data.data}
+          category={editing.category}
+          parentId={editing.parentId}
           onClose={() => setEditing(null)}
         />
       )}
