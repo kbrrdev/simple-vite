@@ -1,25 +1,29 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
-import { useUploadAsset } from '@/features/files/api';
-import { AssetPicker } from '@/features/files/AssetPicker';
-import { allowedTypes, uploadProblem } from '@/features/files/file-info';
+import { useUploadAsset } from './api';
+import { AssetPicker } from './AssetPicker';
+import { allowedTypes, uploadProblem } from './file-info';
 
-export interface CategoryImage {
+/** An uploaded asset chosen for a field. */
+export interface ChosenImage {
   id: string;
   url: string | null;
 }
 
 interface Props {
-  image: CategoryImage | null;
-  onChange: (image: CategoryImage | null) => void;
+  /** The fieldset legend, such as "Image" or "QR code". */
+  legend: string;
+  image: ChosenImage | null;
+  onChange: (image: ChosenImage | null) => void;
   /** The backend's message for this field, if any. */
   error?: string;
   /** Tells the form an upload is running, so that it waits before saving. */
   onUploadingChange: (uploading: boolean) => void;
 }
 
-export function CategoryImageField({ image, onChange, error, onUploadingChange }: Props) {
+/** Picks one image: uploaded now, chosen from Files, or removed. */
+export function ImageField({ legend, image, onChange, error, onUploadingChange }: Props) {
   const [picking, setPicking] = useState(false);
   const [fileProblem, setFileProblem] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
@@ -47,7 +51,7 @@ export function CategoryImageField({ image, onChange, error, onUploadingChange }
 
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm leading-none font-medium">Image</legend>
+      <legend className="text-sm leading-none font-medium">{legend}</legend>
       <div className="flex items-center gap-3">
         {image?.url ? (
           <img

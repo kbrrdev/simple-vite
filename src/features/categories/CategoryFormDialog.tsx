@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useSaveCategory, type CategoryNode } from './api';
-import { CategoryImageField, type CategoryImage } from './CategoryImageField';
+import { ImageField, type ChosenImage } from '@/features/files/ImageField';
 import { parentOptions } from './tree';
 
 interface Props {
@@ -29,7 +29,7 @@ interface Props {
 export function CategoryFormDialog({ tree, category, parentId: initialParentId, onClose }: Props) {
   const [name, setName] = useState(category?.name ?? '');
   const [parentId, setParentId] = useState(category?.parentId ?? initialParentId ?? '');
-  const [image, setImage] = useState<CategoryImage | null>(
+  const [image, setImage] = useState<ChosenImage | null>(
     category?.imageAssetId ? { id: category.imageAssetId, url: category.imageUrl } : null,
   );
   const [uploading, setUploading] = useState(false);
@@ -123,7 +123,8 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
             )}
           </div>
 
-          <CategoryImageField
+          <ImageField
+            legend="Image"
             image={image}
             onChange={setImage}
             error={imageError}

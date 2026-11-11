@@ -3059,6 +3059,254 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/reports/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get sales totals for a date range (admin)
+         * @description Days follow Manila time, and both dates are included. Without dates, it covers the last 30 days. Totals use the amounts saved on each order, so changing the tax rate never changes past figures.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description First day, in Manila time. Defaults to 29 days before `to`. */
+                    from?: components["parameters"]["ReportFrom"];
+                    /** @description Last day, in Manila time. Defaults to today. */
+                    to?: components["parameters"]["ReportTo"];
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The totals */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ReportSummary"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get sales per day, week, or month, for a chart (admin)
+         * @description Returns a point for every period, including empty ones. Weeks start on Monday, and each point is dated by the first day of its period. A daily report can cover up to 366 days.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description First day, in Manila time. Defaults to 29 days before `to`. */
+                    from?: components["parameters"]["ReportFrom"];
+                    /** @description Last day, in Manila time. Defaults to today. */
+                    to?: components["parameters"]["ReportTo"];
+                    interval?: "day" | "week" | "month";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The points */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ReportSales"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/top-products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the best-selling products (admin)
+         * @description Counts orders placed in the range, apart from cancelled ones. Variants are combined into their product, and inactive products are included.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description First day, in Manila time. Defaults to 29 days before `to`. */
+                    from?: components["parameters"]["ReportFrom"];
+                    /** @description Last day, in Manila time. Defaults to today. */
+                    to?: components["parameters"]["ReportTo"];
+                    limit?: number;
+                    sort?: "quantity" | "revenue";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The products */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ReportTopProducts"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/order-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Count orders by status, and what needs doing (admin)
+         * @description Shows every order as it is now, with no date range.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The counts */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ReportOrderStatus"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/low-stock": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List variants that are running out (admin)
+         * @description Only variants on sale are listed, lowest stock first.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    /** @description Variants with this much stock or less are listed */
+                    threshold?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The variants */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["LowStockVariant"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3948,6 +4196,126 @@ export interface components {
             /** Format: date-time */
             createdAt: string;
         };
+        ReportSummary: {
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            from: string;
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            to: string;
+            /** @description Every order placed, including cancelled */
+            ordersPlaced: number;
+            cancelledOrders: number;
+            /** @description Totals of orders placed, apart from cancelled ones */
+            grossSalesCents: number;
+            /** @description Gross sales divided by orders that were not cancelled */
+            averageOrderValueCents: number;
+            itemsSold: number;
+            /** @description Payments received in the range, by the day they were received */
+            collectedCents: number;
+            /** @description Payments received in the range that were later refunded */
+            refundedCents: number;
+            /** @description Collected minus refunded */
+            netCollectedCents: number;
+            /** @description Tax on gross sales */
+            taxCents: number;
+            /** @description Shipping on gross sales */
+            shippingCents: number;
+            /** @description Customer accounts created in the range */
+            newCustomers: number;
+            /** @description Gross sales split by the tax setting each order was placed with */
+            taxByRate: {
+                /** @example 12 */
+                ratePercent: number;
+                pricesIncludeTax: boolean;
+                /** @description Order totals without tax, including shipping */
+                taxableCents: number;
+                taxCents: number;
+            }[];
+        };
+        ReportSales: {
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            from: string;
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            to: string;
+            /** @enum {string} */
+            interval: "day" | "week" | "month";
+            points: {
+                /**
+                 * Format: date
+                 * @description First day of the period
+                 * @example 2026-03-01
+                 */
+                date: string;
+                /** @description Orders placed, apart from cancelled ones */
+                orders: number;
+                grossSalesCents: number;
+                collectedCents: number;
+            }[];
+        };
+        ReportTopProducts: {
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            from: string;
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            to: string;
+            /** @enum {string} */
+            sort: "quantity" | "revenue";
+            items: {
+                /** Format: uuid */
+                productId: string;
+                /** @description The product's current name */
+                name: string;
+                active: boolean;
+                quantity: number;
+                /** @description Line totals, without shipping */
+                revenueCents: number;
+            }[];
+        };
+        ReportOrderStatus: {
+            counts: {
+                /** @example pending */
+                status: string;
+                /** @example paid */
+                paymentStatus: string;
+                count: number;
+            }[];
+            needsAttention: {
+                /** @description References waiting for an admin */
+                paymentsToConfirm: number;
+                /** @description Orders that are pending */
+                ordersToConfirm: number;
+                /** @description Orders that are confirmed */
+                ordersToShip: number;
+            };
+        };
+        LowStockVariant: {
+            /** Format: uuid */
+            variantId: string;
+            /** Format: uuid */
+            productId: string;
+            productName: string;
+            option1Name: string | null;
+            option1Value: string | null;
+            option2Name: string | null;
+            option2Value: string | null;
+            stock: number;
+        };
         PageMeta: {
             /** @example 1 */
             page: number;
@@ -4054,6 +4422,10 @@ export interface components {
         OrderId: string;
         PaymentMethodId: string;
         AddressId: string;
+        /** @description First day, in Manila time. Defaults to 29 days before `to`. */
+        ReportFrom: string;
+        /** @description Last day, in Manila time. Defaults to today. */
+        ReportTo: string;
     };
     requestBodies: never;
     headers: never;
