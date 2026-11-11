@@ -1,5 +1,7 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
 import { LoginPage } from '@/features/auth/LoginPage';
+import { BlogEditorPage, NewBlogPage } from '@/features/blogs/BlogEditorPage';
+import { BlogsPage } from '@/features/blogs/BlogsPage';
 import { CategoriesPage } from '@/features/categories/CategoriesPage';
 import { FilesPage } from '@/features/files/FilesPage';
 import { OrderPage } from '@/features/orders/OrderPage';
@@ -36,6 +38,9 @@ export const routes: RouteObject[] = [
                   { path: '/products/:id', element: <ProductPage /> },
                   { path: '/categories', element: <CategoriesPage /> },
                   { path: '/payment-methods', element: <PaymentMethodsPage /> },
+                  { path: '/blogs', element: <BlogsPage /> },
+                  { path: '/blogs/new', element: <NewBlogPage /> },
+                  { path: '/blogs/:id', element: <BlogEditorPage /> },
                   { path: '/files', element: <FilesPage /> },
                   { path: '*', element: <NotFoundPage /> },
                 ],

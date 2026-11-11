@@ -48,16 +48,16 @@ src/
 
 ## Screens and Backend Modules
 
-| Screen          | Status  | Backend routes                                                                                                                                         |
-| --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Dashboard       | Built   | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
-| Products        | Built   | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
-| Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
-| Orders          | Built   | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
-| Payment methods | Built   | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
-| Blogs           | Planned | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
-| Files           | Built   | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
+| Screen          | Status | Backend routes                                                                                                                                         |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login           | Built  | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
+| Dashboard       | Built  | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
+| Products        | Built  | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
+| Categories      | Built  | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
+| Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
+| Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -96,6 +96,14 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Orders copy a method's provider, account, and QR when they are placed, so edits only change new orders.
 - A method that orders have used cannot be deleted, only turned off. The backend's `409` explains this.
 - The QR code is an image from Files, picked with the shared `ImageField` from `features/files`.
+
+## Blog
+
+- Posts are written in **Markdown**. The backend stores the text as it is, so the storefront must render it the same way.
+- Posts may use only the elements in `features/blogs/markdown.ts`: headings from level 2 down, paragraphs, bold, italic, links, lists, quotes, code, and rules. Raw HTML is never rendered, and images belong in the cover, not the text. The storefront should use the same list.
+- Drafts are hidden from the public. Unpublishing moves a post back to drafts. Deleting removes it for good.
+- The editor asks before leaving with unsaved changes, with React Router's `useBlocker`, and the browser asks when the tab is closed.
+- The preview loads `react-markdown` only when it opens.
 
 ## Products
 
