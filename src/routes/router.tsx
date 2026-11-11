@@ -5,6 +5,7 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { FilesPage } from '@/features/files/FilesPage';
 import { OrderPage } from '@/features/orders/OrderPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
+import { PaymentMethodsPage } from '@/features/payment-methods/PaymentMethodsPage';
 import { NewProductPage } from '@/features/products/NewProductPage';
 import { ProductPage } from '@/features/products/ProductPage';
 import { ProductsPage } from '@/features/products/ProductsPage';
@@ -34,6 +35,7 @@ export const routes: RouteObject[] = [
                   { path: '/products/new', element: <NewProductPage /> },
                   { path: '/products/:id', element: <ProductPage /> },
                   { path: '/categories', element: <CategoriesPage /> },
+                  { path: '/payment-methods', element: <PaymentMethodsPage /> },
                   { path: '/files', element: <FilesPage /> },
                   { path: '*', element: <NotFoundPage /> },
                 ],

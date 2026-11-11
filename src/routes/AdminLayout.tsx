@@ -12,6 +12,7 @@ const links = [
   { to: '/orders', label: 'Orders' },
   { to: '/products', label: 'Products' },
   { to: '/categories', label: 'Categories' },
+  { to: '/payment-methods', label: 'Payment methods' },
   { to: '/files', label: 'Files' },
 ];
 

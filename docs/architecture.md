@@ -54,7 +54,7 @@ src/
 | Products        | Built   | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
 | Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Built   | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
-| Payment methods | Planned | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Payment methods | Built   | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Blogs           | Planned | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
 | Files           | Built   | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
 
@@ -79,6 +79,13 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Marking an order returned does not restock it. Staff adjust stock by hand.
 - Cash on delivery orders become paid when they are marked delivered.
 - Totals are shown exactly as the backend sends them. The browser never adds them up.
+
+## Payment methods
+
+- The screen lists every method, on or off, in one list, as the backend returns them all.
+- Orders copy a method's provider, account, and QR when they are placed, so edits only change new orders.
+- A method that orders have used cannot be deleted, only turned off. The backend's `409` explains this.
+- The QR code is an image from Files, picked with the shared `ImageField` from `features/files`.
 
 ## Products
 
