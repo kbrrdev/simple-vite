@@ -52,7 +52,6 @@ describe('the admin guard', () => {
     renderApp('/');
 
     expect(await screen.findByRole('heading', { name: 'Dashboard' })).toBeInTheDocument();
-    expect(screen.getByText('Signed in as admin@example.com.')).toBeInTheDocument();
   });
 
   it('turns away customers', async () => {

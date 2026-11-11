@@ -211,6 +211,31 @@ Calm and decisive.
 - **Error:** the message in a `role="alert"` line, with the request id on server errors, and a "Try again" button.
 - **Success:** a short toast such as "Category saved" or "Image uploaded".
 
+### Badges
+
+- **Style:** small pills (0.75rem, medium weight) for order and payment states, side by side.
+- **Order status:** outline, except Cancelled and Returned, which use the soft red tint.
+- **Payment:** a soft grey fill, except "Payment to check", which is filled Charcoal so the one state that needs staff stands out without red.
+
+### Steps
+
+- **Use:** to show where something is in a fixed process, such as an order's status or its payment. Vertical, so it fits a phone.
+- **Markers (24px circles):** done is a filled Charcoal circle with a check, current is a Charcoal ring with a dot, not reached is a Hairline circle with Slate Text, and stopped (Cancelled, Returned) is filled Alarm Red with a cross. A 1px Hairline line joins them.
+- **Current step:** marked with `aria-current="step"`, with one sentence under it that says what it means and what to do next. Details that belong to it, such as the payment reference, sit there too.
+- **Honesty:** only show steps the data proves. When the backend does not record where something stopped, show the end state alone.
+
+### Action cards
+
+- **Style:** a bordered section with a title, a body, and a footer bar (Hairline top border, Mist band) for its actions.
+- **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
+- **No actions:** no footer.
+
+### Money actions
+
+- **Wording:** a dialog that moves money states the amount and, when there is one, the customer's reference: "Confirm that ₱1,150.00 arrived with reference GC12345678?"
+- **Order:** the action staff usually want is the primary button. Actions that cancel, reject, refund, or return ask first, and their confirm button is solid Alarm Red.
+- **Reference:** the customer's payment reference is shown large, in tabular figures, and selectable in one tap, so it can be compared with the bank or e-wallet record.
+
 ## Do's and Don'ts
 
 ### Do:
