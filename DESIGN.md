@@ -249,7 +249,7 @@ Calm and decisive.
 
 - **Short forms**, with one to three fields, such as a category, open in a dialog.
 - **Long forms**, such as a new product, get their own page, with sections in bordered cards, Cancel and the main action at the end, and Back at the top.
-- **Editors** for long text, such as a blog post, put Delete on the far left in red ghost text, apart from the save actions, and the main action last. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, and a one-line syntax hint below.
+- **Editors** for long text, such as a blog post, put Delete on the far left in red ghost text, apart from the save actions, and the main action last. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, a toolbar of icon buttons (each with a label for screen readers) that wraps the selection or starts the selected lines, and a "Formatting help" panel that shows each example through the same renderer as the preview, so the guide can never drift from the real result.
 - **Repeated values**, such as option values, are typed and added as removable chips, so a phone keyboard never needs commas.
 - **Money** is typed in pesos in a field with a ₱ prefix and a decimal keyboard, and checked for at most two decimals before sending.
 

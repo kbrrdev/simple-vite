@@ -99,6 +99,42 @@ describe('writing a new post', () => {
     expect(screen.getByText('nine').tagName).toBe('STRONG');
   });
 
+  it('formats the selected text from the toolbar', async () => {
+    serve(makeBlog());
+    renderApp('/blogs/new');
+
+    const content = await screen.findByLabelText<HTMLTextAreaElement>('Content');
+    await userEvent.type(content, 'Free shipping today');
+    content.setSelectionRange(0, 13);
+    await userEvent.click(screen.getByRole('button', { name: 'Bold' }));
+
+    expect(content).toHaveValue('**Free shipping** today');
+    expect(content).toHaveFocus();
+    expect(content.value.slice(content.selectionStart, content.selectionEnd)).toBe('Free shipping');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Bulleted list' }));
+    expect(content).toHaveValue('- **Free shipping** today');
+  });
+
+  it('opens formatting help with real examples', async () => {
+    serve(makeBlog());
+    renderApp('/blogs/new');
+
+    const toggle = await screen.findByRole('button', { name: 'Formatting help' });
+    expect(toggle).toHaveAttribute('aria-expanded', 'false');
+    await userEvent.click(toggle);
+
+    const help = screen.getByRole('table', { name: 'Formatting help' });
+    expect(await within(help).findByRole('heading', { name: 'Opening hours' })).toBeInTheDocument();
+    expect(within(help).getByText('free shipping').tagName).toBe('STRONG');
+    expect(within(help).getByRole('link', { name: 'our size guide' })).toBeInTheDocument();
+    expect(within(help).getAllByRole('list').length).toBeGreaterThanOrEqual(2);
+    expect(screen.getByText(/Images in the text/)).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole('button', { name: 'Hide formatting help' }));
+    expect(screen.queryByRole('table', { name: 'Formatting help' })).not.toBeInTheDocument();
+  });
+
   it('never renders raw HTML in the preview', async () => {
     serve(makeBlog());
     renderApp('/blogs/new');
