@@ -9,6 +9,7 @@ import { useLogout, useSession } from '@/lib/auth';
 // Each feature adds its link here when its screens are built.
 const links = [
   { to: '/', label: 'Dashboard' },
+  { to: '/orders', label: 'Orders' },
   { to: '/categories', label: 'Categories' },
   { to: '/files', label: 'Files' },
 ];
@@ -25,7 +26,7 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
           <NavLink
             key={link.to}
             to={link.to}
-            end
+            end={link.to === '/'}
             onClick={onNavigate}
             className={({ isActive }) =>
               `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'}`

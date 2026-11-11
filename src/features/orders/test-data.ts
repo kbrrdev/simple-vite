@@ -1,0 +1,60 @@
+import type { Order } from './api';
+
+/** An order as the admin API returns it, with the given fields changed. */
+export function makeOrder(overrides: Partial<Order> = {}): Order {
+  return {
+    id: 'order-1',
+    orderNumber: 'ORD-000123',
+    status: 'awaiting_payment',
+    paymentType: 'manual',
+    paymentProvider: 'gcash',
+    paymentStatus: 'submitted',
+    paymentDueAt: '2026-11-12T00:00:00.000Z',
+    payment: {
+      providerName: 'GCash',
+      accountName: 'Juan Store',
+      accountNumber: '0917 000 0000',
+      qrUrl: null,
+    },
+    subtotalCents: 100000,
+    shippingCents: 15000,
+    vatableCents: 102679,
+    taxCents: 12321,
+    totalCents: 115000,
+    taxRatePercent: 12,
+    pricesIncludeTax: true,
+    shippingAddress: {
+      recipientName: 'Maria Santos',
+      phone: '09171234567',
+      line1: '12 Mabini St',
+      line2: '',
+      barangay: 'San Antonio',
+      city: 'Pasig',
+      province: 'Metro Manila',
+      postalCode: '1600',
+    },
+    items: [
+      {
+        id: 'item-1',
+        variantId: 'variant-1',
+        productName: 'Linen Shirt',
+        option1Name: 'Size',
+        option1Value: 'M',
+        option2Name: null,
+        option2Value: null,
+        unitPriceCents: 50000,
+        quantity: 2,
+        taxCents: 10714,
+        lineTotalCents: 100000,
+        imageUrl: null,
+      },
+    ],
+    createdAt: '2026-11-10T02:30:00.000Z',
+    updatedAt: '2026-11-10T02:30:00.000Z',
+    userId: 'user-1',
+    isGuest: false,
+    customerEmail: 'maria@example.com',
+    paymentReference: 'GC12345678',
+    ...overrides,
+  };
+}

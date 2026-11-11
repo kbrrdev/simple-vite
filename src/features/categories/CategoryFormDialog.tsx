@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
+import { NativeSelect } from '@/components/NativeSelect';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -101,13 +102,12 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
 
           <div className="space-y-2">
             <Label htmlFor="category-parent">Parent</Label>
-            <select
+            <NativeSelect
               id="category-parent"
               aria-invalid={Boolean(parentError)}
               aria-describedby={parentError ? 'category-parent-error' : undefined}
               value={parentId}
               onChange={(event) => setParentId(event.target.value)}
-              className="h-11 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive md:h-8 md:text-sm dark:bg-input/30"
             >
               <option value="">None (top level)</option>
               {parentOptions(tree, category).map((option) => (
@@ -115,7 +115,7 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
                   {option.label}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
             {parentError && (
               <p id="category-parent-error" className="text-sm text-destructive">
                 {parentError}

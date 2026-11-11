@@ -53,7 +53,7 @@ src/
 | Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
 | Products        | Planned | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
 | Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
-| Orders          | Planned | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
+| Orders          | Built   | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
 | Payment methods | Planned | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Blogs           | Planned | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
 | Files           | Built   | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
@@ -69,6 +69,16 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Changing the parent moves the category with everything below it. The form only offers parents that keep it within three levels, but the backend decides.
 - A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`.
 - A category cannot be deleted while it has subcategories or products use it. An image a category uses cannot be deleted from Files.
+
+## Orders
+
+- The list filters by `status` and `paymentStatus`, kept in the URL with the page. **Payments to check** is `paymentStatus=submitted`, and the Dashboard links to it with a count.
+- The order page shows only the status moves the backend allows. `nextStatuses` in `features/orders/labels.ts` mirrors `adminTransitions` as a hint, and the backend's `409` is shown when it refuses.
+- Confirming a payment marks the order paid. Rejecting one cancels the order and puts its stock back.
+- A refund is recorded, not sent: staff refund the customer outside the app, after the order is delivered, returned, or cancelled.
+- Marking an order returned does not restock it. Staff adjust stock by hand.
+- Cash on delivery orders become paid when they are marked delivered.
+- Totals are shown exactly as the backend sends them. The browser never adds them up.
 
 ## Products
 
