@@ -230,6 +230,13 @@ Calm and decisive.
 - **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
 - **No actions:** no footer.
 
+### Figures and charts
+
+- **Headline figures:** up to four, each a Slate Text label over a 1.5rem semibold value in tabular figures, two across on phones and four from `md` up. The rest follow on one quiet line of label and value pairs.
+- **Charts:** the emphasis form. The series the chart is about is a 2px Charcoal line, and the context series is a 2px Slate Text line. They differ by lightness, so they stay apart without color vision. Hairline horizontal gridlines only, no dots until hover, a legend above the chart, and a crosshair tooltip with exact values.
+- **Every chart has a table view** behind a "Show as table" button, and an accessible name that says what it shows.
+- **No color is added for charts.** The Red Means Stop and No Store Color rules still apply.
+
 ### Image tiles
 
 - **Style:** square photos in a grid, three across on phones and five from `sm` up, with the alt text (or "No alt text" in Slate Text) below.

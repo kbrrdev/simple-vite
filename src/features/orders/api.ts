@@ -31,18 +31,6 @@ export function useOrder(id: string) {
   });
 }
 
-/** How many orders have a payment reference waiting for a staff check. */
-export function usePaymentsToCheck() {
-  return useQuery({
-    queryKey: ['orders', 'to-check'],
-    queryFn: () =>
-      request<{ data: Order[]; meta: Schemas['PageMeta'] }>('/api/orders/admin', {
-        query: { paymentStatus: 'submitted', limit: 1 },
-      }),
-    select: (response) => response.meta.total,
-  });
-}
-
 /** A change to one order. Callers show errors themselves, next to the action. */
 function useOrderMutation<T>(send: (variables: T) => Promise<unknown>) {
   const queryClient = useQueryClient();
