@@ -52,7 +52,7 @@ src/
 | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
 | Products        | Planned | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
-| Categories      | Built   | `GET /api/categories`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                                |
+| Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Planned | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
 | Payment methods | Planned | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Blogs           | Planned | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
@@ -61,6 +61,14 @@ src/
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
 Customer features, such as carts and addresses, belong to the storefront, not this app.
+
+## Categories
+
+- Categories nest up to three levels, such as Men › Shoes › Running. The screen reads the whole tree from `/api/categories/tree`, without pages.
+- Names are unique among categories with the same parent.
+- Changing the parent moves the category with everything below it. The form only offers parents that keep it within three levels, but the backend decides.
+- A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`.
+- A category cannot be deleted while it has subcategories or products use it. An image a category uses cannot be deleted from Files.
 
 ## Products
 
@@ -71,7 +79,6 @@ The Products screen is planned. These are the backend rules it must follow.
 - A product has up to two options, such as Size and Color. They can be renamed, but not added or removed after creation.
 - Each variant has its option values, price, stock, and an optional image from the product's images.
 - A product has up to 10 images, each with alt text and a position.
-- A category cannot be deleted while products use it.
 
 ## Authentication
 

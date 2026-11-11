@@ -252,6 +252,93 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Email a password reset link
+         * @description Always returns 202, whether or not the email has an account. The link opens `PASSWORD_RESET_URL` with `#token=...`, and expires in 30 minutes. Only the newest link works, and each account gets at most three an hour.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ForgotPasswordBody"];
+                };
+            };
+            responses: {
+                /** @description If the email has an account, a reset link is sent */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                429: components["responses"]["TooManyRequests"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Set a new password with a reset token
+         * @description The token works once. All of the user’s sessions are revoked.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ResetPasswordBody"];
+                };
+            };
+            responses: {
+                /** @description The password was changed */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                429: components["responses"]["TooManyRequests"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/auth/logout": {
         parameters: {
             query?: never;
@@ -670,7 +757,10 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create a category (admin) */
+        /**
+         * Create a category (admin)
+         * @description Categories can be up to 3 levels deep. Names must be unique among categories with the same parent.
+         */
         post: {
             parameters: {
                 query?: never;
@@ -680,7 +770,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CategoryBody"];
+                    "application/json": components["schemas"]["CreateCategoryBody"];
                 };
             };
             responses: {
@@ -693,7 +783,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Category"];
+                            data: components["schemas"]["CategoryWithPath"];
                         };
                     };
                 };
@@ -704,6 +794,45 @@ export interface paths {
                 500: components["responses"]["ServerError"];
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/categories/tree": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get every category, nested under its parent */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The top-level categories, each with its children */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["CategoryNode"][];
+                        };
+                    };
+                };
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -736,7 +865,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Category"];
+                            data: components["schemas"]["CategoryWithPath"];
                         };
                     };
                 };
@@ -749,7 +878,7 @@ export interface paths {
         post?: never;
         /**
          * Delete a category (admin)
-         * @description Fails with 409 while any product, active or not, uses the category.
+         * @description Fails with 409 while the category has subcategories, or any product, active or not, uses it.
          */
         delete: {
             parameters: {
@@ -779,7 +908,10 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Rename a category (admin) */
+        /**
+         * Update or move a category (admin)
+         * @description A new `parentId` moves the category with everything below it, and `null` makes it top-level. A move into its own subtree, or deeper than the limit, returns 400.
+         */
         patch: {
             parameters: {
                 query?: never;
@@ -791,7 +923,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CategoryBody"];
+                    "application/json": components["schemas"]["UpdateCategoryBody"];
                 };
             };
             responses: {
@@ -802,7 +934,7 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Category"];
+                            data: components["schemas"]["CategoryWithPath"];
                         };
                     };
                 };
@@ -834,6 +966,7 @@ export interface paths {
                     limit?: number;
                     /** @description Matches part of the product name, ignoring case */
                     search?: string;
+                    /** @description Includes products in its subcategories */
                     categoryId?: string;
                     sort?: "newest" | "name";
                 };
@@ -915,6 +1048,7 @@ export interface paths {
                     limit?: number;
                     /** @description Matches part of the product name, ignoring case */
                     search?: string;
+                    /** @description Includes products in its subcategories */
                     categoryId?: string;
                     sort?: "newest" | "name";
                 };
@@ -2966,6 +3100,22 @@ export interface components {
              */
             newPassword: string;
         };
+        ForgotPasswordBody: {
+            /**
+             * Format: email
+             * @example jane@example.com
+             */
+            email: string;
+        };
+        ResetPasswordBody: {
+            /** @description The token from the emailed link */
+            token: string;
+            /**
+             * @description Common passwords are rejected
+             * @example another-long-passphrase
+             */
+            newPassword: string;
+        };
         LoginBody: {
             /**
              * Format: email
@@ -3026,16 +3176,85 @@ export interface components {
         Category: {
             /** Format: uuid */
             id: string;
+            /** Format: uuid */
+            parentId: string | null;
             /** @example T-Shirts */
             name: string;
+            /** Format: uuid */
+            imageAssetId: string | null;
+            /** Format: uri */
+            imageUrl: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
             updatedAt: string;
         };
-        CategoryBody: {
+        CategoryWithPath: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parentId: string | null;
             /** @example T-Shirts */
             name: string;
+            /** Format: uuid */
+            imageAssetId: string | null;
+            /** Format: uri */
+            imageUrl: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** @description The categories above this one, from the top down */
+            path: {
+                /** Format: uuid */
+                id: string;
+                name: string;
+            }[];
+        };
+        CategoryNode: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            parentId: string | null;
+            /** @example T-Shirts */
+            name: string;
+            /** Format: uuid */
+            imageAssetId: string | null;
+            /** Format: uri */
+            imageUrl: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            children: components["schemas"]["CategoryNode"][];
+        };
+        CreateCategoryBody: {
+            /** @example T-Shirts */
+            name: string;
+            /**
+             * Format: uuid
+             * @description The parent category, or null for a top-level one
+             */
+            parentId?: string | null;
+            /**
+             * Format: uuid
+             * @description An uploaded asset, or null for no image
+             */
+            imageAssetId?: string | null;
+        };
+        UpdateCategoryBody: {
+            /** @example T-Shirts */
+            name?: string;
+            /**
+             * Format: uuid
+             * @description The parent category, or null for a top-level one
+             */
+            parentId?: string | null;
+            /**
+             * Format: uuid
+             * @description An uploaded asset, or null for no image
+             */
+            imageAssetId?: string | null;
         };
         Product: {
             /** Format: uuid */
