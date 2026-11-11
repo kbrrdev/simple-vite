@@ -230,6 +230,12 @@ Calm and decisive.
 - **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
 - **No actions:** no footer.
 
+### Image tiles
+
+- **Style:** square photos in a grid, three across on phones and five from `sm` up, with the alt text (or "No alt text" in Slate Text) below.
+- **Main image:** the first tile carries a filled "Main image" badge, as lists and the store use it.
+- **Actions:** a "More actions" menu per tile, with Move earlier, Move later, Edit alt text, and Remove. Adding an image always asks for alt text in a dialog that shows the photo.
+
 ### Forms
 
 - **Short forms**, with one to three fields, such as a category, open in a dialog.

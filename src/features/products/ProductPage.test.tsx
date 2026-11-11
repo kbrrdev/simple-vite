@@ -61,7 +61,7 @@ describe('the product page', () => {
     expect(variants[0]).toHaveTextContent('3 in stock');
     expect(variants[0]).toHaveTextContent('₱450.00');
     expect(variants[1]).toHaveTextContent('Inactive');
-    expect(screen.getByText('No images yet.')).toBeInTheDocument();
+    expect(screen.getByText(/No images yet/)).toBeInTheDocument();
   });
 
   it('says when the product does not exist', async () => {

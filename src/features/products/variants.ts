@@ -46,3 +46,17 @@ export function combinations(values1: string[], values2: string[]): Combination[
     })),
   );
 }
+
+const maxInteger = 2147483647;
+
+/** Reads a stock count typed as text. Returns null unless it is a whole number. */
+export function parseStock(text: string) {
+  if (!/^\d+$/.test(text.trim())) return null;
+  const stock = Number(text);
+  return stock <= maxInteger ? stock : null;
+}
+
+/** Shows cents as peso text for editing, such as 19999 as "199.99", without decimal arithmetic. */
+export function centsToText(cents: number) {
+  return `${Math.floor(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
+}
