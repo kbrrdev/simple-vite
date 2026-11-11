@@ -51,6 +51,7 @@ src/
 | Screen          | Status  | Backend routes                                                                                                                                         |
 | --------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Login           | Built   | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
+| Dashboard       | Built   | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
 | Products        | Built   | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
 | Categories      | Built   | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Built   | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
@@ -79,6 +80,15 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Marking an order returned does not restock it. Staff adjust stock by hand.
 - Cash on delivery orders become paid when they are marked delivered.
 - Totals are shown exactly as the backend sends them. The browser never adds them up.
+
+## Dashboard
+
+- The Dashboard is the reports page. It starts with **Needs attention**: payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders.
+- The summary, the sales chart, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
+- Needs attention and low stock show the store as it is now, so the range does not change them.
+- Every figure comes from the backend. The browser formats it and never adds anything up.
+- The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
+- Each card loads and fails on its own, so a slow report never blocks Needs attention.
 
 ## Payment methods
 
