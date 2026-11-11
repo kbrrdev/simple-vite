@@ -5,6 +5,9 @@ import { DashboardPage } from '@/features/dashboard/DashboardPage';
 import { FilesPage } from '@/features/files/FilesPage';
 import { OrderPage } from '@/features/orders/OrderPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
+import { NewProductPage } from '@/features/products/NewProductPage';
+import { ProductPage } from '@/features/products/ProductPage';
+import { ProductsPage } from '@/features/products/ProductsPage';
 import { AdminLayout } from './AdminLayout';
 import { NotFoundPage } from './NotFoundPage';
 import { RequireAdmin } from './RequireAdmin';
@@ -27,6 +30,9 @@ export const routes: RouteObject[] = [
                   { index: true, element: <DashboardPage /> },
                   { path: '/orders', element: <OrdersPage /> },
                   { path: '/orders/:id', element: <OrderPage /> },
+                  { path: '/products', element: <ProductsPage /> },
+                  { path: '/products/new', element: <NewProductPage /> },
+                  { path: '/products/:id', element: <ProductPage /> },
                   { path: '/categories', element: <CategoriesPage /> },
                   { path: '/files', element: <FilesPage /> },
                   { path: '*', element: <NotFoundPage /> },

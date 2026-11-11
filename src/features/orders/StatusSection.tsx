@@ -3,9 +3,9 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
 import { useUpdateOrderStatus, type Order, type OrderStatus } from './api';
-import { ConfirmDialog } from './ConfirmDialog';
+import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { moveLabels, nextStatuses, statusLabels } from './labels';
-import { OrderCard } from './OrderCard';
+import { ActionCard } from '@/components/ActionCard';
 import { statusSteps } from './order-steps';
 import { Steps } from './Steps';
 
@@ -63,7 +63,7 @@ export function StatusSection({ order }: { order: Order }) {
       : undefined;
 
   return (
-    <OrderCard title="Status" actions={actions}>
+    <ActionCard title="Status" actions={actions}>
       <Steps label="Status steps" steps={statusSteps(order)} />
 
       {confirming && dialog && (
@@ -81,6 +81,6 @@ export function StatusSection({ order }: { order: Order }) {
           }}
         />
       )}
-    </OrderCard>
+    </ActionCard>
   );
 }

@@ -14,7 +14,7 @@ interface Props {
   title: string;
   description: ReactNode;
   actionLabel: string;
-  /** Red for actions that cancel, refund, or return. */
+  /** Red for actions that cancel, refund, deactivate, or delete. */
   destructive?: boolean;
   pending: boolean;
   error: Error | null;
@@ -22,7 +22,7 @@ interface Props {
   onClose: () => void;
 }
 
-/** Asks before an order action, and shows the backend's message if it refuses. */
+/** Asks before an action, and shows the backend's message if it refuses. */
 export function ConfirmDialog({
   title,
   description,

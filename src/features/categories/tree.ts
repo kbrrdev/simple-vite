@@ -32,3 +32,19 @@ export function parentOptions(tree: CategoryNode[], category?: CategoryNode) {
   visit(tree, []);
   return options;
 }
+
+/** Every category, in tree order, labelled with its path, such as "Men › Shoes". */
+export function categoryOptions(tree: CategoryNode[]) {
+  const options: { id: string; label: string }[] = [];
+
+  function visit(nodes: CategoryNode[], path: string[]) {
+    for (const node of nodes) {
+      const names = [...path, node.name];
+      options.push({ id: node.id, label: names.join(' › ') });
+      visit(node.children, names);
+    }
+  }
+
+  visit(tree, []);
+  return options;
+}

@@ -230,6 +230,13 @@ Calm and decisive.
 - **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
 - **No actions:** no footer.
 
+### Forms
+
+- **Short forms**, with one to three fields, such as a category, open in a dialog.
+- **Long forms**, such as a new product, get their own page, with sections in bordered cards, Cancel and the main action at the end, and Back at the top.
+- **Repeated values**, such as option values, are typed and added as removable chips, so a phone keyboard never needs commas.
+- **Money** is typed in pesos in a field with a ₱ prefix and a decimal keyboard, and checked for at most two decimals before sending.
+
 ### Money actions
 
 - **Wording:** a dialog that moves money states the amount and, when there is one, the customer's reference: "Confirm that ₱1,150.00 arrived with reference GC12345678?"
