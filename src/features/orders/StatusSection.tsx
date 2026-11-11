@@ -5,6 +5,9 @@ import { errorMessage } from '@/lib/api';
 import { useUpdateOrderStatus, type Order, type OrderStatus } from './api';
 import { ConfirmDialog } from './ConfirmDialog';
 import { moveLabels, nextStatuses, statusLabels } from './labels';
+import { OrderCard } from './OrderCard';
+import { statusSteps } from './order-steps';
+import { Steps } from './Steps';
 
 // These cannot be undone, so they ask first.
 const confirmText: Partial<Record<OrderStatus, { title: string; description: string }>> = {
@@ -41,30 +44,27 @@ export function StatusSection({ order }: { order: Order }) {
   }
 
   const dialog = confirming ? confirmText[confirming] : undefined;
-  // The first move forward is the one staff usually want.
+  // The move forward is the one staff usually want, so it goes last, where the main action sits.
   const forward = moves.find((status) => !confirmText[status]);
+  const ordered = [...moves.filter((status) => status !== forward), ...(forward ? [forward] : [])];
+
+  const actions =
+    ordered.length > 0
+      ? ordered.map((status) => (
+          <Button
+            key={status}
+            variant={status === forward ? 'default' : 'outline'}
+            disabled={update.isPending}
+            onClick={() => (confirmText[status] ? setConfirming(status) : move(status))}
+          >
+            {moveLabels[status]}
+          </Button>
+        ))
+      : undefined;
 
   return (
-    <section aria-labelledby="status-heading" className="space-y-3 rounded-lg border p-4">
-      <h2 id="status-heading" className="font-medium">
-        Status
-      </h2>
-      {moves.length === 0 ? (
-        <p className="text-sm">No further changes.</p>
-      ) : (
-        <div className="flex flex-wrap gap-2">
-          {moves.map((status) => (
-            <Button
-              key={status}
-              variant={status === forward ? 'default' : 'outline'}
-              disabled={update.isPending}
-              onClick={() => (confirmText[status] ? setConfirming(status) : move(status))}
-            >
-              {moveLabels[status]}
-            </Button>
-          ))}
-        </div>
-      )}
+    <OrderCard title="Status" actions={actions}>
+      <Steps label="Status steps" steps={statusSteps(order)} />
 
       {confirming && dialog && (
         <ConfirmDialog
@@ -81,6 +81,6 @@ export function StatusSection({ order }: { order: Order }) {
           }}
         />
       )}
-    </section>
+    </OrderCard>
   );
 }

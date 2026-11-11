@@ -39,6 +39,20 @@ function section(name: string) {
   return screen.getByRole('region', { name });
 }
 
+/** The step marked current, or stopped, in a list of steps. */
+function currentStep(list: string) {
+  const steps = within(screen.getByRole('list', { name: list })).getAllByRole('listitem');
+  const current = steps.find((step) => step.getAttribute('aria-current') === 'step');
+  if (!current) throw new Error(`No current step in ${list}`);
+  return current;
+}
+
+function stepLabels(list: string) {
+  return within(screen.getByRole('list', { name: list }))
+    .getAllByRole('listitem')
+    .map((step) => step.querySelector('p')?.firstChild?.textContent);
+}
+
 beforeEach(() => {
   requestMock.mockReset();
   vi.mocked(refreshSession).mockResolvedValue(true);
@@ -76,6 +90,63 @@ describe('the order page', () => {
 
     expect(await heading('Order not found')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'Back to orders' })).toHaveAttribute('href', '/orders');
+  });
+});
+
+describe('steps', () => {
+  it('shows the total in the header and where a manual order is now', async () => {
+    serve(makeOrder());
+    renderApp('/orders/order-1');
+
+    const title = await heading('ORD-000123');
+    expect(title.parentElement).toHaveTextContent('₱1,150.00');
+    expect(stepLabels('Status steps')).toEqual([
+      'Awaiting payment',
+      'Pending',
+      'Confirmed',
+      'Shipped',
+      'Delivered',
+    ]);
+    expect(currentStep('Status steps')).toHaveTextContent('Awaiting payment');
+    expect(stepLabels('Payment steps')).toEqual(['Unpaid', 'Payment to check', 'Paid']);
+    expect(currentStep('Payment steps')).toHaveTextContent('Payment to check');
+    expect(currentStep('Payment steps')).toHaveTextContent('GC12345678');
+  });
+
+  it('leaves out the wait for payment on cash on delivery orders', async () => {
+    serve(
+      makeOrder({ paymentType: 'cod', status: 'pending', paymentStatus: 'unpaid', payment: null }),
+    );
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(stepLabels('Status steps')).toEqual(['Pending', 'Confirmed', 'Shipped', 'Delivered']);
+    expect(stepLabels('Payment steps')).toEqual(['Unpaid', 'Paid']);
+    expect(currentStep('Payment steps')).toHaveTextContent('paid when the order is delivered');
+  });
+
+  it('ends a returned order after Shipped', async () => {
+    serve(makeOrder({ status: 'returned', paymentStatus: 'paid' }));
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(stepLabels('Status steps')).toEqual([
+      'Awaiting payment',
+      'Pending',
+      'Confirmed',
+      'Shipped',
+      'Returned',
+    ]);
+    expect(currentStep('Status steps')).toHaveTextContent('stock was not added back');
+  });
+
+  it('shows a cancelled order as one stopped step', async () => {
+    serve(makeOrder({ status: 'cancelled', paymentStatus: 'unpaid' }));
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(stepLabels('Status steps')).toEqual(['Cancelled']);
+    expect(currentStep('Payment steps')).toHaveTextContent('The order was cancelled');
   });
 });
 
@@ -135,7 +206,7 @@ describe('payments', () => {
     );
 
     expect(await screen.findByText('Refund recorded')).toBeInTheDocument();
-    expect(screen.getByText('The refund is recorded.')).toBeInTheDocument();
+    expect(currentStep('Payment steps')).toHaveTextContent('Refunded');
   });
 
   it('shows the backend message when it refuses', async () => {
@@ -166,7 +237,8 @@ describe('status changes', () => {
     const labels = within(status)
       .getAllByRole('button')
       .map((button) => button.textContent);
-    expect(labels).toEqual(['Mark delivered', 'Mark returned']);
+    // The main move goes last, where the footer puts its main action.
+    expect(labels).toEqual(['Mark returned', 'Mark delivered']);
   });
 
   it('marks an order shipped straight away', async () => {

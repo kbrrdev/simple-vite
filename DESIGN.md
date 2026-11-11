@@ -217,6 +217,19 @@ Calm and decisive.
 - **Order status:** outline, except Cancelled and Returned, which use the soft red tint.
 - **Payment:** a soft grey fill, except "Payment to check", which is filled Charcoal so the one state that needs staff stands out without red.
 
+### Steps
+
+- **Use:** to show where something is in a fixed process, such as an order's status or its payment. Vertical, so it fits a phone.
+- **Markers (24px circles):** done is a filled Charcoal circle with a check, current is a Charcoal ring with a dot, not reached is a Hairline circle with Slate Text, and stopped (Cancelled, Returned) is filled Alarm Red with a cross. A 1px Hairline line joins them.
+- **Current step:** marked with `aria-current="step"`, with one sentence under it that says what it means and what to do next. Details that belong to it, such as the payment reference, sit there too.
+- **Honesty:** only show steps the data proves. When the backend does not record where something stopped, show the end state alone.
+
+### Action cards
+
+- **Style:** a bordered section with a title, a body, and a footer bar (Hairline top border, Mist band) for its actions.
+- **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
+- **No actions:** no footer.
+
 ### Money actions
 
 - **Wording:** a dialog that moves money states the amount and, when there is one, the customer's reference: "Confirm that ₱1,150.00 arrived with reference GC12345678?"

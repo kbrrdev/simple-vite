@@ -4,22 +4,12 @@ import { Button } from '@/components/ui/button';
 import { formatCents } from '@/lib/money';
 import { useConfirmPayment, useRefundPayment, useRejectPayment, type Order } from './api';
 import { ConfirmDialog } from './ConfirmDialog';
-import { canRefund, dateTimeFormat } from './labels';
+import { canRefund } from './labels';
+import { OrderCard } from './OrderCard';
+import { Steps } from './Steps';
+import { paymentSteps } from './order-steps';
 
 type Action = 'confirm' | 'reject' | 'refund';
-
-/** A plain sentence for payments that need no action from staff. */
-function paymentNote(order: Order) {
-  if (order.paymentStatus === 'refunded') return 'The refund is recorded.';
-  if (order.paymentStatus === 'paid') return 'Paid.';
-  if (order.paymentType === 'cod')
-    return 'Cash on delivery. It is paid when the order is delivered.';
-  if (order.status === 'cancelled') return 'Not paid. The order was cancelled.';
-  if (order.paymentDueAt) {
-    return `Waiting for the customer to pay by ${dateTimeFormat.format(new Date(order.paymentDueAt))}.`;
-  }
-  return 'Waiting for the customer to pay.';
-}
 
 export function PaymentSection({ order }: { order: Order }) {
   const [action, setAction] = useState<Action | null>(null);
@@ -27,6 +17,7 @@ export function PaymentSection({ order }: { order: Order }) {
   const reject = useRejectPayment();
   const refund = useRefundPayment();
   const total = formatCents(order.totalCents);
+  const submitted = order.paymentStatus === 'submitted';
 
   const dialogs = {
     confirm: {
@@ -61,42 +52,44 @@ export function PaymentSection({ order }: { order: Order }) {
     setAction(null);
   }
 
+  let actions;
+  if (submitted) {
+    actions = (
+      <>
+        <Button variant="outline" onClick={() => setAction('reject')}>
+          Reject
+        </Button>
+        <Button onClick={() => setAction('confirm')}>Confirm payment</Button>
+      </>
+    );
+  } else if (canRefund(order)) {
+    actions = (
+      <Button variant="outline" onClick={() => setAction('refund')}>
+        Record refund
+      </Button>
+    );
+  }
+
   return (
-    <section aria-labelledby="payment-heading" className="space-y-3 rounded-lg border p-4">
-      <h2 id="payment-heading" className="font-medium">
-        Payment
-      </h2>
+    <OrderCard title="Payment" actions={actions}>
+      <Steps label="Payment steps" steps={paymentSteps(order)}>
+        {submitted && (
+          <div className="pt-1">
+            <p className="text-muted-foreground">Customer's reference</p>
+            <p className="text-lg font-semibold tabular-nums select-all">
+              {order.paymentReference}
+            </p>
+          </div>
+        )}
+      </Steps>
+
       {order.payment?.providerName && (
         <p className="text-sm text-muted-foreground">
           {order.payment.providerName}
           {order.payment.accountName && ` · ${order.payment.accountName}`}
           {order.payment.accountNumber && ` · ${order.payment.accountNumber}`}
+          {!submitted && order.paymentReference && ` · Reference ${order.paymentReference}`}
         </p>
-      )}
-
-      {order.paymentStatus === 'submitted' ? (
-        <>
-          <div>
-            <p className="text-sm text-muted-foreground">Customer's reference</p>
-            <p className="text-lg font-semibold tabular-nums select-all">
-              {order.paymentReference}
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button onClick={() => setAction('confirm')}>Confirm payment</Button>
-            <Button variant="outline" onClick={() => setAction('reject')}>
-              Reject
-            </Button>
-          </div>
-        </>
-      ) : (
-        <p className="text-sm">{paymentNote(order)}</p>
-      )}
-
-      {canRefund(order) && (
-        <Button variant="outline" onClick={() => setAction('refund')}>
-          Record refund
-        </Button>
       )}
 
       {dialog && (
@@ -118,6 +111,6 @@ export function PaymentSection({ order }: { order: Order }) {
           onClose={close}
         />
       )}
-    </section>
+    </OrderCard>
   );
 }
