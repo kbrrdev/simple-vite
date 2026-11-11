@@ -9,7 +9,11 @@ export function RequireAdmin() {
   const location = useLocation();
 
   if (session.isPending) {
-    return <p className="p-8 text-muted-foreground">Loading…</p>;
+    return (
+      <p role="status" className="p-8 text-muted-foreground">
+        Loading…
+      </p>
+    );
   }
 
   if (session.isError) {

@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -48,7 +49,12 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
         parentId: parentId || null,
         imageAssetId: image?.id ?? null,
       },
-      { onSuccess: onClose },
+      {
+        onSuccess: () => {
+          toast.success(category ? 'Category saved' : 'Category created');
+          onClose();
+        },
+      },
     );
   }
 
@@ -82,10 +88,15 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
               maxLength={100}
               required
               aria-invalid={Boolean(nameError)}
+              aria-describedby={nameError ? 'category-name-error' : undefined}
               value={name}
               onChange={(event) => setName(event.target.value)}
             />
-            {nameError && <p className="text-sm text-destructive">{nameError}</p>}
+            {nameError && (
+              <p id="category-name-error" className="text-sm text-destructive">
+                {nameError}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -93,9 +104,10 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
             <select
               id="category-parent"
               aria-invalid={Boolean(parentError)}
+              aria-describedby={parentError ? 'category-parent-error' : undefined}
               value={parentId}
               onChange={(event) => setParentId(event.target.value)}
-              className="h-8 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 aria-invalid:border-destructive md:text-sm dark:bg-input/30"
+              className="h-11 w-full min-w-0 rounded-lg border border-input bg-transparent px-2 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring aria-invalid:border-destructive md:h-8 md:text-sm dark:bg-input/30"
             >
               <option value="">None (top level)</option>
               {parentOptions(tree, category).map((option) => (
@@ -104,7 +116,11 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
                 </option>
               ))}
             </select>
-            {parentError && <p className="text-sm text-destructive">{parentError}</p>}
+            {parentError && (
+              <p id="category-parent-error" className="text-sm text-destructive">
+                {parentError}
+              </p>
+            )}
           </div>
 
           <CategoryImageField

@@ -34,7 +34,11 @@ export function AssetPicker({ onPick, onClose }: Props) {
           <DialogDescription>Images uploaded on the Files page.</DialogDescription>
         </DialogHeader>
 
-        {assets.isPending && <p className="text-muted-foreground">Loading…</p>}
+        {assets.isPending && (
+          <p role="status" className="text-muted-foreground">
+            Loading…
+          </p>
+        )}
 
         {assets.isError && (
           <div className="space-y-4">
@@ -61,7 +65,7 @@ export function AssetPicker({ onPick, onClose }: Props) {
                       type="button"
                       aria-label={`Choose ${label}`}
                       onClick={() => onPick(asset)}
-                      className="block w-full rounded-md outline-none hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50"
+                      className="block w-full rounded-md outline-none hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring"
                     >
                       <img
                         src={asset.url}

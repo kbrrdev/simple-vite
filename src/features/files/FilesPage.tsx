@@ -1,5 +1,6 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Navigate } from 'react-router';
+import { toast } from 'sonner';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
@@ -37,7 +38,12 @@ export function FilesPage() {
     if (problem) return;
 
     // New uploads are listed first, so show the first page.
-    upload.mutate(file, { onSuccess: () => setPage(1) });
+    upload.mutate(file, {
+      onSuccess: () => {
+        toast.success('Image uploaded');
+        setPage(1);
+      },
+    });
   }
 
   const uploadError = fileProblem ?? (upload.error ? errorMessage(upload.error) : null);
@@ -67,7 +73,11 @@ export function FilesPage() {
         </p>
       )}
 
-      {assets.isPending && <p className="text-muted-foreground">Loading…</p>}
+      {assets.isPending && (
+        <p role="status" className="text-muted-foreground">
+          Loading…
+        </p>
+      )}
 
       {assets.isError && (
         <div className="space-y-4">
@@ -99,7 +109,7 @@ export function FilesPage() {
                     className="aspect-square w-full rounded-md bg-muted object-cover"
                   />
                   <div className="flex items-center justify-between gap-2">
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-xs text-muted-foreground tabular-nums">
                       {formatType(asset.mimeType)} · {formatSize(asset.sizeBytes)}
                       <br />
                       {uploaded}

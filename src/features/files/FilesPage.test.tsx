@@ -103,6 +103,7 @@ describe('uploading', () => {
     await userEvent.upload(screen.getByLabelText('Image file'), file);
 
     expect(await screen.findAllByRole('img')).toHaveLength(2);
+    expect(await screen.findByText('Image uploaded')).toBeInTheDocument();
     const [, options] = requestMock.mock.calls.find(([, o]) => o?.method === 'POST') ?? [];
     expect(options?.body).toBeInstanceOf(FormData);
     expect((options?.body as FormData).get('file')).toBe(file);

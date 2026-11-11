@@ -53,6 +53,10 @@ function treeOf(categories: CategoryNode[]) {
   return { data: categories };
 }
 
+async function openMenu(name: string) {
+  await userEvent.click(await screen.findByRole('button', { name: `More actions for ${name}` }));
+}
+
 beforeEach(() => {
   requestMock.mockReset();
   vi.mocked(refreshSession).mockResolvedValue(true);
@@ -76,11 +80,12 @@ describe('the categories tree', () => {
     api(() => treeOf([category('Men', [category('Shoes', [category('Running')])])]));
     renderApp('/categories');
 
-    await screen.findByText('Running');
-    expect(screen.getByRole('button', { name: 'Add a subcategory to Shoes' })).toBeInTheDocument();
-    expect(
-      screen.queryByRole('button', { name: 'Add a subcategory to Running' }),
-    ).not.toBeInTheDocument();
+    await openMenu('Shoes');
+    expect(screen.getByRole('menuitem', { name: 'Add subcategory' })).toBeInTheDocument();
+    await userEvent.keyboard('{Escape}');
+
+    await openMenu('Running');
+    expect(screen.queryByRole('menuitem', { name: 'Add subcategory' })).not.toBeInTheDocument();
   });
 
   it('shows an empty state', async () => {
@@ -118,6 +123,7 @@ describe('creating and editing', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('Socks')).toBeInTheDocument();
+    expect(await screen.findByText('Category created')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/categories', {
       method: 'POST',
@@ -129,7 +135,8 @@ describe('creating and editing', () => {
     api(() => treeOf([category('Men')]));
     renderApp('/categories');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Add a subcategory to Men' }));
+    await openMenu('Men');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Add subcategory' }));
     const dialog = screen.getByRole('dialog', { name: 'New subcategory' });
     expect(within(dialog).getByLabelText('Parent')).toHaveValue('id-Men');
 
@@ -234,7 +241,7 @@ describe('category images', () => {
     const file = new File(['x'], 'hat.jpg', { type: 'image/jpeg' });
     await userEvent.upload(within(dialog).getByLabelText('Image file'), file);
 
-    expect(await within(dialog).findByRole('img', { name: 'Category image' })).toHaveAttribute(
+    expect(await within(dialog).findByRole('img', { name: 'Selected image' })).toHaveAttribute(
       'src',
       photo.url,
     );
@@ -295,30 +302,43 @@ describe('deleting', () => {
     });
     renderApp('/categories');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Hats' }));
+    await openMenu('Hats');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     await userEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Delete' }),
     );
 
     expect(await screen.findByText(/No categories yet/)).toBeInTheDocument();
+    expect(await screen.findByText('Category deleted')).toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', { method: 'DELETE' });
   });
 
-  it('explains when the category still has subcategories', async () => {
+  it('disables delete while the category has subcategories', async () => {
+    api(() => treeOf([category('Men', [category('Shoes')])]));
+    renderApp('/categories');
+
+    await openMenu('Men');
+    const item = screen.getByRole('menuitem', { name: /Delete/ });
+    expect(item).toHaveAttribute('aria-disabled', 'true');
+    expect(item).toHaveTextContent('Remove its subcategories first');
+  });
+
+  it('shows the backend message when a delete is refused', async () => {
     api((_path, options) => {
       if (options?.method === 'DELETE') {
-        throw new ApiError(409, { error: { message: 'Category has subcategories' } });
+        throw new ApiError(409, { error: { message: 'Category is in use by products' } });
       }
-      return treeOf([category('Men', [category('Shoes')])]);
+      return treeOf([category('Hats')]);
     });
     renderApp('/categories');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete Men' }));
+    await openMenu('Hats');
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Delete' }));
     const dialog = screen.getByRole('dialog');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
-      'Category has subcategories',
+      'Category is in use by products',
     );
   });
 });

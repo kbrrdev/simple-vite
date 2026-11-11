@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { env } from '@/config/env';
@@ -43,6 +43,7 @@ export function LoginPage() {
           <CardTitle>
             <h1>{env.storeName}</h1>
           </CardTitle>
+          <CardDescription>Sign in to manage the store.</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
@@ -53,11 +54,15 @@ export function LoginPage() {
                 type="email"
                 autoComplete="username"
                 required
+                aria-invalid={Boolean(fieldError('email'))}
+                aria-describedby={fieldError('email') ? 'email-error' : undefined}
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
               />
               {fieldError('email') && (
-                <p className="text-sm text-destructive">{fieldError('email')}</p>
+                <p id="email-error" className="text-sm text-destructive">
+                  {fieldError('email')}
+                </p>
               )}
             </div>
             <div className="space-y-2">
@@ -67,11 +72,15 @@ export function LoginPage() {
                 type="password"
                 autoComplete="current-password"
                 required
+                aria-invalid={Boolean(fieldError('password'))}
+                aria-describedby={fieldError('password') ? 'password-error' : undefined}
                 value={password}
                 onChange={(event) => setPassword(event.target.value)}
               />
               {fieldError('password') && (
-                <p className="text-sm text-destructive">{fieldError('password')}</p>
+                <p id="password-error" className="text-sm text-destructive">
+                  {fieldError('password')}
+                </p>
               )}
             </div>
             {login.error && !fieldError('email') && !fieldError('password') && (
