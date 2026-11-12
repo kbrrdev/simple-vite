@@ -289,6 +289,24 @@ describe('status changes', () => {
 });
 
 describe('permissions', () => {
+  it('links to the order history for roles that can read the audit log', async () => {
+    serve(makeOrder());
+    renderApp('/orders/order-1');
+
+    expect(await screen.findByRole('link', { name: 'History' })).toHaveAttribute(
+      'href',
+      '/audit-log?entityType=order&entityId=order-1',
+    );
+  });
+
+  it('leaves out History for roles that cannot', async () => {
+    serve(makeOrder(), undefined, staff);
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(screen.queryByRole('link', { name: 'History' })).not.toBeInTheDocument();
+  });
+
   it('leaves out Record refund for roles without orders.refund', async () => {
     serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), undefined, staff);
     renderApp('/orders/order-1');

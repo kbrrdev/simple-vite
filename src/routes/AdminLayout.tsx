@@ -15,6 +15,7 @@ const links: { to: string; label: string; permission?: Permission }[] = [
   { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
   { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
   { to: '/files', label: 'Files', permission: 'assets.manage' },
+  { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
 ];
 
 /** The nav links, the signed-in email, and Log out. The sidebar and the phone menu share them. */

@@ -58,6 +58,7 @@ src/
 | Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
 | Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
+| Audit log       | Built  | `GET /api/audit-logs`                                                                                                                                  |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -89,6 +90,15 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Every figure comes from the backend. The browser formats it and never adds anything up.
 - The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
 - Each card loads and fails on its own, so a slow report never blocks Needs attention.
+
+## Audit log
+
+- The backend records every staff change, and nobody can edit or remove an entry. The screen only reads `GET /api/audit-logs`, and needs `audit_logs.view`.
+- Type, person, item, the From and To days, and the page are kept in the URL. The days are calendar days in Manila time, both included, and no days means all of them.
+- Clicking someone's email shows only their changes. Scripts such as `db:set-role` have no person, and show as System.
+- Each entry shows the fields it changed, before and after. Fields ending in `Cents` are shown in pesos, and redacted values as `[redacted]`. Everything is shown as text.
+- Order, product, and blog pages have a History link to their own entries. Variants and product images are logged under their own ids, so a product's History leaves them out.
+- Action names the app does not know yet are turned into words, so new backend actions still read well.
 
 ## Payment methods
 
