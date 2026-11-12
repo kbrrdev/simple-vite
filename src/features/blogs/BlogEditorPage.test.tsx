@@ -33,7 +33,7 @@ function sent() {
 async function fillNewPost() {
   await userEvent.type(await screen.findByLabelText('Title'), 'Store news');
   await userEvent.type(screen.getByLabelText('Author'), 'Juan');
-  await userEvent.type(screen.getByLabelText('Content'), 'We open at **nine**.');
+  await userEvent.type(screen.getByRole('textbox', { name: 'Content' }), 'We open at **nine**.');
 }
 
 beforeEach(() => {
@@ -89,7 +89,7 @@ describe('writing a new post', () => {
     renderApp('/blogs/new');
 
     await userEvent.type(
-      await screen.findByLabelText('Content'),
+      await screen.findByRole('textbox', { name: 'Content' }),
       '## Hours{Enter}{Enter}Open at **nine**.',
     );
     await userEvent.click(screen.getByRole('button', { name: 'Preview' }));
@@ -102,7 +102,7 @@ describe('writing a new post', () => {
     serve(makeBlog());
     renderApp('/blogs/new');
 
-    const content = await screen.findByLabelText<HTMLTextAreaElement>('Content');
+    const content = await screen.findByRole<HTMLTextAreaElement>('textbox', { name: 'Content' });
     await userEvent.type(content, 'Free shipping today');
     content.setSelectionRange(0, 13);
     await userEvent.click(screen.getByRole('button', { name: 'Bold' }));
@@ -139,7 +139,7 @@ describe('writing a new post', () => {
     renderApp('/blogs/new');
 
     await userEvent.type(
-      await screen.findByLabelText('Content'),
+      await screen.findByRole('textbox', { name: 'Content' }),
       'Hi <img src=x onerror="alert(1)"> there',
     );
     await userEvent.click(screen.getByRole('button', { name: 'Preview' }));

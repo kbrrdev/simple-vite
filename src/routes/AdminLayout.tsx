@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { MenuIcon } from 'lucide-react';
 import { NavLink, Outlet } from 'react-router';
 import { Button } from '@/components/ui/button';
@@ -6,48 +6,120 @@ import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/
 import { env } from '@/config/env';
 import { useLogout, useSession, type Permission } from '@/lib/auth';
 
-// Each feature adds its link here when its screens are built, with the permission its route needs.
-const links: { to: string; label: string; permission?: Permission; superAdmin?: true }[] = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/orders', label: 'Orders', permission: 'orders.view' },
-  { to: '/products', label: 'Products', permission: 'products.view' },
-  { to: '/categories', label: 'Categories', permission: 'categories.manage' },
-  { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
-  { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
-  { to: '/files', label: 'Files', permission: 'assets.manage' },
-  { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
-  // Admin can hold every permission too, so these check the super admin flag.
-  { to: '/roles', label: 'Roles', superAdmin: true },
-  { to: '/people', label: 'People', superAdmin: true },
+interface NavItem {
+  to: string;
+  label: string;
+  /** The permission the page's route needs. */
+  permission?: Permission;
+  /** Admin can hold every permission too, so team pages check the super admin flag. */
+  superAdmin?: true;
+}
+
+/**
+ * The nav, in groups ordered by how often each area is used: daily work first, setup last.
+ * Each feature adds its link here when its screens are built.
+ */
+const groups: { label?: string; items: NavItem[] }[] = [
+  {
+    items: [
+      { to: '/', label: 'Dashboard' },
+      { to: '/orders', label: 'Orders', permission: 'orders.view' },
+    ],
+  },
+  {
+    label: 'Catalog',
+    items: [
+      { to: '/products', label: 'Products', permission: 'products.view' },
+      { to: '/categories', label: 'Categories', permission: 'categories.manage' },
+    ],
+  },
+  {
+    label: 'Content',
+    items: [
+      { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
+      { to: '/files', label: 'Files', permission: 'assets.manage' },
+    ],
+  },
+  {
+    label: 'Settings',
+    items: [
+      { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
+    ],
+  },
+  {
+    label: 'Team',
+    items: [
+      { to: '/people', label: 'People', superAdmin: true },
+      { to: '/roles', label: 'Roles', superAdmin: true },
+      { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
+    ],
+  },
 ];
+
+function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+  return (
+    <NavLink
+      to={item.to}
+      end={item.to === '/'}
+      onClick={onNavigate}
+      className={({ isActive }) =>
+        `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'}`
+      }
+    >
+      {item.label}
+    </NavLink>
+  );
+}
 
 /** The nav links, the signed-in email, and Log out. The sidebar and the phone menu share them. */
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { data: user } = useSession();
   const logout = useLogout();
-  // Links the role cannot use are left out. Their pages would only say so.
-  const shown = links.filter(
-    (link) =>
-      (!link.permission || user?.permissions.includes(link.permission)) &&
-      (!link.superAdmin || user?.superAdmin),
-  );
+  // The sidebar and the phone menu both render this, so their heading ids must differ.
+  const idPrefix = useId();
+  // Links the role cannot use are left out, as their pages would only say so. A group with
+  // none left is left out with its heading.
+  const shown = groups
+    .map((group) => ({
+      ...group,
+      items: group.items.filter(
+        (item) =>
+          (!item.permission || user?.permissions.includes(item.permission)) &&
+          (!item.superAdmin || user?.superAdmin),
+      ),
+    }))
+    .filter((group) => group.items.length > 0);
 
   return (
     <>
-      <nav aria-label="Main" className="flex flex-col gap-1">
-        {shown.map((link) => (
-          <NavLink
-            key={link.to}
-            to={link.to}
-            end={link.to === '/'}
-            onClick={onNavigate}
-            className={({ isActive }) =>
-              `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'}`
-            }
-          >
-            {link.label}
-          </NavLink>
-        ))}
+      <nav aria-label="Main" className="flex flex-col gap-4">
+        {shown.map((group) => {
+          const links = group.items.map((item) => (
+            <NavItemLink key={item.to} item={item} onNavigate={onNavigate} />
+          ));
+          if (!group.label) {
+            return (
+              <div key="main" className="flex flex-col gap-1">
+                {links}
+              </div>
+            );
+          }
+
+          const headingId = `${idPrefix}-${group.label}`;
+          return (
+            <div
+              key={group.label}
+              role="group"
+              aria-labelledby={headingId}
+              className="flex flex-col gap-1"
+            >
+              <p id={headingId} className="px-2 text-xs font-medium text-muted-foreground">
+                {group.label}
+              </p>
+              {links}
+            </div>
+          );
+        })}
       </nav>
       <div className="mt-auto space-y-2 px-2">
         <div className="text-sm">
