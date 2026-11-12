@@ -90,6 +90,47 @@ describe('permissions', () => {
     expect(screen.getAllByText('Staff').length).toBeGreaterThan(0);
   });
 
+  it('groups the nav, and leaves out groups the role has nothing in', async () => {
+    signedInAs(staff);
+    renderApp('/');
+
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    const groups = within(nav)
+      .getAllByRole('group')
+      .map((group) => group.firstChild?.textContent);
+    expect(groups).toEqual(['Catalog', 'Content']);
+    expect(
+      within(within(nav).getByRole('group', { name: 'Catalog' })).getByRole('link'),
+    ).toHaveTextContent('Products');
+  });
+
+  it('shows a super admin every group, daily work first', async () => {
+    signedInAs(admin);
+    renderApp('/');
+
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    const groups = within(nav)
+      .getAllByRole('group')
+      .map((group) => group.firstChild?.textContent);
+    expect(groups).toEqual(['Catalog', 'Content', 'Settings', 'Team']);
+    expect(
+      within(nav)
+        .getAllByRole('link')
+        .map((link) => link.textContent),
+    ).toEqual([
+      'Dashboard',
+      'Orders',
+      'Products',
+      'Categories',
+      'Blog',
+      'Files',
+      'Payment methods',
+      'People',
+      'Roles',
+      'Audit log',
+    ]);
+  });
+
   it('explains a page the role cannot use, without asking the backend for it', async () => {
     signedInAs(staff);
     renderApp('/categories');

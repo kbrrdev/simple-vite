@@ -96,7 +96,10 @@ describe('the role editor', () => {
 
     const orders = await screen.findByRole('group', { name: 'Orders' });
     expect(within(orders).getAllByRole('checkbox')).toHaveLength(3);
-    expect(screen.getByRole('group', { name: 'Content' })).toBeInTheDocument();
+    // Scoped to the page, as the nav has a Content group too.
+    expect(
+      within(screen.getByRole('main')).getByRole('group', { name: 'Content' }),
+    ).toBeInTheDocument();
   });
 
   it('sends only what changed', async () => {
