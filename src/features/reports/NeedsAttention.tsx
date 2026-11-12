@@ -65,26 +65,33 @@ export function NeedsAttention() {
       )}
 
       {waiting.length > 0 && counts && (
-        <ul className="overflow-hidden rounded-lg border">
+        // A bordered list on phones, and cards a third of the width from md, so that Review
+        // stays beside its task instead of across a wide screen.
+        <ul className="overflow-hidden rounded-lg border md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:rounded-none md:border-0">
           {waiting.map((task) => {
             const count = counts[task.key];
             return (
-              <li key={task.key} className="border-t first:border-t-0">
+              <li
+                key={task.key}
+                className="border-t first:border-t-0 md:overflow-hidden md:rounded-lg md:border md:first:border-t"
+              >
                 {/* One link per task, so phones get a large target and keyboards one stop. */}
                 <Link
                   to={task.to}
                   aria-label={task.action(count)}
-                  className="group flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
+                  className="group flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:h-full md:flex-col md:items-stretch md:gap-4 md:p-4"
                 >
-                  <span className="flex h-9 min-w-9 items-center justify-center rounded-md bg-primary px-2 text-base font-bold text-primary-foreground tabular-nums">
-                    {count}
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block font-semibold">{task.title}</span>
-                    <span className="block text-xs text-muted-foreground">{task.caption}</span>
+                  <span className="flex min-w-0 flex-1 items-center gap-3 md:items-start">
+                    <span className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-md bg-primary px-2 text-base font-bold text-primary-foreground tabular-nums">
+                      {count}
+                    </span>
+                    <span className="min-w-0">
+                      <span className="block font-semibold">{task.title}</span>
+                      <span className="block text-xs text-muted-foreground">{task.caption}</span>
+                    </span>
                   </span>
                   {/* Looks like a button, but is part of the link. */}
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border bg-background px-3 text-sm font-medium group-hover:bg-muted">
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border bg-background px-3 text-sm font-medium group-hover:bg-muted md:self-end">
                     Review
                     <ChevronRightIcon aria-hidden className="size-4" />
                   </span>
