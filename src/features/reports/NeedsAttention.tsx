@@ -38,7 +38,7 @@ export function NeedsAttention() {
   const waiting = counts ? tasks.filter((task) => counts[task.key] > 0) : [];
 
   return (
-    <section aria-labelledby="needs-attention-heading" className="space-y-3">
+    <section aria-labelledby="needs-attention-heading" className="@container space-y-3">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id="needs-attention-heading" className="text-lg font-semibold">
           Needs attention
@@ -65,23 +65,24 @@ export function NeedsAttention() {
       )}
 
       {waiting.length > 0 && counts && (
-        // A bordered list on phones, and cards a third of the width from md, so that Review
-        // stays beside its task instead of across a wide screen.
-        <ul className="overflow-hidden rounded-lg border md:grid md:grid-cols-3 md:gap-4 md:overflow-visible md:rounded-none md:border-0">
+        // A bordered list while the section is narrow, and cards a third of the width once it
+        // is 672px or wider, so that Review stays beside its task. The sidebar takes some of
+        // the window, so this follows the section's width rather than the window's.
+        <ul className="overflow-hidden rounded-lg border @2xl:grid @2xl:grid-cols-3 @2xl:gap-4 @2xl:overflow-visible @2xl:rounded-none @2xl:border-0">
           {waiting.map((task) => {
             const count = counts[task.key];
             return (
               <li
                 key={task.key}
-                className="border-t first:border-t-0 md:overflow-hidden md:rounded-lg md:border md:first:border-t"
+                className="border-t first:border-t-0 @2xl:overflow-hidden @2xl:rounded-lg @2xl:border @2xl:first:border-t"
               >
                 {/* One link per task, so phones get a large target and keyboards one stop. */}
                 <Link
                   to={task.to}
                   aria-label={task.action(count)}
-                  className="group flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:h-full md:flex-col md:items-stretch md:gap-4 md:p-4"
+                  className="group flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset @2xl:h-full @2xl:flex-col @2xl:items-stretch @2xl:gap-4 @2xl:p-4"
                 >
-                  <span className="flex min-w-0 flex-1 items-center gap-3 md:items-start">
+                  <span className="flex min-w-0 flex-1 items-center gap-3 @2xl:items-start">
                     <span className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-md bg-primary px-2 text-base font-bold text-primary-foreground tabular-nums">
                       {count}
                     </span>
@@ -91,7 +92,7 @@ export function NeedsAttention() {
                     </span>
                   </span>
                   {/* Looks like a button, but is part of the link. */}
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border bg-background px-3 text-sm font-medium group-hover:bg-muted md:self-end">
+                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border bg-background px-3 text-sm font-medium group-hover:bg-muted @2xl:self-end">
                     Review
                     <ChevronRightIcon aria-hidden className="size-4" />
                   </span>
