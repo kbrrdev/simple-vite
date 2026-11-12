@@ -105,21 +105,61 @@ beforeEach(() => {
 });
 
 describe('needs attention', () => {
-  it('links each waiting task to the matching orders', async () => {
+  it('lists each waiting task as a link to the matching orders', async () => {
     serve();
     renderApp('/');
 
-    expect(await screen.findByRole('link', { name: /3 payments to confirm/ })).toHaveAttribute(
+    expect(await screen.findByRole('link', { name: 'Confirm 3 payments' })).toHaveAttribute(
       'href',
       '/orders?paymentStatus=submitted',
     );
-    expect(screen.getByRole('link', { name: /2 orders to ship/ })).toHaveAttribute(
+    expect(screen.getByRole('link', { name: 'Ship 2 orders' })).toHaveAttribute(
       'href',
       '/orders?status=confirmed',
     );
-    // Nothing to do is said plainly, without a link.
-    expect(screen.getByText('No orders to confirm')).toBeInTheDocument();
-    expect(screen.queryByRole('link', { name: /orders to confirm/ })).not.toBeInTheDocument();
+    expect(screen.getByText('2 tasks')).toBeInTheDocument();
+    // A task with nothing waiting is left out.
+    expect(screen.queryByText('Confirm orders')).not.toBeInTheDocument();
+    expect(screen.queryByText(/All caught up/)).not.toBeInTheDocument();
+  });
+
+  it('says so when nothing is waiting', async () => {
+    serve((path) =>
+      path === '/api/reports/order-status'
+        ? {
+            data: {
+              counts: [],
+              needsAttention: { paymentsToConfirm: 0, ordersToConfirm: 0, ordersToShip: 0 },
+            },
+          }
+        : undefined,
+    );
+    renderApp('/');
+
+    expect(await screen.findByText('All caught up.')).toBeInTheDocument();
+    const section = screen.getByRole('region', { name: 'Needs attention' });
+    expect(within(section).queryByRole('link')).not.toBeInTheDocument();
+    expect(within(section).queryByText(/task/)).not.toBeInTheDocument();
+  });
+
+  it('uses the singular for one', async () => {
+    serve((path) =>
+      path === '/api/reports/order-status'
+        ? {
+            data: {
+              counts: [],
+              needsAttention: { paymentsToConfirm: 0, ordersToConfirm: 1, ordersToShip: 0 },
+            },
+          }
+        : undefined,
+    );
+    renderApp('/');
+
+    expect(await screen.findByRole('link', { name: 'Confirm 1 order' })).toHaveAttribute(
+      'href',
+      '/orders?status=pending',
+    );
+    expect(screen.getByText('1 task')).toBeInTheDocument();
   });
 });
 
@@ -188,7 +228,7 @@ describe('the summary', () => {
     renderApp('/');
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Reference: req-3');
-    expect(await screen.findByRole('link', { name: /3 payments to confirm/ })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Confirm 3 payments' })).toBeInTheDocument();
     expect(await screen.findByRole('list', { name: 'Best sellers' })).toBeInTheDocument();
   });
 });
@@ -316,7 +356,7 @@ describe('permissions', () => {
     serve(undefined, staff);
     renderApp('/');
 
-    expect(await screen.findByRole('link', { name: /3 payments to confirm/ })).toBeInTheDocument();
+    expect(await screen.findByRole('link', { name: 'Confirm 3 payments' })).toBeInTheDocument();
     expect(screen.getByRole('region', { name: /Low stock/ })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Summary' })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Best sellers' })).not.toBeInTheDocument();

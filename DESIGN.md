@@ -232,6 +232,7 @@ Calm and decisive.
 
 ### Figures and charts
 
+- **Needs attention:** waiting work is a to-do list, one row per task with something waiting: a dark Charcoal count badge, a verb title such as "Confirm payments", a Slate Text caption, and Review on the right. The whole row is one link, at least 64px tall. Once the section is 672px or wider (a container query, as the sidebar takes part of the window), the rows become cards a third of the width, side by side, with Review at the bottom right, so that it stays beside its task on a wide screen. Tasks with nothing waiting are left out, and when none wait the section is one quiet line, "All caught up." The dark badge is used for waiting work only.
 - **Headline figures:** up to four, each a Slate Text label over a semibold value in tabular figures (1.25rem on phones, 1.5rem from `md` up), two across on phones and four from `md` up.
 - **Secondary figures** sit below a hairline in a grid of small label over value: two across on phones, three from `sm`, six from `lg`. Never a running line of label and value pairs, which mix up when they wrap on a phone.
 - **Rows in half-width cards** use container queries (`@container`, `@md:`), not screen breakpoints, so a row keeps its figures on a second line whenever the card itself is narrow.
