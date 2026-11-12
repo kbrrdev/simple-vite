@@ -86,7 +86,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Dashboard
 
-- The Dashboard is the reports page. It starts with **Needs attention**: payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders.
+- The Dashboard is the reports page. It starts with **Needs attention**, a to-do list of payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
 - The summary, the sales chart, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
 - Needs attention and low stock show the store as it is now, so the range does not change them.
 - Every figure comes from the backend. The browser formats it and never adds anything up.
