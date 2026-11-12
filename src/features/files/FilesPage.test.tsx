@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import type { Asset } from './api';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
@@ -11,8 +12,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 function asset(id: string, sizeBytes = 204800): Asset {
   return {

@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import type { Product } from './api';
 import { categoryTree, makeProduct, makeVariant } from './test-data';
 
@@ -12,8 +13,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 /** Answers the session and the category tree, and lists the given products. */
 function serve(list: () => { data: Product[]; total?: number }) {

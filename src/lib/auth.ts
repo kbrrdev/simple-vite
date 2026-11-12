@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { refreshSession, request, setAccessToken, type Schemas } from './api';
 
 export type User = Schemas['User'];
+export type Permission = User['permissions'][number];
 
 export const sessionKey = ['session'];
 
@@ -20,6 +21,15 @@ export function useSession() {
     staleTime: Infinity,
     retry: false,
   });
+}
+
+/**
+ * Whether the signed-in user's role grants `permission`. It only hides what they cannot use,
+ * as the backend checks every request.
+ */
+export function useCan(permission: Permission) {
+  const { data: user } = useSession();
+  return user?.permissions.includes(permission) ?? false;
 }
 
 export function useLogin() {

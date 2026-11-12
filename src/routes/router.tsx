@@ -13,7 +13,8 @@ import { ProductsPage } from '@/features/products/ProductsPage';
 import { DashboardPage } from '@/features/reports/DashboardPage';
 import { AdminLayout } from './AdminLayout';
 import { NotFoundPage } from './NotFoundPage';
-import { RequireAdmin } from './RequireAdmin';
+import { RequirePermission } from './RequirePermission';
+import { RequireStaff } from './RequireStaff';
 import { RouteError } from './RouteError';
 
 export const routes: RouteObject[] = [
@@ -22,7 +23,7 @@ export const routes: RouteObject[] = [
     children: [
       { path: '/login', element: <LoginPage /> },
       {
-        element: <RequireAdmin />,
+        element: <RequireStaff />,
         children: [
           {
             element: <AdminLayout />,
@@ -31,17 +32,44 @@ export const routes: RouteObject[] = [
                 errorElement: <RouteError />,
                 children: [
                   { index: true, element: <DashboardPage /> },
-                  { path: '/orders', element: <OrdersPage /> },
-                  { path: '/orders/:id', element: <OrderPage /> },
-                  { path: '/products', element: <ProductsPage /> },
-                  { path: '/products/new', element: <NewProductPage /> },
-                  { path: '/products/:id', element: <ProductPage /> },
-                  { path: '/categories', element: <CategoriesPage /> },
-                  { path: '/payment-methods', element: <PaymentMethodsPage /> },
-                  { path: '/blogs', element: <BlogsPage /> },
-                  { path: '/blogs/new', element: <NewBlogPage /> },
-                  { path: '/blogs/:id', element: <BlogEditorPage /> },
-                  { path: '/files', element: <FilesPage /> },
+                  {
+                    element: <RequirePermission permission="orders.view" />,
+                    children: [
+                      { path: '/orders', element: <OrdersPage /> },
+                      { path: '/orders/:id', element: <OrderPage /> },
+                    ],
+                  },
+                  {
+                    element: <RequirePermission permission="products.manage" />,
+                    children: [{ path: '/products/new', element: <NewProductPage /> }],
+                  },
+                  {
+                    element: <RequirePermission permission="products.view" />,
+                    children: [
+                      { path: '/products', element: <ProductsPage /> },
+                      { path: '/products/:id', element: <ProductPage /> },
+                    ],
+                  },
+                  {
+                    element: <RequirePermission permission="categories.manage" />,
+                    children: [{ path: '/categories', element: <CategoriesPage /> }],
+                  },
+                  {
+                    element: <RequirePermission permission="payment_methods.manage" />,
+                    children: [{ path: '/payment-methods', element: <PaymentMethodsPage /> }],
+                  },
+                  {
+                    element: <RequirePermission permission="blogs.manage" />,
+                    children: [
+                      { path: '/blogs', element: <BlogsPage /> },
+                      { path: '/blogs/new', element: <NewBlogPage /> },
+                      { path: '/blogs/:id', element: <BlogEditorPage /> },
+                    ],
+                  },
+                  {
+                    element: <RequirePermission permission="assets.manage" />,
+                    children: [{ path: '/files', element: <FilesPage /> }],
+                  },
                   { path: '*', element: <NotFoundPage /> },
                 ],
               },

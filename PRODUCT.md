@@ -28,7 +28,7 @@ The admin holds no business rules. The backend owns prices, stock, orders, payme
 ## Capabilities and Constraints
 
 - Built: login, categories, files. Planned: products (up to two options, variants, up to 10 images), orders, payment methods, blogs.
-- Only the `admin` role can use the app.
+- Only staff can use the app. Each staff user has a role, and the app hides what their role's permissions do not allow.
 - Deleting a product or variant deactivates it, and it can be turned back on.
 - Images: JPEG, PNG, or WebP, 5 MB or smaller.
 - Destructive or money actions (cancel, refund, deactivate, delete) need confirmation.

@@ -4,28 +4,32 @@ import { NavLink, Outlet } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { env } from '@/config/env';
-import { useLogout, useSession } from '@/lib/auth';
+import { useLogout, useSession, type Permission } from '@/lib/auth';
 
-// Each feature adds its link here when its screens are built.
-const links = [
+// Each feature adds its link here when its screens are built, with the permission its route needs.
+const links: { to: string; label: string; permission?: Permission }[] = [
   { to: '/', label: 'Dashboard' },
-  { to: '/orders', label: 'Orders' },
-  { to: '/products', label: 'Products' },
-  { to: '/categories', label: 'Categories' },
-  { to: '/payment-methods', label: 'Payment methods' },
-  { to: '/blogs', label: 'Blog' },
-  { to: '/files', label: 'Files' },
+  { to: '/orders', label: 'Orders', permission: 'orders.view' },
+  { to: '/products', label: 'Products', permission: 'products.view' },
+  { to: '/categories', label: 'Categories', permission: 'categories.manage' },
+  { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
+  { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
+  { to: '/files', label: 'Files', permission: 'assets.manage' },
 ];
 
 /** The nav links, the signed-in email, and Log out. The sidebar and the phone menu share them. */
 function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const { data: user } = useSession();
   const logout = useLogout();
+  // Links the role cannot use are left out. Their pages would only say so.
+  const shown = links.filter(
+    (link) => !link.permission || user?.permissions.includes(link.permission),
+  );
 
   return (
     <>
       <nav aria-label="Main" className="flex flex-col gap-1">
-        {links.map((link) => (
+        {shown.map((link) => (
           <NavLink
             key={link.to}
             to={link.to}
@@ -40,7 +44,10 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
       <div className="mt-auto space-y-2 px-2">
-        <p className="truncate text-sm text-muted-foreground">{user?.email}</p>
+        <div className="text-sm">
+          <p className="truncate text-muted-foreground">{user?.email}</p>
+          {user?.role && <p className="truncate text-muted-foreground">{user.role.name}</p>}
+        </div>
         <Button
           variant="outline"
           size="sm"

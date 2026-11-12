@@ -1,7 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
+import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { admin, staff } from '@/test/users';
 import type { LowStockVariant, ReportSales, ReportSummary, ReportTopProducts } from './api';
 import { manilaToday } from './range';
 
@@ -12,8 +14,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 const summary: ReportSummary = {
   from: '2026-10-13',
@@ -68,9 +68,9 @@ const low: LowStockVariant[] = [
 type Handler = (path: string, query?: Record<string, unknown>) => unknown;
 
 /** Answers every report. `override` can replace one, or throw to fail it. */
-function serve(override: Handler = () => undefined) {
+function serve(override: Handler = () => undefined, user: User = admin) {
   requestMock.mockImplementation(async (path, options) => {
-    if (path === '/api/auth/me') return { data: admin };
+    if (path === '/api/auth/me') return { data: user };
     const replaced = override(path, options?.query);
     if (replaced !== undefined) return replaced;
     switch (path) {
@@ -308,5 +308,26 @@ describe('best sellers and low stock', () => {
     await waitFor(() =>
       expect(lastQuery('/api/reports/low-stock')).toEqual({ page: 1, limit: 10, threshold: 10 }),
     );
+  });
+});
+
+describe('permissions', () => {
+  it('shows a role without sales reports only the daily work', async () => {
+    serve(undefined, staff);
+    renderApp('/');
+
+    expect(await screen.findByRole('link', { name: /3 payments to confirm/ })).toBeInTheDocument();
+    expect(screen.getByRole('region', { name: /Low stock/ })).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Summary' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Best sellers' })).not.toBeInTheDocument();
+    expect(requestMock).not.toHaveBeenCalledWith('/api/reports/summary', expect.anything());
+  });
+
+  it('points a role with no reports to the menu', async () => {
+    serve(undefined, { ...staff, permissions: ['orders.view'] });
+    renderApp('/');
+
+    expect(await screen.findByText(/Your role has no reports/)).toBeInTheDocument();
+    expect(screen.queryByRole('region', { name: 'Needs attention' })).not.toBeInTheDocument();
   });
 });

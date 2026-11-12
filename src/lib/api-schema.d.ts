@@ -488,7 +488,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create a blog (admin) */
+        /** Create a blog (needs blogs.manage) */
         post: {
             parameters: {
                 query?: never;
@@ -534,7 +534,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all blogs, including drafts (admin) */
+        /** List all blogs, including drafts (needs blogs.manage) */
         get: {
             parameters: {
                 query?: {
@@ -581,7 +581,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get any blog, including drafts (admin) */
+        /** Get any blog, including drafts (needs blogs.manage) */
         get: {
             parameters: {
                 query?: never;
@@ -656,7 +656,7 @@ export interface paths {
         };
         put?: never;
         post?: never;
-        /** Delete a blog (admin) */
+        /** Delete a blog (needs blogs.manage) */
         delete: {
             parameters: {
                 query?: never;
@@ -684,7 +684,7 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update a blog (admin) */
+        /** Update a blog (needs blogs.manage) */
         patch: {
             parameters: {
                 query?: never;
@@ -758,7 +758,7 @@ export interface paths {
         };
         put?: never;
         /**
-         * Create a category (admin)
+         * Create a category (needs categories.manage)
          * @description Categories can be up to 3 levels deep. Names must be unique among categories with the same parent.
          */
         post: {
@@ -877,7 +877,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete a category (admin)
+         * Delete a category (needs categories.manage)
          * @description Fails with 409 while the category has subcategories, or any product, active or not, uses it.
          */
         delete: {
@@ -909,7 +909,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update or move a category (admin)
+         * Update or move a category (needs categories.manage)
          * @description A new `parentId` moves the category with everything below it, and `null` makes it top-level. A move into its own subtree, or deeper than the limit, returns 400.
          */
         patch: {
@@ -993,7 +993,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create a product and its variants (admin) */
+        /** Create a product and its variants (needs products.manage) */
         post: {
             parameters: {
                 query?: never;
@@ -1040,7 +1040,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all products, including inactive ones (admin) */
+        /** List all products, including inactive ones (needs products.view) */
         get: {
             parameters: {
                 query?: {
@@ -1091,7 +1091,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get any product, including inactive ones and their variants (admin) */
+        /** Get any product, including inactive ones and their variants (needs products.view) */
         get: {
             parameters: {
                 query?: never;
@@ -1167,7 +1167,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Deactivate a product (admin)
+         * Deactivate a product (needs products.manage)
          * @description The product is kept, and can be restored by setting `active` to true.
          */
         delete: {
@@ -1198,7 +1198,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update a product (admin)
+         * Update a product (needs products.manage)
          * @description Existing options can be renamed, but options cannot be added.
          */
         patch: {
@@ -1247,7 +1247,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Add an uploaded asset to a product (admin)
+         * Add an uploaded asset to a product (needs products.manage)
          * @description A product can have up to 10 images.
          */
         post: {
@@ -1301,7 +1301,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Remove an image from a product (admin)
+         * Remove an image from a product (needs products.manage)
          * @description The uploaded file is kept. Fails with 409 while a variant uses the image.
          */
         delete: {
@@ -1333,7 +1333,7 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Change the alt text or position of an image (admin) */
+        /** Change the alt text or position of an image (needs products.manage) */
         patch: {
             parameters: {
                 query?: never;
@@ -1379,7 +1379,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Add a variant (admin) */
+        /** Add a variant (needs products.manage) */
         post: {
             parameters: {
                 query?: never;
@@ -1430,7 +1430,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
-        /** Deactivate a variant (admin) */
+        /** Deactivate a variant (needs products.manage) */
         delete: {
             parameters: {
                 query?: never;
@@ -1459,7 +1459,7 @@ export interface paths {
         };
         options?: never;
         head?: never;
-        /** Update a variant (admin) */
+        /** Update a variant (needs products.manage or, for stock only, inventory.manage) */
         patch: {
             parameters: {
                 query?: never;
@@ -1815,7 +1815,7 @@ export interface paths {
         };
         put?: never;
         /**
-         * Add a payment method (admin)
+         * Add a payment method (needs payment_methods.manage)
          * @description Upload a QR image through /api/assets first, then send its id as qrAssetId.
          */
         post: {
@@ -1862,7 +1862,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all payment methods with account details (admin) */
+        /** List all payment methods with account details (needs payment_methods.manage) */
         get: {
             parameters: {
                 query?: never;
@@ -1908,7 +1908,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete a payment method (admin)
+         * Delete a payment method (needs payment_methods.manage)
          * @description Fails with 409 once orders use it. Set enabled to false instead.
          */
         delete: {
@@ -1940,7 +1940,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Update a payment method (admin)
+         * Update a payment method (needs payment_methods.manage)
          * @description Orders already placed keep the details they were given.
          */
         patch: {
@@ -2278,7 +2278,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List all orders (admin) */
+        /** List all orders (needs orders.view) */
         get: {
             parameters: {
                 query?: {
@@ -2326,7 +2326,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get any order (admin) */
+        /** Get any order (needs orders.view) */
         get: {
             parameters: {
                 query?: never;
@@ -2378,7 +2378,7 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Move an order to its next status (admin)
+         * Move an order to its next status (needs orders.manage)
          * @description Allowed moves: pending to confirmed or cancelled, confirmed to shipped or cancelled, and shipped to delivered or returned. Cancelling returns stock. Returning does not, as the item may be damaged. Delivering a COD order marks it paid.
          */
         patch: {
@@ -2427,7 +2427,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Confirm a submitted payment (admin)
+         * Confirm a submitted payment (needs orders.manage)
          * @description Marks the order paid and moves it to pending.
          */
         post: {
@@ -2476,7 +2476,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Reject a submitted payment (admin)
+         * Reject a submitted payment (needs orders.manage)
          * @description Cancels the order and returns its stock.
          */
         post: {
@@ -2525,7 +2525,7 @@ export interface paths {
         get?: never;
         put?: never;
         /**
-         * Record a refund (admin)
+         * Record a refund (needs orders.refund)
          * @description Records a refund made outside the system. The order must be cancelled, returned, or delivered.
          */
         post: {
@@ -2938,7 +2938,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** List uploaded files, newest first (admin) */
+        /** List uploaded files, newest first (needs assets.manage) */
         get: {
             parameters: {
                 query?: {
@@ -2971,7 +2971,7 @@ export interface paths {
         };
         put?: never;
         /**
-         * Upload an image (admin)
+         * Upload an image (needs assets.manage)
          * @description Accepts one JPEG, PNG, or WebP image of up to 5 MB. Attach it to a product or blog using the returned id.
          */
         post: {
@@ -3025,7 +3025,7 @@ export interface paths {
         put?: never;
         post?: never;
         /**
-         * Delete an uploaded file (admin)
+         * Delete an uploaded file (needs assets.manage)
          * @description Fails with 409 while a product or blog uses the asset.
          */
         delete: {
@@ -3067,7 +3067,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get sales totals for a date range (admin)
+         * Get sales totals for a date range (needs reports.sales)
          * @description Days follow Manila time, and both dates are included. Without dates, it covers the last 30 days. Totals use the amounts saved on each order, so changing the tax rate never changes past figures.
          */
         get: {
@@ -3117,7 +3117,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get sales per day, week, or month, for a chart (admin)
+         * Get sales per day, week, or month, for a chart (needs reports.sales)
          * @description Returns a point for every period, including empty ones. Weeks start on Monday, and each point is dated by the first day of its period. A daily report can cover up to 366 days.
          */
         get: {
@@ -3168,7 +3168,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Get the best-selling products (admin)
+         * Get the best-selling products (needs reports.sales)
          * @description Counts orders placed in the range, apart from cancelled ones. Variants are combined into their product, and inactive products are included.
          */
         get: {
@@ -3220,7 +3220,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Count orders by status, and what needs doing (admin)
+         * Count orders by status, and what needs doing (needs reports.operations)
          * @description Shows every order as it is now, with no date range.
          */
         get: {
@@ -3264,7 +3264,7 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * List variants that are running out (admin)
+         * List variants that are running out (needs reports.operations)
          * @description Only variants on sale are listed, lowest stock first.
          */
         get: {
@@ -3307,6 +3307,410 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/audit-logs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List changes made by admins and to accounts, newest first (needs audit_logs.view)
+         * @description Records admin changes to products, variants, images, categories, blogs, payment methods, files, and orders, and changes to passwords, sessions, and roles. Entries cannot be edited or deleted. Dates follow Manila time, and both are included.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    actorUserId?: string;
+                    entityType?: "asset" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+                    entityId?: string;
+                    action?: string;
+                    /** @description First day, in Manila time */
+                    from?: string;
+                    /** @description Last day, in Manila time */
+                    to?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of entries */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["AuditLog"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/permissions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List every permission, for the role editor (super admin) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The permissions */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @enum {string} */
+                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
+                                description: string;
+                            }[];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List roles (super admin) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The roles */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Role"][];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /** Create a role (super admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateRoleBody"];
+                };
+            };
+            responses: {
+                /** @description The created role */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Role"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/roles/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a role (super admin) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["RoleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The role */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Role"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete a role that no user has (super admin) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["RoleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The role was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Rename a role or change its permissions (super admin)
+         * @description Sending `permissions` replaces the whole list. Users with the role get the new permissions on their next request. The Super admin role cannot be changed.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["RoleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateRoleBody"];
+                };
+            };
+            responses: {
+                /** @description The updated role */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Role"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
+    "/api/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Find users to give a role, newest first (super admin) */
+        get: {
+            parameters: {
+                query?: {
+                    page?: number;
+                    limit?: number;
+                    /** @description Part of the email, ignoring case */
+                    search?: string;
+                    /** @description `staff` lists everyone with a role, for a CMS users screen. `customer` lists everyone without one, for finding someone to promote. */
+                    type?: "staff" | "customer";
+                    /** @description Only users with this role */
+                    roleId?: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description A page of users */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: email */
+                                email: string;
+                                /** @description Null for customers */
+                                role: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @example Staff */
+                                    name: string;
+                                } | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/users/{id}/role": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Change a user's role (super admin)
+         * @description Send `roleId: null` to make the user a customer. Super admins cannot change their own role, so the store always keeps one. The change applies on the next request.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        roleId: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description The user with their new role */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["User"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3319,11 +3723,17 @@ export interface components {
              * @example jane@example.com
              */
             email: string;
-            /**
-             * @example customer
-             * @enum {string}
-             */
-            role: "customer" | "admin";
+            /** @description Null for customers */
+            role: {
+                /** Format: uuid */
+                id: string;
+                /** @example Staff */
+                name: string;
+            } | null;
+            /** @description Only super admins manage roles and users. Admin can hold every permission too, so check this rather than the permissions. */
+            superAdmin: boolean;
+            /** @description What the user can do, for hiding what they cannot. Empty for customers. */
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             /** Format: date-time */
             createdAt: string;
         };
@@ -4316,6 +4726,86 @@ export interface components {
             option2Value: string | null;
             stock: number;
         };
+        AuditLog: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description Null for scripts and timers
+             */
+            actorUserId: string | null;
+            actorEmail: string | null;
+            /** @enum {string} */
+            entityType: "asset" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+            /** Format: uuid */
+            entityId: string;
+            /** @example update */
+            action: string;
+            /**
+             * @description Each changed field as [before, after]. Account numbers and password hashes show as "[redacted]".
+             * @example {
+             *       "priceCents": [
+             *         129900,
+             *         99900
+             *       ]
+             *     }
+             */
+            changes: {
+                [key: string]: unknown[];
+            };
+            /**
+             * Format: uuid
+             * @description Matches the requestId in the server logs
+             */
+            requestId: string | null;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        Role: {
+            /** Format: uuid */
+            id: string;
+            /** @example Staff */
+            name: string;
+            description: string;
+            /** @description True for Super admin, which has every permission and cannot be changed */
+            builtIn: boolean;
+            /**
+             * @example [
+             *       "blogs.manage",
+             *       "assets.manage"
+             *     ]
+             */
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            userCount: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateRoleBody: {
+            /** @example Content Editor */
+            name: string;
+            /** @example Writes blogs */
+            description?: string;
+            /**
+             * @example [
+             *       "blogs.manage",
+             *       "assets.manage"
+             *     ]
+             */
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+        };
+        UpdateRoleBody: {
+            name?: string;
+            description?: string;
+            /**
+             * @example [
+             *       "blogs.manage",
+             *       "assets.manage"
+             *     ]
+             */
+            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+        };
         PageMeta: {
             /** @example 1 */
             page: number;
@@ -4426,6 +4916,7 @@ export interface components {
         ReportFrom: string;
         /** @description Last day, in Manila time. Defaults to today. */
         ReportTo: string;
+        RoleId: string;
     };
     requestBodies: never;
     headers: never;

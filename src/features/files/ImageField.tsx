@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { useUploadAsset } from './api';
 import { AssetPicker } from './AssetPicker';
 import { allowedTypes, uploadProblem } from './file-info';
@@ -28,6 +29,8 @@ export function ImageField({ legend, image, onChange, error, onUploadingChange }
   const [fileProblem, setFileProblem] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const upload = useUploadAsset();
+  // Uploading and choosing both use Files, which some roles cannot reach.
+  const canUseFiles = useCan('assets.manage');
 
   function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
@@ -73,18 +76,22 @@ export function ImageField({ legend, image, onChange, error, onUploadingChange }
             className="sr-only"
             onChange={handleFileChange}
           />
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            disabled={upload.isPending}
-            onClick={() => fileInput.current?.click()}
-          >
-            {upload.isPending ? 'Uploading…' : 'Upload image'}
-          </Button>
-          <Button type="button" variant="outline" size="sm" onClick={() => setPicking(true)}>
-            Choose from Files
-          </Button>
+          {canUseFiles && (
+            <>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                disabled={upload.isPending}
+                onClick={() => fileInput.current?.click()}
+              >
+                {upload.isPending ? 'Uploading…' : 'Upload image'}
+              </Button>
+              <Button type="button" variant="outline" size="sm" onClick={() => setPicking(true)}>
+                Choose from Files
+              </Button>
+            </>
+          )}
           {image && (
             <Button type="button" variant="ghost" size="sm" onClick={() => onChange(null)}>
               Remove image
@@ -92,6 +99,11 @@ export function ImageField({ legend, image, onChange, error, onUploadingChange }
           )}
         </div>
       </div>
+      {!canUseFiles && (
+        <p className="text-sm text-muted-foreground">
+          Adding an image needs access to Files. Ask a super admin if you need it.
+        </p>
+      )}
       {message && <p className="text-sm text-destructive">{message}</p>}
 
       {picking && (

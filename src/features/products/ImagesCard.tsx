@@ -22,6 +22,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { useUploadAsset } from '@/features/files/api';
 import { AssetPicker } from '@/features/files/AssetPicker';
 import { allowedTypes, uploadProblem } from '@/features/files/file-info';
@@ -112,12 +113,23 @@ interface TileProps {
   index: number;
   count: number;
   disabled: boolean;
+  /** False for roles that can see images but not change them. */
+  editable: boolean;
   onMove: (offset: -1 | 1) => void;
   onEdit: () => void;
   onRemove: () => void;
 }
 
-function ImageTile({ image, index, count, disabled, onMove, onEdit, onRemove }: TileProps) {
+function ImageTile({
+  image,
+  index,
+  count,
+  disabled,
+  editable,
+  onMove,
+  onEdit,
+  onRemove,
+}: TileProps) {
   const name = image.altText || `Image ${index + 1}`;
 
   return (
@@ -138,44 +150,46 @@ function ImageTile({ image, index, count, disabled, onMove, onEdit, onRemove }: 
             {image.altText || 'No alt text'}
           </p>
         </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              disabled={disabled}
-              aria-label={`More actions for ${name}`}
-            >
-              <MoreHorizontalIcon />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="min-w-44">
-            <DropdownMenuItem
-              className="min-h-11 md:min-h-8"
-              disabled={index === 0}
-              onSelect={() => onMove(-1)}
-            >
-              Move earlier
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              className="min-h-11 md:min-h-8"
-              disabled={index === count - 1}
-              onSelect={() => onMove(1)}
-            >
-              Move later
-            </DropdownMenuItem>
-            <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={onEdit}>
-              Edit alt text
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              variant="destructive"
-              className="min-h-11 md:min-h-8"
-              onSelect={onRemove}
-            >
-              Remove
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        {editable && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                disabled={disabled}
+                aria-label={`More actions for ${name}`}
+              >
+                <MoreHorizontalIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-44">
+              <DropdownMenuItem
+                className="min-h-11 md:min-h-8"
+                disabled={index === 0}
+                onSelect={() => onMove(-1)}
+              >
+                Move earlier
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="min-h-11 md:min-h-8"
+                disabled={index === count - 1}
+                onSelect={() => onMove(1)}
+              >
+                Move later
+              </DropdownMenuItem>
+              <DropdownMenuItem className="min-h-11 md:min-h-8" onSelect={onEdit}>
+                Edit alt text
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                variant="destructive"
+                className="min-h-11 md:min-h-8"
+                onSelect={onRemove}
+              >
+                Remove
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
       </div>
     </li>
   );
@@ -193,6 +207,10 @@ export function ImagesCard({ product }: { product: Product }) {
   const updateAltText = useUpdateImageAltText();
   const remove = useRemoveImage();
   const reorder = useReorderImages();
+  const canManage = useCan('products.manage');
+  // Adding an image also uploads it or reads Files, which needs file access too.
+  const canUseFiles = useCan('assets.manage');
+  const canAdd = canManage && canUseFiles;
 
   const images = product.images;
   const full = images.length >= maxImages;
@@ -228,14 +246,16 @@ export function ImagesCard({ product }: { product: Product }) {
     <ActionCard
       title={`Images (${images.length} of ${maxImages})`}
       actions={
-        <>
-          <Button variant="outline" disabled={full} onClick={() => setPicking(true)}>
-            Choose from Files
-          </Button>
-          <Button disabled={full || upload.isPending} onClick={() => fileInput.current?.click()}>
-            {upload.isPending ? 'Uploading…' : 'Upload image'}
-          </Button>
-        </>
+        canAdd && (
+          <>
+            <Button variant="outline" disabled={full} onClick={() => setPicking(true)}>
+              Choose from Files
+            </Button>
+            <Button disabled={full || upload.isPending} onClick={() => fileInput.current?.click()}>
+              {upload.isPending ? 'Uploading…' : 'Upload image'}
+            </Button>
+          </>
+        )
       }
     >
       <input
@@ -260,6 +280,7 @@ export function ImagesCard({ product }: { product: Product }) {
               index={index}
               count={images.length}
               disabled={reorder.isPending}
+              editable={canManage}
               onMove={(offset) => move(index, offset)}
               onEdit={() => setEditing(image)}
               onRemove={() => setRemoving(image)}
@@ -268,7 +289,7 @@ export function ImagesCard({ product }: { product: Product }) {
         </ul>
       )}
 
-      {full && (
+      {canAdd && full && (
         <p className="text-sm text-muted-foreground">
           A product can have up to {maxImages} images. Remove one to add another.
         </p>

@@ -13,6 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { parsePesos } from '@/lib/money';
 import {
   useAddVariant,
@@ -48,6 +49,9 @@ export function VariantDialog({ product, variant, onClose }: Props) {
   const add = useAddVariant();
   const update = useUpdateVariant();
   const save = variant ? update : add;
+  // Roles with inventory.manage alone edit only the stock, which the backend allows on its own.
+  const canManage = useCan('products.manage');
+  const stockOnly = Boolean(variant) && !canManage;
 
   const options = [product.option1Name, product.option2Name]
     .map((name, index) => ({
@@ -133,13 +137,21 @@ export function VariantDialog({ product, variant, onClose }: Props) {
       <DialogContent className="sm:max-w-lg">
         <form onSubmit={handleSubmit} noValidate className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>{variant ? `Edit ${variantLabel(variant)}` : 'Add variant'}</DialogTitle>
+            <DialogTitle>
+              {variant
+                ? `${stockOnly ? 'Edit stock for' : 'Edit'} ${variantLabel(variant)}`
+                : 'Add variant'}
+            </DialogTitle>
             <DialogDescription>
-              {variant ? 'Changes apply to new orders only.' : 'Shoppers can buy it right away.'}
+              {stockOnly
+                ? 'Shoppers see the new stock right away.'
+                : variant
+                  ? 'Changes apply to new orders only.'
+                  : 'Shoppers can buy it right away.'}
             </DialogDescription>
           </DialogHeader>
 
-          {options.length > 0 && (
+          {!stockOnly && options.length > 0 && (
             <div className="grid gap-4 sm:grid-cols-2">
               {options.map((option) => (
                 <div key={option.field} className="space-y-2">
@@ -170,17 +182,19 @@ export function VariantDialog({ product, variant, onClose }: Props) {
           )}
 
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="variant-price">Price</Label>
-              <PriceInput
-                id="variant-price"
-                aria-invalid={Boolean(detail('priceCents'))}
-                aria-describedby={describedBy('priceCents')}
-                value={price}
-                onChange={(event) => setPrice(event.target.value)}
-              />
-              <FieldError id="variant-priceCents-error" message={detail('priceCents')} />
-            </div>
+            {!stockOnly && (
+              <div className="space-y-2">
+                <Label htmlFor="variant-price">Price</Label>
+                <PriceInput
+                  id="variant-price"
+                  aria-invalid={Boolean(detail('priceCents'))}
+                  aria-describedby={describedBy('priceCents')}
+                  value={price}
+                  onChange={(event) => setPrice(event.target.value)}
+                />
+                <FieldError id="variant-priceCents-error" message={detail('priceCents')} />
+              </div>
+            )}
             <div className="space-y-2">
               <Label htmlFor="variant-stock">Stock</Label>
               <Input
@@ -197,7 +211,7 @@ export function VariantDialog({ product, variant, onClose }: Props) {
           </div>
 
           {/* A new variant gets its image afterwards, from Edit, to keep adding short. */}
-          {variant && product.images.length > 0 && (
+          {variant && !stockOnly && product.images.length > 0 && (
             <fieldset className="space-y-2">
               <legend className="text-sm font-medium">Image</legend>
               <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">

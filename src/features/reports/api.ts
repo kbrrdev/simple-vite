@@ -17,9 +17,11 @@ export interface DateRange {
 export const topProductsLimit = 10;
 export const lowStockPageSize = 10;
 
-export function useSummary(range: DateRange) {
+/** `enabled` is false for roles without sales reports, which the backend would refuse. */
+export function useSummary(range: DateRange, enabled = true) {
   return useQuery({
     queryKey: ['reports', 'summary', range],
+    enabled,
     queryFn: () =>
       request<{ data: ReportSummary }>('/api/reports/summary', { query: { ...range } }),
     placeholderData: keepPreviousData,

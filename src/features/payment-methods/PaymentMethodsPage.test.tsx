@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { Asset } from '@/features/files/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import type { PaymentMethod } from './api';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
@@ -12,8 +13,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 const date = '2026-11-01T00:00:00.000Z';
 
 const qr: Asset = {

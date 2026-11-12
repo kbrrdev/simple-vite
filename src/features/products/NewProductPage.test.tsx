@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import { categoryTree, makeProduct } from './test-data';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
@@ -11,8 +12,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 /** Answers the session and the category tree, and hands the create request to `create`. */
 function serve(create: () => unknown = () => ({ data: makeProduct({ id: 'product-9' }) })) {
