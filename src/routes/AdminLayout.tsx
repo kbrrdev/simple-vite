@@ -63,7 +63,7 @@ function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => v
       end={item.to === '/'}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground'}`
+        `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-foreground hover:bg-sidebar-accent/50'}`
       }
     >
       {item.label}
@@ -113,7 +113,11 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
               aria-labelledby={headingId}
               className="flex flex-col gap-1"
             >
-              <p id={headingId} className="px-2 text-xs font-medium text-muted-foreground">
+              {/* Small caps in grey, so that headings read as labels and the dark links as places to go. */}
+              <p
+                id={headingId}
+                className="px-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
+              >
                 {group.label}
               </p>
               {links}

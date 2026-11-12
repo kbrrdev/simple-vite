@@ -113,8 +113,8 @@ A strictly grey palette from ink to paper, with a single red for danger.
 
 ### Neutral
 
-- **Ink** (oklch(0.145 0 0)): body text and headings.
-- **Slate Text** (oklch(0.556 0 0)): secondary text, inactive nav links, captions, loading and empty messages, and the focus ring. It meets 4.5:1 on Paper.
+- **Ink** (oklch(0.145 0 0)): body text, headings, and nav links.
+- **Slate Text** (oklch(0.556 0 0)): secondary text, nav group headings, captions, loading and empty messages, and the focus ring. It meets 4.5:1 on Paper.
 - **Hairline** (oklch(0.922 0 0)): borders, dividers between rows, input strokes, and the active nav background.
 - **Mist** (oklch(0.97 0 0)): image placeholders, hovered rows, and the dialog footer band.
 - **Paper Shade** (oklch(0.985 0 0)): the sidebar, the phone top bar, and the menu sheet.
@@ -150,7 +150,7 @@ A strictly grey palette from ink to paper, with a single red for danger.
 
 ## Layout
 
-On phones, a sticky top bar holds the menu button on the left and the store name; navigation opens in a sheet from the left. From `md` (768px), a fixed 224px sidebar replaces the bar. The nav is grouped by how often each area is used: Dashboard and Orders first, then Catalog, Content, Settings, and Team, each under a small Slate Text heading with 16px above it. Links a role cannot use are left out, and so is a group with none left. Log out sits at the bottom of the sidebar, which stays in view as the page scrolls. Content padding is 16px on phones and 32px from `md` up, and content is never wider than the space left by the sidebar.
+On phones, a sticky top bar holds the menu button on the left and the store name; navigation opens in a sheet from the left. From `md` (768px), a fixed 224px sidebar replaces the bar. The nav is grouped by how often each area is used: Dashboard and Orders first, then Catalog, Content, Settings, and Team, each under an 11px uppercase Slate Text heading with wide letter spacing and 16px above it. Links are Ink, so headings read as labels and links as places to go. Links a role cannot use are left out, and so is a group with none left. Log out sits at the bottom of the sidebar, which stays in view as the page scrolls. Content padding is 16px on phones and 32px from `md` up, and content is never wider than the space left by the sidebar.
 
 Screens stack vertically with 24px between blocks: the page title row (title on the left, the main action on the right), then the list, grid, or form. Form fields are 8px from their labels and 16px from each other. Lists and grids stay single-purpose: one row or tile per item, with its actions on the same line.
 
