@@ -1,4 +1,5 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
+import { AuditLogPage } from '@/features/audit-log/AuditLogPage';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { BlogEditorPage, NewBlogPage } from '@/features/blogs/BlogEditorPage';
 import { BlogsPage } from '@/features/blogs/BlogsPage';
@@ -69,6 +70,10 @@ export const routes: RouteObject[] = [
                   {
                     element: <RequirePermission permission="assets.manage" />,
                     children: [{ path: '/files', element: <FilesPage /> }],
+                  },
+                  {
+                    element: <RequirePermission permission="audit_logs.view" />,
+                    children: [{ path: '/audit-log', element: <AuditLogPage /> }],
                   },
                   { path: '*', element: <NotFoundPage /> },
                 ],

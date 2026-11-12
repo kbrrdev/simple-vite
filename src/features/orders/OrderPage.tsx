@@ -2,6 +2,7 @@ import { Link, useLocation, useParams } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { ApiError, errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
+import { HistoryLink } from '@/features/audit-log/HistoryLink';
 import { useOrder, type Order } from './api';
 import { dateTimeFormat } from './labels';
 import { PaymentSection } from './PaymentSection';
@@ -165,7 +166,10 @@ export function OrderPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="space-y-2">
-        {back}
+        <div className="flex items-center justify-between gap-2">
+          {back}
+          <HistoryLink entityType="order" entityId={data.id} />
+        </div>
         <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
           <h1 className="text-2xl font-semibold tabular-nums">{data.orderNumber}</h1>
           <p className="text-xl font-semibold tabular-nums">{formatCents(data.totalCents)}</p>

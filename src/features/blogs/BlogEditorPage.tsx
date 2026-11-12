@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
+import { HistoryLink } from '@/features/audit-log/HistoryLink';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
 import {
   useBlog,
@@ -146,9 +147,12 @@ function Editor({ blog }: { blog?: Blog }) {
   return (
     <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
       <div className="space-y-2">
-        <Button variant="ghost" asChild className="-ml-2">
-          <Link to="/blogs">Back to blog</Link>
-        </Button>
+        <div className="flex items-center justify-between gap-2">
+          <Button variant="ghost" asChild className="-ml-2">
+            <Link to="/blogs">Back to blog</Link>
+          </Button>
+          {blog && <HistoryLink entityType="blog" entityId={blog.id} />}
+        </div>
         <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
           {blog ? 'Edit post' : 'New post'}
           {blog && !blog.published && <Badge variant="secondary">Draft</Badge>}

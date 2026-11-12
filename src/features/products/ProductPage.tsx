@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
+import { HistoryLink } from '@/features/audit-log/HistoryLink';
 import {
   useProduct,
   useSetProductActive,
@@ -232,7 +233,10 @@ export function ProductPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
       <div className="space-y-2">
-        {back}
+        <div className="flex items-center justify-between gap-2">
+          {back}
+          <HistoryLink entityType="product" entityId={data.id} />
+        </div>
         <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
           {data.name}
           {!data.active && <Badge variant="secondary">Inactive</Badge>}
