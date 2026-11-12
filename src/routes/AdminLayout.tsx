@@ -87,7 +87,8 @@ export function AdminLayout() {
         </SheetContent>
       </Sheet>
 
-      <aside className="hidden w-56 shrink-0 flex-col border-r bg-sidebar p-4 md:flex">
+      {/* Window height and sticky, so that Log out stays in view on long pages. */}
+      <aside className="sticky top-0 hidden h-svh w-56 shrink-0 flex-col self-start overflow-y-auto border-r bg-sidebar p-4 md:flex">
         <p className="mb-6 px-2 font-semibold">{env.storeName}</p>
         <NavContent />
       </aside>
