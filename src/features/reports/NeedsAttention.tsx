@@ -1,5 +1,6 @@
 import { CircleCheckIcon, ChevronRightIcon } from 'lucide-react';
 import { Link } from 'react-router';
+import { ListSkeleton } from '@/components/Loading';
 import { useOrderStatus } from './api';
 import { LoadState } from './LoadState';
 
@@ -50,7 +51,7 @@ export function NeedsAttention() {
         )}
       </div>
 
-      <LoadState query={status} />
+      <LoadState query={status} skeleton={<ListSkeleton rows={3} />} />
 
       {counts && waiting.length === 0 && (
         <p className="flex items-start gap-3 rounded-lg border px-4 py-3 text-sm">

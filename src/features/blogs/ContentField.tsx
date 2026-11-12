@@ -8,6 +8,7 @@ import {
   ListOrderedIcon,
   QuoteIcon,
 } from 'lucide-react';
+import { LinesSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { FormattingHelp } from './FormattingHelp';
@@ -92,13 +93,7 @@ export function ContentField({ value, onChange, error }: Props) {
       {preview ? (
         <div className="min-h-64 rounded-lg border p-4">
           {value.trim() ? (
-            <Suspense
-              fallback={
-                <p role="status" className="text-sm text-muted-foreground">
-                  Loading preview…
-                </p>
-              }
-            >
+            <Suspense fallback={<LinesSkeleton lines={5} label="Loading preview…" />}>
               <MarkdownPreview content={value} />
             </Suspense>
           ) : (

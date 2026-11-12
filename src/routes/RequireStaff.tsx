@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from 'react-router';
+import { ShellSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
 import { useLogout, useSession } from '@/lib/auth';
@@ -9,13 +10,7 @@ export function RequireStaff() {
   const logout = useLogout();
   const location = useLocation();
 
-  if (session.isPending) {
-    return (
-      <p role="status" className="p-8 text-muted-foreground">
-        Loading…
-      </p>
-    );
-  }
+  if (session.isPending) return <ShellSkeleton />;
 
   if (session.isError) {
     return (

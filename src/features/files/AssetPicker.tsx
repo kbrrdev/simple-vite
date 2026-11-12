@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { Loading } from '@/components/Loading';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Dialog,
   DialogContent,
@@ -35,9 +37,11 @@ export function AssetPicker({ onPick, onClose }: Props) {
         </DialogHeader>
 
         {assets.isPending && (
-          <p role="status" className="text-muted-foreground">
-            Loading…
-          </p>
+          <Loading className="grid grid-cols-3 gap-2 p-1 sm:grid-cols-4">
+            {Array.from({ length: 8 }, (_, index) => (
+              <Skeleton key={index} className="aspect-square w-full" />
+            ))}
+          </Loading>
         )}
 
         {assets.isError && (

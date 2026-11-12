@@ -2,6 +2,7 @@ import { Link } from 'react-router';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
+import { ListSkeleton } from '@/components/Loading';
 import { useRoles, type Role } from './api';
 
 function plural(count: number, one: string, many: string) {
@@ -64,11 +65,7 @@ export function RolesPage() {
         </Button>
       </div>
 
-      {roles.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {roles.isPending && <ListSkeleton rows={4} />}
 
       {roles.isError && (
         <div className="space-y-4">

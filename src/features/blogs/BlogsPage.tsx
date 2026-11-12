@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
+import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useBlogs } from './api';
 
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
@@ -57,11 +58,7 @@ export function BlogsPage() {
         </NativeSelect>
       </div>
 
-      {blogs.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {blogs.isPending && <ListSkeleton media />}
 
       {blogs.isError && (
         <div className="space-y-4">

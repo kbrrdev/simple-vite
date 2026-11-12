@@ -1,8 +1,10 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Navigate } from 'react-router';
 import { toast } from 'sonner';
+import { Loading } from '@/components/Loading';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
 import { pageSize, useAssets, useUploadAsset, type Asset } from './api';
@@ -74,9 +76,15 @@ export function FilesPage() {
       )}
 
       {assets.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
+        <Loading className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          {Array.from({ length: 8 }, (_, index) => (
+            <div key={index} className="space-y-2 rounded-lg border p-2">
+              <Skeleton className="aspect-square w-full" />
+              <Skeleton className="h-3 w-2/3" />
+              <Skeleton className="h-3 w-1/3" />
+            </div>
+          ))}
+        </Loading>
       )}
 
       {assets.isError && (

@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
 import { HistoryLink } from '@/features/audit-log/HistoryLink';
+import { DetailSkeleton } from '@/components/Loading';
 import {
   useProduct,
   useSetProductActive,
@@ -199,11 +200,7 @@ export function ProductPage() {
   );
 
   if (product.isPending) {
-    return (
-      <p role="status" className="text-muted-foreground">
-        Loading…
-      </p>
-    );
+    return <DetailSkeleton />;
   }
 
   if (product.isError) {
