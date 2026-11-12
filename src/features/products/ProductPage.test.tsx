@@ -1,7 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
+import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { admin, staff } from '@/test/users';
 import type { Product } from './api';
 import { categoryTree, makeProduct, makeVariant } from './test-data';
 
@@ -13,16 +15,15 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 
 const requestMock = vi.mocked(request);
 
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
-
 /** Serves one product. `change` handles updates and returns the product as it is after them. */
 function serve(
   product: Product,
   change: (path: string, body?: unknown) => Product = () => product,
+  user: User = admin,
 ) {
   let current = product;
   requestMock.mockImplementation(async (path, options) => {
-    if (path === '/api/auth/me') return { data: admin };
+    if (path === '/api/auth/me') return { data: user };
     if (path === '/api/categories/tree') return { data: categoryTree };
     if (options?.method) {
       current = change(path, options.body);
@@ -153,6 +154,40 @@ describe('deactivating', () => {
     expect(requestMock).toHaveBeenCalledWith('/api/products/product-1', {
       method: 'PATCH',
       body: { active: true },
+    });
+  });
+});
+
+describe('roles without products.manage', () => {
+  it('shows the product without the controls to change it', async () => {
+    serve(sized, undefined, staff);
+    renderApp('/products/product-1');
+
+    expect(await screen.findByLabelText('Name')).toBeDisabled();
+    expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Deactivate' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Add variant' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /More actions/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Upload image' })).not.toBeInTheDocument();
+  });
+
+  it('lets a stock-only role change the stock and nothing else', async () => {
+    serve(sized, () => sized, staff);
+    renderApp('/products/product-1');
+    const user = userEvent.setup();
+
+    await user.click(await screen.findByRole('button', { name: 'Edit stock for S' }));
+    const dialog = screen.getByRole('dialog', { name: 'Edit stock for S' });
+    expect(within(dialog).queryByLabelText('Price')).not.toBeInTheDocument();
+    expect(within(dialog).queryByLabelText('Size')).not.toBeInTheDocument();
+
+    await user.clear(within(dialog).getByLabelText('Stock'));
+    await user.type(within(dialog).getByLabelText('Stock'), '8');
+    await user.click(within(dialog).getByRole('button', { name: 'Save' }));
+
+    expect(requestMock).toHaveBeenCalledWith('/api/products/product-1/variants/v1', {
+      method: 'PATCH',
+      body: { stock: 8 },
     });
   });
 });

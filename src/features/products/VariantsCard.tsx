@@ -12,6 +12,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { formatCents } from '@/lib/money';
 import { useSetVariantActive, type Product, type ProductVariant } from './api';
 import { VariantDialog } from './VariantDialog';
@@ -21,6 +22,9 @@ export function VariantsCard({ product }: { product: Product }) {
   const [editing, setEditing] = useState<ProductVariant | 'new' | null>(null);
   const [deactivating, setDeactivating] = useState<ProductVariant | null>(null);
   const setActive = useSetVariantActive();
+  const canManage = useCan('products.manage');
+  // Stock-only roles can change how many are in stock, and nothing else.
+  const canEditStock = useCan('inventory.manage');
 
   function turnOn(variant: ProductVariant) {
     setActive.mutate(
@@ -35,7 +39,7 @@ export function VariantsCard({ product }: { product: Product }) {
   return (
     <ActionCard
       title={`Variants (${product.variants.length})`}
-      actions={<Button onClick={() => setEditing('new')}>Add variant</Button>}
+      actions={canManage && <Button onClick={() => setEditing('new')}>Add variant</Button>}
     >
       <ul aria-label="Variants" className="-m-4">
         {product.variants.map((variant, index) => {
@@ -69,39 +73,43 @@ export function VariantsCard({ product }: { product: Product }) {
                   {formatCents(variant.priceCents)}
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                aria-label={`Edit ${label}`}
-                onClick={() => setEditing(variant)}
-              >
-                Edit
-              </Button>
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${label}`}>
-                    <MoreHorizontalIcon />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-44">
-                  {variant.active ? (
-                    <DropdownMenuItem
-                      variant="destructive"
-                      className="min-h-11 md:min-h-8"
-                      onSelect={() => setDeactivating(variant)}
-                    >
-                      Deactivate
-                    </DropdownMenuItem>
-                  ) : (
-                    <DropdownMenuItem
-                      className="min-h-11 md:min-h-8"
-                      onSelect={() => turnOn(variant)}
-                    >
-                      Turn on
-                    </DropdownMenuItem>
-                  )}
-                </DropdownMenuContent>
-              </DropdownMenu>
+              {(canManage || canEditStock) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  aria-label={`${canManage ? 'Edit' : 'Edit stock for'} ${label}`}
+                  onClick={() => setEditing(variant)}
+                >
+                  {canManage ? 'Edit' : 'Edit stock'}
+                </Button>
+              )}
+              {canManage && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon-sm" aria-label={`More actions for ${label}`}>
+                      <MoreHorizontalIcon />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="min-w-44">
+                    {variant.active ? (
+                      <DropdownMenuItem
+                        variant="destructive"
+                        className="min-h-11 md:min-h-8"
+                        onSelect={() => setDeactivating(variant)}
+                      >
+                        Deactivate
+                      </DropdownMenuItem>
+                    ) : (
+                      <DropdownMenuItem
+                        className="min-h-11 md:min-h-8"
+                        onSelect={() => turnOn(variant)}
+                      >
+                        Turn on
+                      </DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
             </li>
           );
         })}

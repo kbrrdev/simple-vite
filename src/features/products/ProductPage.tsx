@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import {
   useProduct,
   useSetProductActive,
@@ -36,6 +37,7 @@ function DetailsCard({ product }: { product: Product }) {
   const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
   const update = useUpdateProduct();
   const setActive = useSetProductActive();
+  const canManage = useCan('products.manage');
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -87,68 +89,73 @@ function DetailsCard({ product }: { product: Product }) {
     <ActionCard
       title="Details"
       actions={
-        <>
-          {product.active ? (
-            <Button variant="outline" onClick={() => setConfirmingDeactivate(true)}>
-              Deactivate
+        canManage && (
+          <>
+            {product.active ? (
+              <Button variant="outline" onClick={() => setConfirmingDeactivate(true)}>
+                Deactivate
+              </Button>
+            ) : (
+              <Button variant="outline" disabled={setActive.isPending} onClick={turnOn}>
+                Turn on
+              </Button>
+            )}
+            <Button type="submit" form={detailsFormId} disabled={update.isPending}>
+              {update.isPending ? 'Saving…' : 'Save changes'}
             </Button>
-          ) : (
-            <Button variant="outline" disabled={setActive.isPending} onClick={turnOn}>
-              Turn on
-            </Button>
-          )}
-          <Button type="submit" form={detailsFormId} disabled={update.isPending}>
-            {update.isPending ? 'Saving…' : 'Save changes'}
-          </Button>
-        </>
+          </>
+        )
       }
     >
-      <form id={detailsFormId} onSubmit={handleSubmit} noValidate className="grid gap-4">
-        <ProductFields
-          values={fields}
-          onChange={(change) => setFields((current) => ({ ...current, ...change }))}
-          errors={allErrors}
-        />
+      {/* Without products.manage the details can be read, but not changed. */}
+      <form id={detailsFormId} onSubmit={handleSubmit} noValidate>
+        <fieldset disabled={!canManage} className="grid min-w-0 gap-4">
+          <ProductFields
+            values={fields}
+            onChange={(change) => setFields((current) => ({ ...current, ...change }))}
+            errors={allErrors}
+          />
 
-        {optionFields.length > 0 && (
-          <fieldset className="grid gap-4 md:grid-cols-2">
-            <legend className="mb-2 text-sm font-medium">Option names</legend>
-            {optionFields.map(({ index, field }) => {
-              const error = errors[field] ?? detail(field);
-              return (
-                <div key={field} className="space-y-2">
-                  <Label htmlFor={`product-${field}`}>Option {index + 1}</Label>
-                  <Input
-                    id={`product-${field}`}
-                    maxLength={50}
-                    aria-invalid={Boolean(error)}
-                    aria-describedby={error ? `product-${field}-error` : undefined}
-                    value={optionNames[index]}
-                    onChange={(event) =>
-                      setOptionNames((current) =>
-                        current.map((name, i) => (i === index ? event.target.value : name)),
-                      )
-                    }
-                  />
-                  {error && (
-                    <p id={`product-${field}-error`} className="text-sm text-destructive">
-                      {error}
-                    </p>
-                  )}
-                </div>
-              );
-            })}
-            <p className="text-sm text-muted-foreground md:col-span-2">
-              Options can be renamed, but not added or removed.
+          {optionFields.length > 0 && (
+            <fieldset className="grid gap-4 md:grid-cols-2">
+              <legend className="mb-2 text-sm font-medium">Option names</legend>
+              {optionFields.map(({ index, field }) => {
+                const error = errors[field] ?? detail(field);
+                return (
+                  <div key={field} className="space-y-2">
+                    <Label htmlFor={`product-${field}`}>Option {index + 1}</Label>
+                    <Input
+                      id={`product-${field}`}
+                      maxLength={50}
+                      aria-invalid={Boolean(error)}
+                      aria-describedby={error ? `product-${field}-error` : undefined}
+                      value={optionNames[index]}
+                      onChange={(event) =>
+                        setOptionNames((current) =>
+                          current.map((name, i) => (i === index ? event.target.value : name)),
+                        )
+                      }
+                    />
+                    {error && (
+                      <p id={`product-${field}-error`} className="text-sm text-destructive">
+                        {error}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              <p className="text-sm text-muted-foreground md:col-span-2">
+                Options can be renamed, but not added or removed.
+              </p>
+            </fieldset>
+          )}
+
+          {otherError && (
+            <p role="alert" className="text-sm text-destructive">
+              {errorMessage(update.error)}
             </p>
-          </fieldset>
-        )}
-
-        {otherError && (
-          <p role="alert" className="text-sm text-destructive">
-            {errorMessage(update.error)}
-          </p>
-        )}
+          )}
+        </fieldset>
       </form>
 
       {confirmingDeactivate && (

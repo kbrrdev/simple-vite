@@ -12,7 +12,7 @@ Features are organized into folders, each with its pages, components, and API ho
 User
   |
   v
-Route (React Router, with the admin guard)
+Route (React Router, with the staff and permission guards)
   |
   v
 Page
@@ -39,7 +39,7 @@ src/
 ├── lib/              API client and access token, auth hooks, generated API types, money formatting
 ├── components/       Shared UI
 │   └── ui/           shadcn/ui components
-├── routes/           Router, layouts, and the admin guard
+├── routes/           Router, layouts, and the staff and permission guards
 ├── features/
 │   └── <name>/       Pages, components, and hooks for one area, such as products
 ├── styles/           Tailwind entry point
@@ -129,8 +129,20 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - On page load, call refresh once to restore the session, as memory is cleared.
 - On a `401`, refresh once and retry the request once. If that fails, go to the login page.
 - Log out with `POST /api/auth/logout`, which ends the session and clears the cookie.
-- Only users with the `admin` role can use this app. The route guard checks `GET /api/auth/me`, but the backend enforces it with `403` on every admin route.
+- Only staff, meaning users with a role, can use this app. Customers have no role, and see "Staff only".
 - Login returns `429` after repeated failures. Show a "try again later" message.
+
+## Roles and Permissions
+
+- Each staff user has one role, and a role is a set of permissions, such as `orders.view` or `products.manage`. Super admins manage roles in the backend.
+- `GET /api/auth/me` returns the user's `role`, `permissions`, and `superAdmin`. The backend checks permissions on every request and answers `403`, so the app only hides what a role cannot use.
+- `useCan(permission)` from `src/lib/auth.ts` tells a component whether to show a control.
+- `RequirePermission` in `src/routes/` guards each page with the permission its reads need, and shows "No access" instead of loading it. Nav links the role cannot use are left out.
+- Controls follow the permission their request needs. Some are worth knowing:
+  - A role with `inventory.manage` but not `products.manage` sees products read-only, and its Edit stock sends only `stock`, which the backend accepts on its own.
+  - Upload and Choose from Files need `assets.manage` as well as the screen's own permission.
+  - Refunds need `orders.refund`, separate from the other order actions in `orders.manage`.
+  - The Dashboard shows Needs attention and low stock with `reports.operations`, and the sales figures with `reports.sales`.
 
 ## Talking to the API
 
@@ -177,7 +189,7 @@ Configuration comes from `VITE_` environment variables, documented in `.env.exam
 Tests run with Vitest and React Testing Library. They render components as a user sees them, and mock the API client rather than the network.
 
 - Render screens with `renderApp(path)` from `src/test/render.tsx`.
-- Mock `request` and `refreshSession` with `vi.mock('@/lib/api', ...)`, and answer `/api/auth/me` with an admin user. See `src/routes/routes.test.tsx`.
+- Mock `request` and `refreshSession` with `vi.mock('@/lib/api', ...)`, and answer `/api/auth/me` with a user from `src/test/users.ts`: `admin` has every permission, `staff` has the seeded Staff role, and `customer` has none. See `src/routes/routes.test.tsx`.
 
 ## Build and Deployment
 

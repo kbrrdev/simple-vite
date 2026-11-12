@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { usePageParam } from '@/lib/use-page-param';
 import { useCategoryTree } from '@/features/categories/api';
 import { CategorySelect } from '@/features/categories/CategorySelect';
@@ -61,6 +62,7 @@ export function ProductsPage() {
   const sort: ProductSort = searchParams.get('sort') === 'name' ? 'name' : 'newest';
   const products = useProducts({ page, search, categoryId, sort });
   const tree = useCategoryTree();
+  const canManage = useCan('products.manage');
 
   const paths = new Map(
     categoryOptions(tree.data?.data ?? []).map((option) => [option.id, option.label]),
@@ -95,9 +97,11 @@ export function ProductsPage() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <h1 className="text-2xl font-semibold">Products</h1>
-        <Button asChild>
-          <Link to="/products/new">New product</Link>
-        </Button>
+        {canManage && (
+          <Button asChild>
+            <Link to="/products/new">New product</Link>
+          </Button>
+        )}
       </div>
 
       <div className="grid gap-4 md:grid-cols-[1fr_14rem_10rem] md:items-end">

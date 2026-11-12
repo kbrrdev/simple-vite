@@ -1,7 +1,9 @@
 import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
+import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { admin, customer, staff } from '@/test/users';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
@@ -12,10 +14,7 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 const requestMock = vi.mocked(request);
 const refreshMock = vi.mocked(refreshSession);
 
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
-const customer = { ...admin, email: 'jane@example.com', role: 'customer' };
-
-function signedInAs(user: typeof admin) {
+function signedInAs(user: User) {
   refreshMock.mockResolvedValue(true);
   requestMock.mockImplementation(async (path) =>
     path === '/api/auth/me' ? { data: user } : undefined,
@@ -38,7 +37,7 @@ beforeEach(() => {
   refreshMock.mockReset();
 });
 
-describe('the admin guard', () => {
+describe('the staff guard', () => {
   it('sends signed-out users to the login page', async () => {
     signedOut();
     const { router } = renderApp('/');
@@ -58,7 +57,7 @@ describe('the admin guard', () => {
     signedInAs(customer);
     renderApp('/');
 
-    expect(await screen.findByRole('heading', { name: 'Admins only' })).toBeInTheDocument();
+    expect(await screen.findByRole('heading', { name: 'Staff only' })).toBeInTheDocument();
     expect(screen.queryByRole('heading', { name: 'Dashboard' })).not.toBeInTheDocument();
   });
 
@@ -75,6 +74,35 @@ describe('the admin guard', () => {
     renderApp('/nope');
 
     expect(await screen.findByRole('heading', { name: 'Page not found' })).toBeInTheDocument();
+  });
+});
+
+describe('permissions', () => {
+  it('shows only the pages the role can use', async () => {
+    signedInAs(staff);
+    renderApp('/');
+
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    const links = within(nav)
+      .getAllByRole('link')
+      .map((link) => link.textContent);
+    expect(links).toEqual(['Dashboard', 'Orders', 'Products', 'Files']);
+    expect(screen.getAllByText('Staff').length).toBeGreaterThan(0);
+  });
+
+  it('explains a page the role cannot use, without asking the backend for it', async () => {
+    signedInAs(staff);
+    renderApp('/categories');
+
+    expect(await screen.findByRole('heading', { name: 'No access' })).toBeInTheDocument();
+    expect(requestMock).not.toHaveBeenCalledWith('/api/categories/tree');
+  });
+
+  it('keeps New product from roles that cannot manage products', async () => {
+    signedInAs(staff);
+    renderApp('/products/new');
+
+    expect(await screen.findByRole('heading', { name: 'No access' })).toBeInTheDocument();
   });
 });
 

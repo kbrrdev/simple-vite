@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
+import { useCan } from '@/lib/auth';
 import { useUpdateOrderStatus, type Order, type OrderStatus } from './api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { moveLabels, nextStatuses, statusLabels } from './labels';
@@ -25,7 +26,8 @@ const confirmText: Partial<Record<OrderStatus, { title: string; description: str
 export function StatusSection({ order }: { order: Order }) {
   const [confirming, setConfirming] = useState<OrderStatus | null>(null);
   const update = useUpdateOrderStatus();
-  const moves = nextStatuses[order.status] ?? [];
+  const canManage = useCan('orders.manage');
+  const moves = canManage ? (nextStatuses[order.status] ?? []) : [];
 
   function move(status: OrderStatus) {
     update.mutate(

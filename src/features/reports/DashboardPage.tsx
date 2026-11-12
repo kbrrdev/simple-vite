@@ -1,4 +1,5 @@
 import { useSearchParams } from 'react-router';
+import { useCan } from '@/lib/auth';
 import type { DateRange, SalesInterval, TopProductsSort } from './api';
 import { useSummary } from './api';
 import { BestSellers } from './BestSellers';
@@ -28,8 +29,11 @@ export function DashboardPage() {
   const threshold = readInteger(searchParams.get('threshold'), 5, 0);
   const stockPage = readInteger(searchParams.get('stockPage'), 1, 1);
   const today = manilaToday();
+  // Each role sees the reports it has: operations for daily work, sales for the money.
+  const canSeeOperations = useCan('reports.operations');
+  const canSeeSales = useCan('reports.sales');
   // Shares its cache with the Summary card, so the heading costs no extra request.
-  const summary = useSummary(range);
+  const summary = useSummary(range, canSeeSales);
 
   /** Sets URL parameters, removing any set to undefined. */
   function setParams(changes: Record<string, string | undefined>) {
@@ -48,46 +52,65 @@ export function DashboardPage() {
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Dashboard</h1>
 
-      <NeedsAttention />
+      {canSeeOperations && <NeedsAttention />}
 
-      <section aria-labelledby="range-heading" className="space-y-4">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <h2 id="range-heading" className="text-lg font-semibold tabular-nums">
-            {shown ? `${formatDay(shown.from)} – ${formatDay(shown.to)}` : 'Sales'}
-          </h2>
-          {/* Keyed by the URL range, so that Back resets the custom days. */}
-          <RangePicker
-            key={`${range.from}-${range.to}`}
+      {canSeeSales && (
+        <section aria-labelledby="range-heading" className="space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-4">
+            <h2 id="range-heading" className="text-lg font-semibold tabular-nums">
+              {shown ? `${formatDay(shown.from)} – ${formatDay(shown.to)}` : 'Sales'}
+            </h2>
+            {/* Keyed by the URL range, so that Back resets the custom days. */}
+            <RangePicker
+              key={`${range.from}-${range.to}`}
+              range={range}
+              today={today}
+              onChange={(next) => setParams({ from: next.from, to: next.to })}
+            />
+          </div>
+
+          <Summary range={range} />
+
+          <SalesCard
             range={range}
-            today={today}
-            onChange={(next) => setParams({ from: next.from, to: next.to })}
+            interval={interval}
+            onIntervalChange={(next) => setParams({ interval: next === 'day' ? undefined : next })}
           />
+        </section>
+      )}
+
+      {(canSeeSales || canSeeOperations) && (
+        <div
+          className={`grid gap-6 md:items-start ${canSeeSales && canSeeOperations ? 'md:grid-cols-2' : ''}`}
+        >
+          {canSeeSales && (
+            <BestSellers
+              range={range}
+              sort={sort}
+              onSortChange={(next) => setParams({ top: next === 'revenue' ? next : undefined })}
+            />
+          )}
+          {canSeeOperations && (
+            <LowStock
+              page={stockPage}
+              threshold={threshold}
+              onPageChange={(next) => setParams({ stockPage: String(next) })}
+              onThresholdChange={(next) =>
+                setParams({
+                  threshold: next === 5 ? undefined : String(next),
+                  stockPage: undefined,
+                })
+              }
+            />
+          )}
         </div>
+      )}
 
-        <Summary range={range} />
-
-        <SalesCard
-          range={range}
-          interval={interval}
-          onIntervalChange={(next) => setParams({ interval: next === 'day' ? undefined : next })}
-        />
-      </section>
-
-      <div className="grid gap-6 md:grid-cols-2 md:items-start">
-        <BestSellers
-          range={range}
-          sort={sort}
-          onSortChange={(next) => setParams({ top: next === 'revenue' ? next : undefined })}
-        />
-        <LowStock
-          page={stockPage}
-          threshold={threshold}
-          onPageChange={(next) => setParams({ stockPage: String(next) })}
-          onThresholdChange={(next) =>
-            setParams({ threshold: next === 5 ? undefined : String(next), stockPage: undefined })
-          }
-        />
-      </div>
+      {!canSeeSales && !canSeeOperations && (
+        <p className="text-muted-foreground">
+          Your role has no reports. Use the menu to get to your work.
+        </p>
+      )}
     </div>
   );
 }

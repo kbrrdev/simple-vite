@@ -1,7 +1,9 @@
 import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
+import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { admin, staff } from '@/test/users';
 import type { Order } from './api';
 import { makeOrder } from './test-data';
 
@@ -13,16 +15,18 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 
 const requestMock = vi.mocked(request);
 
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
-
 /**
  * Serves one order, and applies the given handler to changes. The handler returns the order
  * as it is after the change, or throws to refuse it.
  */
-function serve(order: Order, change: (path: string, body?: unknown) => Order = () => order) {
+function serve(
+  order: Order,
+  change: (path: string, body?: unknown) => Order = () => order,
+  user: User = admin,
+) {
   let current = order;
   requestMock.mockImplementation(async (path, options) => {
-    if (path === '/api/auth/me') return { data: admin };
+    if (path === '/api/auth/me') return { data: user };
     if (options?.method) {
       current = change(path, options.body);
       return { data: current };
@@ -281,5 +285,25 @@ describe('status changes', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Mark shipped' }));
 
     expect(await screen.findByText('An order cannot move from cancelled')).toBeInTheDocument();
+  });
+});
+
+describe('permissions', () => {
+  it('leaves out Record refund for roles without orders.refund', async () => {
+    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), undefined, staff);
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(screen.queryByRole('button', { name: 'Record refund' })).not.toBeInTheDocument();
+  });
+
+  it('shows the order without actions to roles that can only view it', async () => {
+    serve(makeOrder(), undefined, { ...staff, permissions: ['orders.view'] });
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(screen.queryByRole('button', { name: 'Confirm payment' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument();
+    expect(within(section('Status')).queryByRole('button')).not.toBeInTheDocument();
   });
 });

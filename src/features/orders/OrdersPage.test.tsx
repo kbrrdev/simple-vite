@@ -2,6 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import type { Order } from './api';
 import { makeOrder } from './test-data';
 
@@ -12,8 +13,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 /** Answers the session check, then hands other requests to the given handler. */
 function api(handler: (path: string, options?: Parameters<typeof request>[1]) => unknown) {

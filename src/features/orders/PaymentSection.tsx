@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
+import { useCan } from '@/lib/auth';
 import { formatCents } from '@/lib/money';
 import { useConfirmPayment, useRefundPayment, useRejectPayment, type Order } from './api';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
@@ -16,6 +17,8 @@ export function PaymentSection({ order }: { order: Order }) {
   const confirm = useConfirmPayment();
   const reject = useRejectPayment();
   const refund = useRefundPayment();
+  const canManage = useCan('orders.manage');
+  const canRecordRefund = useCan('orders.refund');
   const total = formatCents(order.totalCents);
   const submitted = order.paymentStatus === 'submitted';
 
@@ -53,7 +56,7 @@ export function PaymentSection({ order }: { order: Order }) {
   }
 
   let actions;
-  if (submitted) {
+  if (submitted && canManage) {
     actions = (
       <>
         <Button variant="outline" onClick={() => setAction('reject')}>
@@ -62,7 +65,7 @@ export function PaymentSection({ order }: { order: Order }) {
         <Button onClick={() => setAction('confirm')}>Confirm payment</Button>
       </>
     );
-  } else if (canRefund(order)) {
+  } else if (!submitted && canRecordRefund && canRefund(order)) {
     actions = (
       <Button variant="outline" onClick={() => setAction('refund')}>
         Record refund

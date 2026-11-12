@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { admin } from '@/test/users';
 import type { Blog } from './api';
 import { makeBlog } from './test-data';
 
@@ -12,8 +13,6 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 }));
 
 const requestMock = vi.mocked(request);
-
-const admin = { id: '1', email: 'admin@example.com', role: 'admin', createdAt: '' };
 
 /** Serves one post and the list. Changes go to `change`, which can throw to refuse them. */
 function serve(blog: Blog, change: (body?: unknown) => unknown = () => ({ data: blog })) {
