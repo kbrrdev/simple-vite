@@ -8,13 +8,16 @@ import { FilesPage } from '@/features/files/FilesPage';
 import { OrderPage } from '@/features/orders/OrderPage';
 import { OrdersPage } from '@/features/orders/OrdersPage';
 import { PaymentMethodsPage } from '@/features/payment-methods/PaymentMethodsPage';
+import { PeoplePage } from '@/features/people/PeoplePage';
 import { NewProductPage } from '@/features/products/NewProductPage';
 import { ProductPage } from '@/features/products/ProductPage';
 import { ProductsPage } from '@/features/products/ProductsPage';
 import { DashboardPage } from '@/features/reports/DashboardPage';
+import { NewRolePage, RoleEditorPage } from '@/features/roles/RoleEditorPage';
+import { RolesPage } from '@/features/roles/RolesPage';
 import { AdminLayout } from './AdminLayout';
 import { NotFoundPage } from './NotFoundPage';
-import { RequirePermission } from './RequirePermission';
+import { RequirePermission, RequireSuperAdmin } from './RequirePermission';
 import { RequireStaff } from './RequireStaff';
 import { RouteError } from './RouteError';
 
@@ -74,6 +77,15 @@ export const routes: RouteObject[] = [
                   {
                     element: <RequirePermission permission="audit_logs.view" />,
                     children: [{ path: '/audit-log', element: <AuditLogPage /> }],
+                  },
+                  {
+                    element: <RequireSuperAdmin />,
+                    children: [
+                      { path: '/roles', element: <RolesPage /> },
+                      { path: '/roles/new', element: <NewRolePage /> },
+                      { path: '/roles/:id', element: <RoleEditorPage /> },
+                      { path: '/people', element: <PeoplePage /> },
+                    ],
                   },
                   { path: '*', element: <NotFoundPage /> },
                 ],
