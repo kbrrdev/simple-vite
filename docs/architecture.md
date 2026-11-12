@@ -217,6 +217,8 @@ Tests run with Vitest and React Testing Library. They render components as a use
 ## Build and Deployment
 
 - `npm run build` produces static files in `dist/`.
+- Each screen's code is a separate file, loaded the first time its route opens with React Router's route `lazy`. Login and the Dashboard come with the main file, as people land on them. While a screen loads, the current page stays up with a thin bar above it, and a failed download shows the route error with Reload.
+- Recharts and `react-markdown` load only with the chart and the Markdown preview. Keep large libraries out of the main file the same way.
 - Serve them from a web server such as Caddy, on the same Ubuntu server setup as the backend.
 - Send unknown paths to `index.html`, so that React Router can handle them.
 - Cache files in `dist/assets/` for a long time, as their names change with every build. Do not cache `index.html`.

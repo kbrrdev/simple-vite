@@ -57,7 +57,8 @@ describe('creating a product', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
 
     expect(await screen.findByText(/Product created/)).toBeInTheDocument();
-    expect(router.state.location.pathname).toBe('/products/product-9');
+    // The product page's code loads before the navigation finishes.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/products/product-9'));
     expect(createBody()).toEqual({
       name: 'Trail Runner',
       categoryId: 'cat-shoes',
