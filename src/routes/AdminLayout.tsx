@@ -7,7 +7,7 @@ import { env } from '@/config/env';
 import { useLogout, useSession, type Permission } from '@/lib/auth';
 
 // Each feature adds its link here when its screens are built, with the permission its route needs.
-const links: { to: string; label: string; permission?: Permission }[] = [
+const links: { to: string; label: string; permission?: Permission; superAdmin?: true }[] = [
   { to: '/', label: 'Dashboard' },
   { to: '/orders', label: 'Orders', permission: 'orders.view' },
   { to: '/products', label: 'Products', permission: 'products.view' },
@@ -16,6 +16,9 @@ const links: { to: string; label: string; permission?: Permission }[] = [
   { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
   { to: '/files', label: 'Files', permission: 'assets.manage' },
   { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
+  // Admin can hold every permission too, so these check the super admin flag.
+  { to: '/roles', label: 'Roles', superAdmin: true },
+  { to: '/people', label: 'People', superAdmin: true },
 ];
 
 /** The nav links, the signed-in email, and Log out. The sidebar and the phone menu share them. */
@@ -24,7 +27,9 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
   const logout = useLogout();
   // Links the role cannot use are left out. Their pages would only say so.
   const shown = links.filter(
-    (link) => !link.permission || user?.permissions.includes(link.permission),
+    (link) =>
+      (!link.permission || user?.permissions.includes(link.permission)) &&
+      (!link.superAdmin || user?.superAdmin),
   );
 
   return (

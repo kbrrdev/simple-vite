@@ -59,6 +59,8 @@ src/
 | Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
 | Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
 | Audit log       | Built  | `GET /api/audit-logs`                                                                                                                                  |
+| Roles           | Built  | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
+| People          | Built  | `GET /api/users`, `PATCH /api/users/:id/role`, both super admin only                                                                                   |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -90,6 +92,17 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Every figure comes from the backend. The browser formats it and never adds anything up.
 - The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
 - Each card loads and fails on its own, so a slow report never blocks Needs attention.
+
+## Roles and People
+
+- Only super admins see these screens, through `RequireSuperAdmin` and the `superAdmin` flag from `/me`. Admin can hold every permission too, so the permissions cannot tell them apart.
+- Roles groups the backend's permissions by area, in `features/roles/permission-groups.ts`, and labels each with the backend's description. A permission the app does not know yet appears under Other.
+- Super admin is built in, and is shown but not edited. Editing a role sends only the fields that changed.
+- A role people have cannot be deleted. Delete is disabled with the number of people as a hint, and the backend's `409` stays the authority.
+- People lists everyone with a role (`type=staff`). The search, role, and page are kept in the URL.
+- Add staff searches customers (`type=customer`), as staff start as customers who registered in the store.
+- No access makes someone a customer again, and the dialog says they can no longer sign in. Your own row cannot be changed, as the backend refuses it so that a super admin always remains.
+- Changes to roles and people refresh both lists, as roles show how many people have them.
 
 ## Audit log
 
@@ -144,7 +157,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Roles and Permissions
 
-- Each staff user has one role, and a role is a set of permissions, such as `orders.view` or `products.manage`. Super admins manage roles in the backend.
+- Each staff user has one role, and a role is a set of permissions, such as `orders.view` or `products.manage`. Super admins manage roles on the Roles screen.
 - `GET /api/auth/me` returns the user's `role`, `permissions`, and `superAdmin`. The backend checks permissions on every request and answers `403`, so the app only hides what a role cannot use.
 - `useCan(permission)` from `src/lib/auth.ts` tells a component whether to show a control.
 - `RequirePermission` in `src/routes/` guards each page with the permission its reads need, and shows "No access" instead of loading it. Nav links the role cannot use are left out.

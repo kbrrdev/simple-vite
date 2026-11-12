@@ -23,6 +23,7 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   order: (id) => `/orders/${id}`,
   product: (id) => `/products/${id}`,
   blog: (id) => `/blogs/${id}`,
+  role: (id) => `/roles/${id}`,
 };
 
 const actionLabels: Record<string, string> = {

@@ -1,6 +1,6 @@
-import { Link, Outlet } from 'react-router';
-import { Button } from '@/components/ui/button';
-import { useCan, type Permission } from '@/lib/auth';
+import { Outlet } from 'react-router';
+import { useCan, useSession, type Permission } from '@/lib/auth';
+import { NoAccess } from './NoAccess';
 
 /**
  * Shows its pages only to roles with `permission`. Others see why, instead of a screen of
@@ -8,18 +8,14 @@ import { useCan, type Permission } from '@/lib/auth';
  */
 export function RequirePermission({ permission }: { permission: Permission }) {
   const allowed = useCan(permission);
+  return allowed ? <Outlet /> : <NoAccess />;
+}
 
-  if (allowed) return <Outlet />;
-
-  return (
-    <div className="space-y-4">
-      <h1 className="text-2xl font-semibold">No access</h1>
-      <p className="text-muted-foreground">
-        Your role does not include this page. Ask a super admin if you need it.
-      </p>
-      <Button variant="outline" asChild>
-        <Link to="/">Back to the dashboard</Link>
-      </Button>
-    </div>
-  );
+/**
+ * Shows its pages only to super admins. Admin can hold every permission too, so this reads
+ * the `superAdmin` flag rather than the permissions.
+ */
+export function RequireSuperAdmin() {
+  const { data: user } = useSession();
+  return user?.superAdmin ? <Outlet /> : <NoAccess />;
 }
