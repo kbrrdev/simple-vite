@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { ApiError, errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { HistoryLink } from '@/features/audit-log/HistoryLink';
+import { DetailSkeleton } from '@/components/Loading';
 import { useOrder, type Order } from './api';
 import { dateTimeFormat } from './labels';
 import { PaymentSection } from './PaymentSection';
@@ -134,11 +135,7 @@ export function OrderPage() {
   );
 
   if (order.isPending) {
-    return (
-      <p role="status" className="text-muted-foreground">
-        Loading…
-      </p>
-    );
+    return <DetailSkeleton />;
   }
 
   if (order.isError) {

@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { HistoryLink } from '@/features/audit-log/HistoryLink';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { DetailSkeleton } from '@/components/Loading';
 import {
   useBlog,
   useCreateBlog,
@@ -300,11 +301,7 @@ export function BlogEditorPage() {
   const blog = useBlog(id);
 
   if (blog.isPending) {
-    return (
-      <p role="status" className="text-muted-foreground">
-        Loading…
-      </p>
-    );
+    return <DetailSkeleton />;
   }
 
   if (blog.isError) {

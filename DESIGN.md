@@ -101,7 +101,7 @@ The system is shadcn/ui's neutral theme, owned and tuned for use on a phone. It 
 - Flat surfaces separated by hairlines, not shadows.
 - Phone first: 44px controls below `md`, the desktop density from `md` up.
 - One page title, then content; no decorative headers.
-- Feedback for every action: a status line while loading, a toast on success, a message beside the field on error.
+- Feedback for every action: skeleton shapes while loading, a toast on success, a message beside the field on error.
 
 ## Colors
 
@@ -114,9 +114,9 @@ A strictly grey palette from ink to paper, with a single red for danger.
 ### Neutral
 
 - **Ink** (oklch(0.145 0 0)): body text, headings, and nav links.
-- **Slate Text** (oklch(0.556 0 0)): secondary text, nav group headings, captions, loading and empty messages, and the focus ring. It meets 4.5:1 on Paper.
+- **Slate Text** (oklch(0.556 0 0)): secondary text, nav group headings, captions, empty messages, and the focus ring. It meets 4.5:1 on Paper.
 - **Hairline** (oklch(0.922 0 0)): borders, dividers between rows, input strokes, and the active nav background.
-- **Mist** (oklch(0.97 0 0)): image placeholders, hovered rows, and the dialog footer band.
+- **Mist** (oklch(0.97 0 0)): image placeholders, loading skeletons, hovered rows, and the dialog footer band.
 - **Paper Shade** (oklch(0.985 0 0)): the sidebar, the phone top bar, and the menu sheet.
 - **Paper** (oklch(1 0 0)): the page, cards, dialogs, and inputs.
 
@@ -206,7 +206,7 @@ Calm and decisive.
 
 ### Status
 
-- **Loading:** a Slate Text "Loading…" line with `role="status"`.
+- **Loading:** Mist skeleton blocks in the layout of what is coming, from `src/components/Loading.tsx`. Lists get bordered rows, record pages a title and two cards, Files a grid of tiles, Dashboard cards their own shape, and the first load the sidebar and page frame. Each is a `role="status"` with a hidden "Loading…", and pulses only when the system allows motion. Buttons still say "Saving…" or "Uploading…", as those are actions, not content.
 - **Empty:** one Slate Text sentence that says what is missing and what to do.
 - **Error:** the message in a `role="alert"` line, with the request id on server errors, and a "Try again" button.
 - **Success:** a short toast such as "Category saved" or "Image uploaded".

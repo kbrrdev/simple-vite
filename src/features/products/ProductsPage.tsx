@@ -12,6 +12,7 @@ import { usePageParam } from '@/lib/use-page-param';
 import { useCategoryTree } from '@/features/categories/api';
 import { CategorySelect } from '@/features/categories/CategorySelect';
 import { categoryOptions } from '@/features/categories/tree';
+import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useProducts, type Product, type ProductSort } from './api';
 import { priceRange } from './variants';
 
@@ -151,11 +152,7 @@ export function ProductsPage() {
         </Button>
       )}
 
-      {products.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {products.isPending && <ListSkeleton media />}
 
       {products.isError && (
         <div className="space-y-4">

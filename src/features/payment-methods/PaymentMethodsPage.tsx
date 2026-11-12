@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { errorMessage } from '@/lib/api';
+import { ListSkeleton } from '@/components/Loading';
 import {
   useDeletePaymentMethod,
   usePaymentMethods,
@@ -48,11 +49,7 @@ export function PaymentMethodsPage() {
         <Button onClick={() => setEditing('new')}>New payment method</Button>
       </div>
 
-      {methods.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {methods.isPending && <ListSkeleton rows={3} media />}
 
       {methods.isError && (
         <div className="space-y-4">

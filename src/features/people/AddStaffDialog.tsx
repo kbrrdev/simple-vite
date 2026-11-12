@@ -1,5 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { toast } from 'sonner';
+import { LinesSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -88,11 +89,7 @@ export function AddStaffDialog({ roles, onClose }: Props) {
         </form>
 
         <form id="add-staff" onSubmit={handleSubmit} noValidate className="grid gap-4">
-          {term && customers.isPending && (
-            <p role="status" className="text-sm text-muted-foreground">
-              Searching…
-            </p>
-          )}
+          {term && customers.isPending && <LinesSkeleton label="Searching…" />}
           {customers.isError && (
             <p role="alert" className="text-sm">
               {errorMessage(customers.error)}

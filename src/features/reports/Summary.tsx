@@ -1,3 +1,5 @@
+import { Loading } from '@/components/Loading';
+import { Skeleton } from '@/components/ui/skeleton';
 import { formatCents } from '@/lib/money';
 import type { DateRange } from './api';
 import { useSummary } from './api';
@@ -10,7 +12,23 @@ export function Summary({ range }: { range: DateRange }) {
   const summary = useSummary(range);
   const data = summary.data?.data;
 
-  if (!data) return <LoadState query={summary} />;
+  if (!data) {
+    return (
+      <LoadState
+        query={summary}
+        skeleton={
+          <Loading className="grid grid-cols-2 gap-4 md:grid-cols-4">
+            {Array.from({ length: 4 }, (_, index) => (
+              <div key={index} className="space-y-2">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-7 w-32" />
+              </div>
+            ))}
+          </Loading>
+        }
+      />
+    );
+  }
 
   const headline = [
     { label: 'Gross sales', value: formatCents(data.grossSalesCents) },

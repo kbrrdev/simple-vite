@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import type { Permission } from '@/lib/auth';
 import { HistoryLink } from '@/features/audit-log/HistoryLink';
+import { DetailSkeleton, LinesSkeleton } from '@/components/Loading';
 import {
   useCreateRole,
   useDeleteRole,
@@ -43,11 +44,7 @@ function PermissionList({ children }: { children: (permissions: PermissionInfo[]
   const permissions = usePermissions();
 
   if (permissions.isPending) {
-    return (
-      <p role="status" className="text-sm text-muted-foreground">
-        Loading permissions…
-      </p>
-    );
+    return <LinesSkeleton lines={6} label="Loading permissions…" />;
   }
 
   if (permissions.isError) {
@@ -320,11 +317,7 @@ export function RoleEditorPage() {
   const role = useRole(id);
 
   if (role.isPending) {
-    return (
-      <p role="status" className="text-muted-foreground">
-        Loading…
-      </p>
-    );
+    return <DetailSkeleton />;
   }
 
   if (role.isError) {

@@ -1,5 +1,6 @@
 import { lazy, Suspense, useState } from 'react';
 import { ActionCard } from '@/components/ActionCard';
+import { BlockSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
 import { formatCents } from '@/lib/money';
 import { useSales, type DateRange, type SalesInterval } from './api';
@@ -57,7 +58,7 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
         </ul>
       </div>
 
-      {!data && <LoadState query={sales} />}
+      {!data && <LoadState query={sales} skeleton={<BlockSkeleton className="h-64 w-full" />} />}
 
       {data && data.points.length === 0 && (
         <p className="text-sm text-muted-foreground">No sales in this range.</p>
@@ -65,13 +66,7 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
 
       {data && data.points.length > 0 && (
         <>
-          <Suspense
-            fallback={
-              <p role="status" className="h-64 text-sm text-muted-foreground">
-                Loading chart…
-              </p>
-            }
-          >
+          <Suspense fallback={<BlockSkeleton className="h-64 w-full" label="Loading chart…" />}>
             <SalesChart sales={data} />
           </Suspense>
 

@@ -8,6 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { errorMessage } from '@/lib/api';
+import { ListSkeleton } from '@/components/Loading';
 import { useCategoryTree, type CategoryNode } from './api';
 import { CategoryFormDialog } from './CategoryFormDialog';
 import { DeleteCategoryDialog } from './DeleteCategoryDialog';
@@ -110,11 +111,7 @@ export function CategoriesPage() {
         <Button onClick={() => setEditing({})}>New category</Button>
       </div>
 
-      {tree.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {tree.isPending && <ListSkeleton media />}
 
       {tree.isError && (
         <div className="space-y-4">

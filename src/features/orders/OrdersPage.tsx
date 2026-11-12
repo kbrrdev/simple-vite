@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { usePageParam } from '@/lib/use-page-param';
+import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useOrders, type Order } from './api';
 import { PaymentBadge, StatusBadge } from './OrderBadges';
 import {
@@ -129,11 +130,7 @@ export function OrdersPage() {
         )}
       </div>
 
-      {orders.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {orders.isPending && <ListSkeleton />}
 
       {orders.isError && (
         <div className="space-y-4">

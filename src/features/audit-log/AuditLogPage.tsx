@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
+import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useAuditLogs } from './api';
 import { AuditEntryRow } from './AuditEntryRow';
 import { entityLabels, isEntityType } from './labels';
@@ -159,11 +160,7 @@ export function AuditLogPage() {
         </p>
       )}
 
-      {!badRange && log.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {!badRange && log.isPending && <ListSkeleton />}
 
       {log.isError && (
         <div className="space-y-4">

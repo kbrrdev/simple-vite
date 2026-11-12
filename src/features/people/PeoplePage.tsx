@@ -10,6 +10,7 @@ import { errorMessage } from '@/lib/api';
 import { useSession } from '@/lib/auth';
 import { usePageParam } from '@/lib/use-page-param';
 import { useRoles, type Role } from '@/features/roles/api';
+import { ListSkeleton } from '@/components/Loading';
 import { AddStaffDialog } from './AddStaffDialog';
 import { pageSize, usePeople, type Person } from './api';
 import { ChangeRoleDialog } from './ChangeRoleDialog';
@@ -156,11 +157,7 @@ export function PeoplePage() {
         </Button>
       )}
 
-      {people.isPending && (
-        <p role="status" className="text-muted-foreground">
-          Loading…
-        </p>
-      )}
+      {people.isPending && <ListSkeleton />}
 
       {people.isError && (
         <div className="space-y-4">

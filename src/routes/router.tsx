@@ -1,4 +1,5 @@
 import { createBrowserRouter, type RouteObject } from 'react-router';
+import { ShellSkeleton } from '@/components/Loading';
 import { LoginPage } from '@/features/auth/LoginPage';
 import { DashboardPage } from '@/features/reports/DashboardPage';
 import { AdminLayout } from './AdminLayout';
@@ -13,11 +14,7 @@ export const routes: RouteObject[] = [
   {
     errorElement: <RouteError />,
     // Shown on first load while the screen's code downloads.
-    hydrateFallbackElement: (
-      <p role="status" className="p-8 text-muted-foreground">
-        Loading…
-      </p>
-    ),
+    hydrateFallbackElement: <ShellSkeleton />,
     children: [
       { path: '/login', element: <LoginPage /> },
       {
