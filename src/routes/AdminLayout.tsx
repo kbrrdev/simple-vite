@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import { MenuIcon } from 'lucide-react';
-import { NavLink, Outlet } from 'react-router';
+import { NavLink, Outlet, useNavigation } from 'react-router';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { env } from '@/config/env';
@@ -145,6 +145,8 @@ function NavContent({ onNavigate }: { onNavigate?: () => void }) {
 
 export function AdminLayout() {
   const [menuOpen, setMenuOpen] = useState(false);
+  // True while the next screen's code downloads. The current page stays up meanwhile.
+  const loading = useNavigation().state === 'loading';
 
   return (
     <div className="flex min-h-svh flex-col md:flex-row">
@@ -174,7 +176,13 @@ export function AdminLayout() {
         <NavContent />
       </aside>
 
-      <main className="min-w-0 flex-1 p-4 md:p-8">
+      <main aria-busy={loading} className="relative min-w-0 flex-1 p-4 md:p-8">
+        {loading && (
+          <div
+            aria-hidden
+            className="absolute inset-x-0 top-0 h-0.5 animate-pulse bg-primary motion-reduce:animate-none"
+          />
+        )}
         <Outlet />
       </main>
     </div>
