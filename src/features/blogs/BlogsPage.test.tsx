@@ -71,7 +71,11 @@ describe('the blog list', () => {
     const { router } = renderApp('/blogs?page=2');
 
     await screen.findByText(/No posts yet/);
-    await userEvent.selectOptions(screen.getByLabelText('Show'), 'Drafts');
+    await userEvent.click(
+      within(screen.getByRole('navigation', { name: 'Post views' })).getByRole('link', {
+        name: 'Drafts',
+      }),
+    );
 
     expect(router.state.location.search).toBe('?published=false');
     expect(lastQuery()).toEqual({ page: 1, limit: 20, published: false });

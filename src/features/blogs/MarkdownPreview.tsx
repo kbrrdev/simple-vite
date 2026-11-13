@@ -1,7 +1,16 @@
 import Markdown, { type Components } from 'react-markdown';
-import { allowedElements } from './markdown';
+import { env } from '@/config/env';
+import { allowedElements, isUploadedImage } from './markdown';
 
 const components: Components = {
+  img: ({ src, alt }) =>
+    typeof src === 'string' && isUploadedImage(src, env.imageOrigins) ? (
+      <img src={src} alt={alt ?? ''} loading="lazy" className="my-2 w-full rounded-md bg-muted" />
+    ) : (
+      <span className="text-sm text-muted-foreground italic">
+        Image not shown, as only images from Files are allowed{alt ? `: ${alt}` : ''}.
+      </span>
+    ),
   h2: ({ children }) => <h2 className="mt-6 text-xl font-semibold first:mt-0">{children}</h2>,
   h3: ({ children }) => <h3 className="mt-5 text-lg font-semibold first:mt-0">{children}</h3>,
   h4: ({ children }) => <h4 className="mt-4 font-semibold first:mt-0">{children}</h4>,

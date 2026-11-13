@@ -70,7 +70,10 @@ export function FormattingHelp({ id }: { id: string }) {
       <div className="space-y-1 text-sm">
         <p className="font-medium">Not supported</p>
         <ul className="list-disc space-y-1 pl-5 text-muted-foreground">
-          <li>Images in the text. Add the photo as the cover image instead.</li>
+          <li>
+            Images from other websites. Use the Image button to add one from Files, so it stays with
+            the store.
+          </li>
           <li>
             A single <code>#</code> heading, as the post title already uses that level. Use{' '}
             <code>##</code>.

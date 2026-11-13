@@ -2,6 +2,7 @@ import { lazy, Suspense, useLayoutEffect, useRef, useState } from 'react';
 import {
   BoldIcon,
   Heading2Icon,
+  ImageIcon,
   ItalicIcon,
   LinkIcon,
   ListIcon,
@@ -12,7 +13,8 @@ import { LinesSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { FormattingHelp } from './FormattingHelp';
-import { link, prefixLines, wrap, type Edit } from './markdown-edit';
+import { InsertImageDialog } from './InsertImageDialog';
+import { insertImage, link, prefixLines, wrap, type Edit } from './markdown-edit';
 
 // The Markdown library is only needed for the preview, so it loads when the preview opens.
 const MarkdownPreview = lazy(() => import('./MarkdownPreview'));
@@ -43,6 +45,8 @@ interface Props {
 export function ContentField({ value, onChange, error }: Props) {
   const [preview, setPreview] = useState(false);
   const [helpOpen, setHelpOpen] = useState(false);
+  // The selection when Image was pressed, as the dialog takes the focus from the text box.
+  const [imageAt, setImageAt] = useState<[number, number] | null>(null);
   const textarea = useRef<HTMLTextAreaElement>(null);
   // The selection to restore once a toolbar edit has reached the text box.
   const pendingSelection = useRef<[number, number] | null>(null);
@@ -121,6 +125,24 @@ export function ContentField({ value, onChange, error }: Props) {
                 <tool.icon />
               </Button>
             ))}
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label="Image"
+              title="Image"
+              aria-controls="blog-content"
+              onClick={() => {
+                const element = textarea.current;
+                setImageAt(
+                  element
+                    ? [element.selectionStart, element.selectionEnd]
+                    : [value.length, value.length],
+                );
+              }}
+            >
+              <ImageIcon />
+            </Button>
           </div>
           <textarea
             ref={textarea}
@@ -153,6 +175,16 @@ export function ContentField({ value, onChange, error }: Props) {
         </Button>
       </p>
       {helpOpen && <FormattingHelp id="blog-formatting-help" />}
+
+      {imageAt && (
+        <InsertImageDialog
+          onInsert={(alt, url) => {
+            apply((text) => insertImage(text, imageAt[0], imageAt[1], alt, url));
+            setImageAt(null);
+          }}
+          onClose={() => setImageAt(null)}
+        />
+      )}
 
       {error && (
         <p id="blog-content-error" className="text-sm text-destructive">

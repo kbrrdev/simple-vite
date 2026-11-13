@@ -142,9 +142,13 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 ## Blog
 
 - Posts are written in **Markdown**. The backend stores the text as it is, so the storefront must render it the same way.
-- Posts may use only the elements in `features/blogs/markdown.ts`: headings from level 2 down, paragraphs, bold, italic, links, lists, quotes, code, and rules. Raw HTML is never rendered, and images belong in the cover, not the text. The storefront should use the same list.
-- Drafts are hidden from the public. Unpublishing moves a post back to drafts. Deleting removes it for good.
-- The editor asks before leaving with unsaved changes, with React Router's `useBlocker`, and the browser asks when the tab is closed.
+- Posts may use only the elements in `features/blogs/markdown.ts`: headings from level 2 down, paragraphs, bold, italic, links, lists, quotes, code, rules, and images. Raw HTML is never rendered. The storefront must use the same list.
+- Images in the text are added with the toolbar's Image button, from Files or uploaded, with alt text, as `![alt](url)` on their own line. They show only when `isUploadedImage` finds them at the API's origin, or `VITE_IMAGE_URL`'s when uploads are in S3, so an image from another site never loads. The storefront must apply the same rule.
+- The backend does not track images inside a post's text, so Files can delete one a post still shows. Its delete dialog says so.
+- The list has All, Published, and Drafts tabs, which set `published` in the URL.
+- The editor follows Shopify's: the title and text on the left, and Visibility, the cover, and the author on the right. Everything saves together through the save bar, which sends only what changed.
+- Drafts are hidden from the public. Choosing Draft under Visibility and saving moves a post back to drafts, without a dialog, as it can be undone. Deleting removes it for good, and asks first.
+- The editor asks before leaving with unsaved changes, through `useLeaveGuard`, and the browser asks when the tab is closed.
 - The preview loads `react-markdown` only when it opens.
 
 ## Products
@@ -227,6 +231,7 @@ Configuration comes from `VITE_` environment variables, documented in `.env.exam
 
 - `VITE_API_URL` is the simple-express API, and is required.
 - `VITE_STORE_NAME` is shown in the header, on the login page, and in the browser tab. It defaults to "Store Admin".
+- `VITE_IMAGE_URL` is where uploaded images are served from when the API stores them in S3, matching its `S3_PUBLIC_URL`. It is optional. Blog posts only show images from it or from the API.
 
 ## Testing
 
