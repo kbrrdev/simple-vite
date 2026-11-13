@@ -109,6 +109,10 @@ The system is shadcn/ui's neutral theme, owned and tuned for use on a phone. It 
 - One page title, then content; no decorative headers.
 - Feedback for every action: skeleton shapes while loading, a toast on success, a message beside the field on error.
 
+**Reference: Shopify Admin.** Every screen follows Shopify Admin's patterns, as it does the same job: orders, products with variants, payments, and shipping. When designing a screen, start from how Shopify Admin handles it. Take its layout and behavior, not its branding: the rules in this file, such as the grey palette, red for danger, and the status tints, still decide the look.
+
+Built so far from it: the Order page's side panel and Next step card, the Orders status tabs, and the record header with its More menu.
+
 ## Colors
 
 A grey palette from ink to paper, a single red for danger, and three soft tints that only status badges use.
