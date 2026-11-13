@@ -26,12 +26,27 @@ import {
 } from './api';
 import { couponRow, promotionRow, saleRow, statusBadges, type DiscountRow } from './rows';
 
-// The kinds of discount there are editors for. Coupons and promotions are added with theirs.
+// The kinds of discount there are editors for. Promotions are added with theirs.
 const createOptions = [
   {
     label: 'Sale',
     hint: 'Lower prices on products or categories, for a while or a number of units',
     to: '/discounts/sales/new',
+  },
+  {
+    label: 'Coupon code',
+    hint: 'Money or percent off an order for shoppers who type a code',
+    to: '/discounts/coupons/new',
+  },
+  {
+    label: 'Automatic discount',
+    hint: 'Applies without a code when the cart qualifies',
+    to: '/discounts/coupons/new?automatic=1',
+  },
+  {
+    label: 'Free shipping',
+    hint: 'Waives shipping, with a code or automatically',
+    to: '/discounts/coupons/new?type=free_shipping',
   },
 ];
 
