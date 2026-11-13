@@ -13,6 +13,7 @@ import { errorMessage } from '@/lib/api';
 import { ListSkeleton } from '@/components/Loading';
 import { useCategoryTree, type CategoryNode } from './api';
 import { CategoryFormDialog } from './CategoryFormDialog';
+import { findCategoryIcon } from './icons';
 import { DeleteCategoryDialog } from './DeleteCategoryDialog';
 import { maxDepth } from './tree';
 
@@ -30,6 +31,8 @@ interface ItemProps {
 function CategoryItem({ category, depth, onAdd, onEdit, onDelete }: ItemProps) {
   const hasChildren = category.children.length > 0;
 
+  const icon = findCategoryIcon(category.icon);
+
   return (
     <li>
       <div className="flex items-center gap-3 border-t px-4 py-2">
@@ -40,6 +43,11 @@ function CategoryItem({ category, depth, onAdd, onEdit, onDelete }: ItemProps) {
             loading="lazy"
             className="size-10 shrink-0 rounded-md bg-muted object-cover"
           />
+        ) : icon ? (
+          // No image, so the icon stands in, as it does in the store.
+          <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-muted">
+            <icon.icon aria-hidden className="size-5 text-muted-foreground" />
+          </span>
         ) : (
           <div className="size-10 shrink-0 rounded-md bg-muted" />
         )}

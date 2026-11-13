@@ -112,6 +112,24 @@ describe('the order page', () => {
     expect(within(section('Payment')).getByText('Reference GC12345678')).toBeInTheDocument();
   });
 
+  it('shows promotion and coupon discounts as sent, and the promotion on its item', async () => {
+    const order = makeOrder();
+    serve({
+      ...order,
+      couponCode: 'WELCOME10',
+      promotionDiscountCents: 25000,
+      discountCents: 7500,
+      items: [
+        { ...order.items[0], promotionDiscountCents: 25000, promotionName: 'Buy 2, save 25%' },
+      ],
+    });
+    renderApp('/orders/order-1');
+
+    const totals = within(await screen.findByLabelText('Totals'));
+    expect(totals.getByText('Promotions').nextSibling).toHaveTextContent('minus ₱250.00');
+    expect(totals.getByText('Coupon WELCOME10').nextSibling).toHaveTextContent('minus ₱75.00');
+    expect(screen.getByText(/Buy 2, save 25%:/)).toHaveTextContent('minus ₱250.00');
+  });
   it('strikes through the list price of an item sold on sale', async () => {
     const order = makeOrder();
     serve({

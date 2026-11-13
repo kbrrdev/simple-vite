@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { Asset } from '@/features/files/api';
@@ -27,6 +27,7 @@ function category(
     name,
     imageAssetId: image?.imageAssetId ?? null,
     imageUrl: image?.imageUrl ?? null,
+    icon: null,
     createdAt: date,
     updatedAt: date,
     children: children.map((child) => ({ ...child, parentId: id })),
@@ -126,7 +127,7 @@ describe('creating and editing', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/categories', {
       method: 'POST',
-      body: { name: 'Socks', parentId: null, imageAssetId: null },
+      body: { name: 'Socks', parentId: null, imageAssetId: null, icon: null },
     });
   });
 
@@ -144,7 +145,7 @@ describe('creating and editing', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories', {
       method: 'POST',
-      body: { name: 'Shoes', parentId: 'id-Men', imageAssetId: null },
+      body: { name: 'Shoes', parentId: 'id-Men', imageAssetId: null, icon: null },
     });
   });
 
@@ -168,7 +169,7 @@ describe('creating and editing', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Shoes', {
       method: 'PATCH',
-      body: { name: 'Shoes', parentId: 'id-Women', imageAssetId: null },
+      body: { name: 'Shoes', parentId: 'id-Women', imageAssetId: null, icon: null },
     });
   });
 
@@ -248,7 +249,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1' },
+      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1', icon: null },
     });
   });
 
@@ -269,7 +270,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1' },
+      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1', icon: null },
     });
   });
 
@@ -284,7 +285,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: null },
+      body: { name: 'Hats', parentId: null, imageAssetId: null, icon: null },
     });
   });
 });
@@ -339,5 +340,64 @@ describe('deleting', () => {
     expect(await within(dialog).findByRole('alert')).toHaveTextContent(
       'Category is in use by products',
     );
+  });
+});
+
+describe('icons', () => {
+  it('picks an icon by searching, and sends it', async () => {
+    api(() => treeOf([category('Hats')]));
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    const dialog = within(screen.getByRole('dialog'));
+    await userEvent.type(dialog.getByRole('searchbox', { name: 'Search icons' }), 'shoe');
+    expect(
+      dialog.getAllByRole('radio').map((radio) => radio.closest('label')?.textContent),
+    ).toEqual(['Shoes']);
+    await userEvent.click(dialog.getByRole('radio', { name: 'Shoes' }));
+    await userEvent.click(dialog.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
+        method: 'PATCH',
+        body: { name: 'Hats', parentId: null, imageAssetId: null, icon: 'footprints' },
+      }),
+    );
+  });
+
+  it('clears an icon with None', async () => {
+    api(() => treeOf([{ ...category('Hats'), icon: 'shirt' }]));
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    const dialog = within(screen.getByRole('dialog'));
+    expect(dialog.getByRole('radio', { name: 'Shirt' })).toBeChecked();
+    await userEvent.click(dialog.getByRole('radio', { name: 'None' }));
+    await userEvent.click(dialog.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() =>
+      expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
+        method: 'PATCH',
+        body: { name: 'Hats', parentId: null, imageAssetId: null, icon: null },
+      }),
+    );
+  });
+
+  it('shows the image in the list when there is one, and the icon otherwise', async () => {
+    api(() =>
+      treeOf([
+        { ...category('Hats', [], { imageAssetId: photo.id, imageUrl: photo.url }), icon: 'shirt' },
+        { ...category('Socks'), icon: 'footprints' },
+      ]),
+    );
+    renderApp('/categories');
+
+    const rows = within(await screen.findByRole('list', { name: 'Categories' })).getAllByRole(
+      'listitem',
+    );
+    expect(rows[0].querySelector('img')).not.toBeNull();
+    expect(rows[0].querySelector('.lucide-shirt')).toBeNull();
+    expect(rows[1].querySelector('img')).toBeNull();
+    expect(rows[1].querySelector('.lucide-footprints')).not.toBeNull();
   });
 });

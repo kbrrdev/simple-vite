@@ -28,11 +28,24 @@ function Items({ order }: { order: Order }) {
   const tax = order.pricesIncludeTax
     ? `VAT ${order.taxRatePercent}% (included)`
     : `VAT ${order.taxRatePercent}%`;
-  const rows = [
-    ['Subtotal', order.subtotalCents],
-    ['Shipping', order.shippingCents],
-    [tax, order.taxCents],
-  ] as const;
+  // Discounts show only when the order has them, as amounts taken off.
+  const rows: { label: string; cents: number; off?: true }[] = [
+    { label: 'Subtotal', cents: order.subtotalCents },
+    ...(order.promotionDiscountCents > 0
+      ? [{ label: 'Promotions', cents: order.promotionDiscountCents, off: true as const }]
+      : []),
+    ...(order.discountCents > 0
+      ? [
+          {
+            label: order.couponCode ? `Coupon ${order.couponCode}` : 'Coupon',
+            cents: order.discountCents,
+            off: true as const,
+          },
+        ]
+      : []),
+    { label: 'Shipping', cents: order.shippingCents },
+    { label: tax, cents: order.taxCents },
+  ];
 
   return (
     <section aria-labelledby="items-heading" className="rounded-lg border">
@@ -81,6 +94,13 @@ function Items({ order }: { order: Order }) {
                     </>
                   )}
                 </p>
+                {item.promotionDiscountCents > 0 && (
+                  <p className="text-sm text-muted-foreground tabular-nums">
+                    {item.promotionName ?? 'Promotion'}: <span aria-hidden>−</span>
+                    <span className="sr-only">minus </span>
+                    {formatCents(item.promotionDiscountCents)}
+                  </p>
+                )}
               </div>
               <p className="font-medium tabular-nums">{formatCents(item.lineTotalCents)}</p>
             </li>
@@ -89,10 +109,14 @@ function Items({ order }: { order: Order }) {
       </ul>
       {/* Exactly as the backend sends them. The browser never adds them up. */}
       <dl aria-label="Totals" className="space-y-1 border-t p-4 text-sm tabular-nums">
-        {rows.map(([label, cents]) => (
+        {rows.map(({ label, cents, off }) => (
           <div key={label} className="flex justify-between gap-4">
             <dt className="text-muted-foreground">{label}</dt>
-            <dd>{formatCents(cents)}</dd>
+            <dd>
+              {off && <span aria-hidden>−</span>}
+              {off && <span className="sr-only">minus </span>}
+              {formatCents(cents)}
+            </dd>
           </div>
         ))}
         <div className="flex justify-between gap-4 border-t pt-2 text-base font-semibold">

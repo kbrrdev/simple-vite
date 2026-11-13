@@ -44,6 +44,7 @@ function node(id: string, name: string, children: CategoryNode[] = []): Category
     name,
     imageAssetId: null,
     imageUrl: null,
+    icon: null,
     createdAt: date,
     updatedAt: date,
     children,

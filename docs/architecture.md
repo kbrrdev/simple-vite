@@ -72,7 +72,9 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Categories nest up to three levels, such as Men › Shoes › Running. The screen reads the whole tree from `/api/categories/tree`, without pages.
 - Names are unique among categories with the same parent.
 - Changing the parent moves the category with everything below it. The form only offers parents that keep it within three levels, but the backend decides.
-- A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`.
+- A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`, and an icon.
+- Icons are lucide names from `categoryIcons` in `features/categories/icons.ts`, picked in the category dialog with a search. The backend only checks a name's format, so the storefront must use the same names. A name this app does not have is kept until someone picks another, and the dialog says so.
+- **The image comes first:** the list and the store show a category's image when it has one, and its icon otherwise. The backend's docs say the reverse, so that is up to each frontend, and this one follows the store owner's choice.
 - A category cannot be deleted while it has subcategories or products use it. An image a category uses cannot be deleted from Files.
 
 ## Orders
@@ -90,14 +92,15 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Marking an order returned does not restock it. Staff adjust stock by hand.
 - Cash on delivery orders become paid when they are marked delivered.
 - Totals are shown exactly as the backend sends them. The browser never adds them up.
-- An item sold on sale shows its list price struck through, from `listPriceCents`, when it differs from the price paid.
+- An item sold on sale shows its list price struck through, from `listPriceCents`, when it differs from the price paid. An item in a buy X get Y or bundle promotion shows the promotion's name and its share.
+- The totals show Promotions and the coupon, by its code, as amounts taken off, only when the order has them.
 
 ## Dashboard
 
 - The Dashboard is the reports page. It starts with **Needs attention**, a to-do list of payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
 - The summary, the sales chart, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
 - Needs attention and low stock show the store as it is now, so the range does not change them.
-- Every figure comes from the backend. The browser formats it and never adds anything up. Sale discounts is the amount sales took off list prices.
+- Every figure comes from the backend. The browser formats it and never adds anything up. Sale, promotion, and coupon discounts are shown apart, from `saleDiscountCents`, `promotionDiscountCents`, and `couponDiscountCents`, as `discountCents` is their sum.
 - The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
 - Each card loads and fails on its own, so a slow report never blocks Needs attention.
 

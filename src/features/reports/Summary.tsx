@@ -47,7 +47,10 @@ export function Summary({ range }: { range: DateRange }) {
   const more = [
     { label: 'Items sold', value: counts.format(data.itemsSold) },
     { label: 'Refunded', value: formatCents(data.refundedCents) },
-    { label: 'Sale discounts', value: formatCents(data.discountCents) },
+    // Each kind on its own, as discountCents adds them together.
+    { label: 'Sale discounts', value: formatCents(data.saleDiscountCents) },
+    { label: 'Promotion discounts', value: formatCents(data.promotionDiscountCents) },
+    { label: 'Coupon discounts', value: formatCents(data.couponDiscountCents) },
     { label: 'Cancelled orders', value: counts.format(data.cancelledOrders) },
     { label: 'New customers', value: counts.format(data.newCustomers) },
     ...tax,
