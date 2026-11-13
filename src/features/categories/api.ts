@@ -24,10 +24,15 @@ export function useSaveCategory() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ id, ...body }: CategoryInput & { id?: string }) =>
-      id
+    // A new category sends every field, and an edit only the ones that changed.
+    mutationFn: (
+      input: ({ id?: undefined } & CategoryInput) | ({ id: string } & Partial<CategoryInput>),
+    ) => {
+      const { id, ...body } = input;
+      return id
         ? request(`/api/categories/${id}`, { method: 'PATCH', body })
-        : request('/api/categories', { method: 'POST', body }),
+        : request('/api/categories', { method: 'POST', body });
+    },
     meta: { toast: false },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['categories'] }),
   });

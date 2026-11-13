@@ -169,7 +169,7 @@ describe('creating and editing', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Shoes', {
       method: 'PATCH',
-      body: { name: 'Shoes', parentId: 'id-Women', imageAssetId: null, icon: null },
+      body: { parentId: 'id-Women' },
     });
   });
 
@@ -249,7 +249,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1', icon: null },
+      body: { imageAssetId: 'asset-1' },
     });
   });
 
@@ -270,7 +270,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: 'asset-1', icon: null },
+      body: { imageAssetId: 'asset-1' },
     });
   });
 
@@ -285,7 +285,7 @@ describe('category images', () => {
 
     expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
       method: 'PATCH',
-      body: { name: 'Hats', parentId: null, imageAssetId: null, icon: null },
+      body: { imageAssetId: null },
     });
   });
 });
@@ -360,7 +360,7 @@ describe('icons', () => {
     await waitFor(() =>
       expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
         method: 'PATCH',
-        body: { name: 'Hats', parentId: null, imageAssetId: null, icon: 'footprints' },
+        body: { icon: 'footprints' },
       }),
     );
   });
@@ -378,7 +378,7 @@ describe('icons', () => {
     await waitFor(() =>
       expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
         method: 'PATCH',
-        body: { name: 'Hats', parentId: null, imageAssetId: null, icon: null },
+        body: { icon: null },
       }),
     );
   });
@@ -399,5 +399,30 @@ describe('icons', () => {
     expect(rows[0].querySelector('.lucide-shirt')).toBeNull();
     expect(rows[1].querySelector('img')).toBeNull();
     expect(rows[1].querySelector('.lucide-footprints')).not.toBeNull();
+  });
+});
+
+describe('saving only what changed', () => {
+  it('leaves fields it did not change alone, and sends nothing when nothing changed', async () => {
+    api(() => treeOf([{ ...category('Hats'), icon: 'shirt' }]));
+    renderApp('/categories');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' }));
+    expect(requestMock).not.toHaveBeenCalledWith('/api/categories/id-Hats', expect.anything());
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Edit Hats' }));
+    const name = screen.getByLabelText('Name');
+    await userEvent.clear(name);
+    await userEvent.type(name, 'Caps');
+    await userEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Save' }));
+
+    // The icon someone else may have set meanwhile is not sent, so it cannot be undone.
+    await waitFor(() =>
+      expect(requestMock).toHaveBeenCalledWith('/api/categories/id-Hats', {
+        method: 'PATCH',
+        body: { name: 'Caps' },
+      }),
+    );
   });
 });

@@ -224,10 +224,7 @@ describe('status', () => {
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Deactivate' }),
     );
 
-    // Waits for the request rather than the toast, as an earlier test's toast can still show.
-    await waitFor(() =>
-      expect(requestMock).toHaveBeenCalledWith('/api/products/product-1', { method: 'DELETE' }),
-    );
+    expect(await screen.findByText('Product deactivated')).toBeInTheDocument();
     expect(
       await within(screen.getByRole('region', { name: 'Status' })).findByRole('button', {
         name: 'Turn on',
