@@ -92,8 +92,14 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto">
-        <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
+      <DialogContent>
+        {/* The fields scroll between the title and the footer, so Save stays in view and the
+            footer's edge-to-edge margins add no empty space. */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex max-h-[calc(90svh-2rem)] flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
             <DialogDescription>
@@ -102,62 +108,64 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-2">
-            <Label htmlFor="category-name">Name</Label>
-            <Input
-              id="category-name"
-              maxLength={100}
-              required
-              aria-invalid={Boolean(nameError)}
-              aria-describedby={nameError ? 'category-name-error' : undefined}
-              value={name}
-              onChange={(event) => setName(event.target.value)}
+          <div className="-mx-4 grid min-h-0 gap-4 overflow-y-auto px-4 py-1">
+            <div className="space-y-2">
+              <Label htmlFor="category-name">Name</Label>
+              <Input
+                id="category-name"
+                maxLength={100}
+                required
+                aria-invalid={Boolean(nameError)}
+                aria-describedby={nameError ? 'category-name-error' : undefined}
+                value={name}
+                onChange={(event) => setName(event.target.value)}
+              />
+              {nameError && (
+                <p id="category-name-error" className="text-sm text-destructive">
+                  {nameError}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="category-parent">Parent</Label>
+              <NativeSelect
+                id="category-parent"
+                aria-invalid={Boolean(parentError)}
+                aria-describedby={parentError ? 'category-parent-error' : undefined}
+                value={parentId}
+                onChange={(event) => setParentId(event.target.value)}
+              >
+                <option value="">None (top level)</option>
+                {parentOptions(tree, category).map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </NativeSelect>
+              {parentError && (
+                <p id="category-parent-error" className="text-sm text-destructive">
+                  {parentError}
+                </p>
+              )}
+            </div>
+
+            <ImageField
+              legend="Image"
+              image={image}
+              onChange={setImage}
+              error={imageError}
+              onUploadingChange={setUploading}
             />
-            {nameError && (
-              <p id="category-name-error" className="text-sm text-destructive">
-                {nameError}
+
+            <IconPicker value={icon} onChange={setIcon} error={iconError} />
+
+            {otherError && (
+              <p role="alert" className="text-sm text-destructive">
+                {errorMessage(save.error)}
               </p>
             )}
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category-parent">Parent</Label>
-            <NativeSelect
-              id="category-parent"
-              aria-invalid={Boolean(parentError)}
-              aria-describedby={parentError ? 'category-parent-error' : undefined}
-              value={parentId}
-              onChange={(event) => setParentId(event.target.value)}
-            >
-              <option value="">None (top level)</option>
-              {parentOptions(tree, category).map((option) => (
-                <option key={option.id} value={option.id}>
-                  {option.label}
-                </option>
-              ))}
-            </NativeSelect>
-            {parentError && (
-              <p id="category-parent-error" className="text-sm text-destructive">
-                {parentError}
-              </p>
-            )}
-          </div>
-
-          <ImageField
-            legend="Image"
-            image={image}
-            onChange={setImage}
-            error={imageError}
-            onUploadingChange={setUploading}
-          />
-
-          <IconPicker value={icon} onChange={setIcon} error={iconError} />
-
-          {otherError && (
-            <p role="alert" className="text-sm text-destructive">
-              {errorMessage(save.error)}
-            </p>
-          )}
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>

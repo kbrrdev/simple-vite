@@ -219,6 +219,7 @@ Calm and decisive.
 
 - **Style:** Paper, 14px corners, 16px padding, a 10% ink ring, and a Mist footer band with Cancel and the action.
 - **Behavior:** used for forms and for confirming destructive actions. On phones the footer buttons stack full width, with the action on top.
+- **Long forms:** when the fields can be taller than the screen, such as the category and banner dialogs, only the fields scroll, between the title and the footer. The footer stays in view. Never make the whole dialog scroll: its footer reaches the edges with negative margins, which then leave empty space and a second scrollbar.
 
 ### Navigation
 

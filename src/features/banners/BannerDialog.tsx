@@ -144,8 +144,14 @@ export function BannerDialog({ banner, nextPosition, onClose }: Props) {
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="max-h-[90svh] overflow-y-auto">
-        <form onSubmit={handleSubmit} noValidate className="grid gap-4">
+      <DialogContent>
+        {/* The fields scroll between the title and the footer, so Save stays in view and the
+            footer's edge-to-edge margins add no empty space. */}
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="flex max-h-[calc(90svh-2rem)] flex-col gap-4"
+        >
           <DialogHeader>
             <DialogTitle>{banner ? 'Edit banner' : 'New banner'}</DialogTitle>
             <DialogDescription>
@@ -153,99 +159,101 @@ export function BannerDialog({ banner, nextPosition, onClose }: Props) {
             </DialogDescription>
           </DialogHeader>
 
-          <ImageField
-            legend="Image"
-            image={image}
-            onChange={setImage}
-            error={fieldError('assetId')}
-            onUploadingChange={setUploadingImage}
-          />
-          <ImageField
-            legend="Phone image (optional)"
-            image={mobileImage}
-            onChange={setMobileImage}
-            error={fieldError('mobileAssetId')}
-            onUploadingChange={setUploadingMobile}
-          />
+          <div className="-mx-4 grid min-h-0 gap-4 overflow-y-auto px-4 py-1">
+            <ImageField
+              legend="Image"
+              image={image}
+              onChange={setImage}
+              error={fieldError('assetId')}
+              onUploadingChange={setUploadingImage}
+            />
+            <ImageField
+              legend="Phone image (optional)"
+              image={mobileImage}
+              onChange={setMobileImage}
+              error={fieldError('mobileAssetId')}
+              onUploadingChange={setUploadingMobile}
+            />
 
-          {textFields.map((field) => {
-            const error = fieldError(field.name);
-            const id = `banner-${field.name}`;
-            return (
-              <div key={field.name} className="space-y-2">
-                <Label htmlFor={id}>{field.label}</Label>
-                <Input
-                  id={id}
-                  maxLength={field.max}
-                  aria-invalid={Boolean(error)}
-                  aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
-                  value={text[field.name]}
-                  onChange={(event) =>
-                    setText((current) => ({ ...current, [field.name]: event.target.value }))
-                  }
-                />
-                <p id={`${id}-hint`} className="text-xs text-muted-foreground">
-                  {field.hint}
-                </p>
-                {error && (
-                  <p id={`${id}-error`} className="text-sm text-destructive">
-                    {error}
-                  </p>
-                )}
-              </div>
-            );
-          })}
-
-          <fieldset className="grid gap-4 sm:grid-cols-2">
-            <legend className="mb-2 text-sm font-medium">Schedule (optional)</legend>
-            {(
-              [
-                ['startsAt', 'Starts', startsAt, setStartsAt],
-                ['endsAt', 'Ends', endsAt, setEndsAt],
-              ] as const
-            ).map(([name, label, value, setValue]) => {
-              const error = fieldError(name);
+            {textFields.map((field) => {
+              const error = fieldError(field.name);
+              const id = `banner-${field.name}`;
               return (
-                <div key={name} className="space-y-2">
-                  <Label htmlFor={`banner-${name}`}>{label}</Label>
+                <div key={field.name} className="space-y-2">
+                  <Label htmlFor={id}>{field.label}</Label>
                   <Input
-                    id={`banner-${name}`}
-                    type="datetime-local"
+                    id={id}
+                    maxLength={field.max}
                     aria-invalid={Boolean(error)}
-                    aria-describedby={error ? `banner-${name}-error` : undefined}
-                    value={value}
-                    onChange={(event) => setValue(event.target.value)}
+                    aria-describedby={`${id}-hint${error ? ` ${id}-error` : ''}`}
+                    value={text[field.name]}
+                    onChange={(event) =>
+                      setText((current) => ({ ...current, [field.name]: event.target.value }))
+                    }
                   />
+                  <p id={`${id}-hint`} className="text-xs text-muted-foreground">
+                    {field.hint}
+                  </p>
                   {error && (
-                    <p id={`banner-${name}-error`} className="text-sm text-destructive">
+                    <p id={`${id}-error`} className="text-sm text-destructive">
                       {error}
                     </p>
                   )}
                 </div>
               );
             })}
-            <p className="text-xs text-muted-foreground sm:col-span-2">
-              Leave both empty to show it as long as it is on.
-            </p>
-          </fieldset>
 
-          {!banner && (
-            <label className="flex min-h-11 items-center gap-3 text-sm md:min-h-8">
-              <input
-                type="checkbox"
-                className="size-5 accent-primary"
-                checked={isActive}
-                onChange={(event) => setIsActive(event.target.checked)}
-              />
-              On as soon as it is added
-            </label>
-          )}
+            <fieldset className="grid gap-4 sm:grid-cols-2">
+              <legend className="mb-2 text-sm font-medium">Schedule (optional)</legend>
+              {(
+                [
+                  ['startsAt', 'Starts', startsAt, setStartsAt],
+                  ['endsAt', 'Ends', endsAt, setEndsAt],
+                ] as const
+              ).map(([name, label, value, setValue]) => {
+                const error = fieldError(name);
+                return (
+                  <div key={name} className="space-y-2">
+                    <Label htmlFor={`banner-${name}`}>{label}</Label>
+                    <Input
+                      id={`banner-${name}`}
+                      type="datetime-local"
+                      aria-invalid={Boolean(error)}
+                      aria-describedby={error ? `banner-${name}-error` : undefined}
+                      value={value}
+                      onChange={(event) => setValue(event.target.value)}
+                    />
+                    {error && (
+                      <p id={`banner-${name}-error`} className="text-sm text-destructive">
+                        {error}
+                      </p>
+                    )}
+                  </div>
+                );
+              })}
+              <p className="text-xs text-muted-foreground sm:col-span-2">
+                Leave both empty to show it as long as it is on.
+              </p>
+            </fieldset>
 
-          {save.error && !shownElsewhere && (
-            <p role="alert" className="text-sm text-destructive">
-              {errorMessage(save.error)}
-            </p>
-          )}
+            {!banner && (
+              <label className="flex min-h-11 items-center gap-3 text-sm md:min-h-8">
+                <input
+                  type="checkbox"
+                  className="size-5 accent-primary"
+                  checked={isActive}
+                  onChange={(event) => setIsActive(event.target.checked)}
+                />
+                On as soon as it is added
+              </label>
+            )}
+
+            {save.error && !shownElsewhere && (
+              <p role="alert" className="text-sm text-destructive">
+                {errorMessage(save.error)}
+              </p>
+            )}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
