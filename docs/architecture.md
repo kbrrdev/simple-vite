@@ -78,6 +78,9 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 - The list filters by `status` and `paymentStatus`, kept in the URL with the page. **Payments to check** is `paymentStatus=submitted`, and the Dashboard links to it with a count.
 - The order page shows only the status moves the backend allows. `nextStatuses` in `features/orders/labels.ts` mirrors `adminTransitions` as a hint, and the backend's `409` is shown when it refuses.
+- `useOrderActions` in `features/orders/use-order-actions.tsx` splits those actions by role: checking a submitted payment or the move forward goes in the **Next step** card, and Cancel order, Mark returned, and Record refund go in the **More** menu, with History.
+- The order page's **Activity** lists the order's entries from `GET /api/audit-logs`, then when it was placed. Orders do not record when each status was reached, so this is all the history there is. It needs `audit_logs.view`, and is left out without it. Order changes refresh it.
+- Status badges are tinted by meaning in `OrderBadges.tsx`: amber when staff need to act, blue in progress, green done, and grey when waiting on the customer or closed.
 - Confirming a payment marks the order paid. Rejecting one cancels the order and puts its stock back.
 - A refund is recorded, not sent: staff refund the customer outside the app, after the order is delivered, returned, or cancelled.
 - Marking an order returned does not restock it. Staff adjust stock by hand.

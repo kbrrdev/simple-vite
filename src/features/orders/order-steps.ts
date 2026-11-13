@@ -71,7 +71,7 @@ export function statusSteps(order: Order): Step[] {
   );
 }
 
-function unpaidNote(order: Order) {
+export function unpaidNote(order: Order) {
   if (order.status === 'cancelled') return 'Not paid. The order was cancelled.';
   if (order.paymentType === 'cod')
     return 'Cash on delivery. It is paid when the order is delivered.';

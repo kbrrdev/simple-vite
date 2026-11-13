@@ -10,6 +10,12 @@ colors:
   paper-shade: 'oklch(0.985 0 0)'
   paper: 'oklch(1 0 0)'
   alarm-red: 'oklch(0.577 0.245 27.325)'
+  amber-tint: 'oklch(0.962 0.059 95.617)'
+  amber-text: 'oklch(0.473 0.137 46.201)'
+  blue-tint: 'oklch(0.932 0.032 255.585)'
+  blue-text: 'oklch(0.424 0.199 265.638)'
+  green-tint: 'oklch(0.962 0.044 156.743)'
+  green-text: 'oklch(0.448 0.119 151.328)'
 typography:
   headline:
     fontFamily: 'Geist Variable, sans-serif'
@@ -97,7 +103,7 @@ The system is shadcn/ui's neutral theme, owned and tuned for use on a phone. It 
 
 **Key Characteristics:**
 
-- Achromatic neutrals, with red reserved for danger.
+- Achromatic neutrals, with red reserved for danger and soft tints only on status badges.
 - Flat surfaces separated by hairlines, not shadows.
 - Phone first: 44px controls below `md`, the desktop density from `md` up.
 - One page title, then content; no decorative headers.
@@ -105,7 +111,7 @@ The system is shadcn/ui's neutral theme, owned and tuned for use on a phone. It 
 
 ## Colors
 
-A strictly grey palette from ink to paper, with a single red for danger.
+A grey palette from ink to paper, a single red for danger, and three soft tints that only status badges use.
 
 ### Primary
 
@@ -124,7 +130,18 @@ A strictly grey palette from ink to paper, with a single red for danger.
 
 - **Alarm Red** (oklch(0.577 0.245 27.325)): destructive buttons and menu items, field errors, and failed requests. Nothing else.
 
+### Status tints
+
+Each is a pale fill with dark text of the same hue, at least 6.4:1. Dark mode uses a translucent fill with light text. They are the `warning`, `info`, and `success` tokens and Badge variants.
+
+- **Amber** (fill oklch(0.962 0.059 95.617), text oklch(0.473 0.137 46.201)): staff need to act, such as Pending and Payment to check.
+- **Blue** (fill oklch(0.932 0.032 255.585), text oklch(0.424 0.199 265.638)): in progress, such as Confirmed and Shipped.
+- **Green** (fill oklch(0.962 0.044 156.743), text oklch(0.448 0.119 151.328)): done, such as Delivered and Paid.
+- Anything waiting on the customer or closed, such as Awaiting payment, Unpaid, Cancelled, Returned, and Refunded, stays a grey fill.
+
 ### Named Rules
+
+**The Status Tint Rule.** The tints mark a state on a badge, and only there. The same tint always means the same thing, they are never used for buttons, text, or decoration, and the label always says the state, so color is never the only signal.
 
 **The Red Means Stop Rule.** Alarm Red appears only where something can go wrong or is irreversible: Delete, Refund, Reject, Cancel, and error text. It is never decoration, a brand accent, or a status for something that is fine.
 
@@ -213,9 +230,9 @@ Calm and decisive.
 
 ### Badges
 
-- **Style:** small pills (0.75rem, medium weight) for order and payment states, side by side.
-- **Order status:** outline, except Cancelled and Returned, which use the soft red tint.
-- **Payment:** a soft grey fill, except "Payment to check", which is filled Charcoal so the one state that needs staff stands out without red.
+- **Style:** small pills (0.75rem, medium weight) for order and payment states, side by side, on the Orders list and beside the number on the Order page.
+- **Tone:** each state takes its status tint (amber to act, blue in progress, green done) or a grey fill, following the Status Tint Rule. A cancelled order is grey, not red, as it is closed rather than dangerous.
+- **Other badges**, such as Draft, Inactive, and Built in, stay grey.
 
 ### Steps
 
@@ -229,6 +246,16 @@ Calm and decisive.
 - **Style:** a bordered section with a title, a body, and a footer bar (Hairline top border, Mist band) for its actions.
 - **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
 - **No actions:** no footer.
+
+### Record pages with a side panel
+
+- **Use:** the Order page. A main column and a 320px side panel from `lg` up; one column below it.
+- **Header:** Back, the title with its badges, a More menu on the right, then one Slate Text line of facts.
+- **Next step:** the first card, with a darker border (Ink at 25%), a small uppercase "Next step" label, a verb title such as "Check the payment", one sentence, and its buttons in a footer. It is left out when nothing is left to do, and has no footer for roles that cannot act.
+- **More menu:** rarer actions, such as Cancel order, Mark returned, Record refund, and History. Destructive items are red and still ask first.
+- **Side panel:** one bordered card with sections divided by Hairlines: Progress, Customer, Ship to, and Payment.
+- **Phone order:** Next step, the main content, the side panel, then Activity.
+- **Activity:** a timeline of the record's audit entries, newest first, each with who made it and its changes as "Field: before → after", ending with when the record was created.
 
 ### Figures and charts
 
@@ -274,6 +301,7 @@ Calm and decisive.
 ### Don't:
 
 - **Don't** add a store's brand color, logo color, or any second accent to the admin.
+- **Don't** use the status tints outside status badges, or give one tint two meanings.
 - **Don't** use Alarm Red for anything that is not an error or a destructive action.
 - **Don't** add shadows to things that sit in the page, such as rows, cards, and the sidebar.
 - **Don't** show three or more equal-weight buttons on a list row; move the extra actions into the "More actions" menu.

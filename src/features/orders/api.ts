@@ -38,7 +38,12 @@ function useOrderMutation<T>(send: (variables: T) => Promise<unknown>) {
   return useMutation({
     mutationFn: send,
     meta: { toast: false },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['orders'] }),
+    // The order page shows its audit entries, so a change refreshes them too.
+    onSuccess: () =>
+      Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['orders'] }),
+        queryClient.invalidateQueries({ queryKey: ['audit-log'] }),
+      ]),
   });
 }
 

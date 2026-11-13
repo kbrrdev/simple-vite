@@ -2,16 +2,31 @@ import { Badge } from '@/components/ui/badge';
 import type { OrderStatus, PaymentStatus } from './api';
 import { paymentLabels, statusLabels } from './labels';
 
-// Red only for orders that stopped, and a filled badge for payments that need a staff check.
+type Tone = 'warning' | 'info' | 'success' | 'secondary';
+
+// Amber when staff need to act, blue while in progress, green when done, and grey while
+// waiting on the customer or closed. Red stays for danger, so a cancelled order is grey.
+const statusTones: Record<OrderStatus, Tone> = {
+  awaiting_payment: 'secondary',
+  pending: 'warning',
+  confirmed: 'info',
+  shipped: 'info',
+  delivered: 'success',
+  returned: 'secondary',
+  cancelled: 'secondary',
+};
+
+const paymentTones: Record<PaymentStatus, Tone> = {
+  unpaid: 'secondary',
+  submitted: 'warning',
+  paid: 'success',
+  refunded: 'secondary',
+};
+
 export function StatusBadge({ status }: { status: OrderStatus }) {
-  const stopped = status === 'cancelled' || status === 'returned';
-  return <Badge variant={stopped ? 'destructive' : 'outline'}>{statusLabels[status]}</Badge>;
+  return <Badge variant={statusTones[status]}>{statusLabels[status]}</Badge>;
 }
 
 export function PaymentBadge({ status }: { status: PaymentStatus }) {
-  return (
-    <Badge variant={status === 'submitted' ? 'default' : 'secondary'}>
-      {paymentLabels[status]}
-    </Badge>
-  );
+  return <Badge variant={paymentTones[status]}>{paymentLabels[status]}</Badge>;
 }

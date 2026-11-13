@@ -1,7 +1,8 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
+import type { AuditEntry } from '@/features/audit-log/api';
 import { renderApp } from '@/test/render';
 import { admin, staff } from '@/test/users';
 import type { Order } from './api';
@@ -15,18 +16,41 @@ vi.mock('@/lib/api', async (importOriginal) => ({
 
 const requestMock = vi.mocked(request);
 
-/**
- * Serves one order, and applies the given handler to changes. The handler returns the order
- * as it is after the change, or throws to refuse it.
- */
+function makeEntry(overrides: Partial<AuditEntry> = {}): AuditEntry {
+  return {
+    id: crypto.randomUUID(),
+    actorUserId: 'user-ana',
+    actorEmail: 'ana@example.com',
+    entityType: 'order',
+    entityId: 'order-1',
+    action: 'payment_confirm',
+    changes: { paymentStatus: ['submitted', 'paid'] },
+    requestId: null,
+    createdAt: '2026-11-10T03:00:00.000Z',
+    ...overrides,
+  };
+}
+
+interface Serve {
+  /** Returns the order as it is after a change, or throws to refuse it. */
+  change?: (path: string, body?: unknown) => Order;
+  user?: User;
+  entries?: AuditEntry[];
+  /** The number of entries the log holds, when more than the page sent. */
+  total?: number;
+}
+
+/** Serves one order, its audit entries, and the given handler for changes. */
 function serve(
   order: Order,
-  change: (path: string, body?: unknown) => Order = () => order,
-  user: User = admin,
+  { change = () => order, user = admin, entries = [], total }: Serve = {},
 ) {
   let current = order;
   requestMock.mockImplementation(async (path, options) => {
     if (path === '/api/auth/me') return { data: user };
+    if (path === '/api/audit-logs') {
+      return { data: entries, meta: { page: 1, limit: 20, total: total ?? entries.length } };
+    }
     if (options?.method) {
       current = change(path, options.body);
       return { data: current };
@@ -57,13 +81,18 @@ function stepLabels(list: string) {
     .map((step) => step.querySelector('p')?.firstChild?.textContent);
 }
 
+async function openMore() {
+  await userEvent.click(await screen.findByRole('button', { name: 'More' }));
+  return screen.findByRole('menu');
+}
+
 beforeEach(() => {
   requestMock.mockReset();
   vi.mocked(refreshSession).mockResolvedValue(true);
 });
 
 describe('the order page', () => {
-  it('shows the order, its items, the totals as sent, and the customer', async () => {
+  it('shows the order, its items, the totals as sent, and where it goes', async () => {
     serve(makeOrder());
     renderApp('/orders/order-1');
 
@@ -72,17 +101,30 @@ describe('the order page', () => {
     expect(within(items).getByText('Linen Shirt')).toBeInTheDocument();
     expect(within(items).getByText('Size: M')).toBeInTheDocument();
     expect(within(items).getByText('2 × ₱500.00')).toBeInTheDocument();
+    expect(within(items).getByText('2 items')).toBeInTheDocument();
 
-    const totals = section('Totals');
+    const totals = screen.getByLabelText('Totals');
     expect(within(totals).getByText('VAT 12% (included)')).toBeInTheDocument();
     expect(within(totals).getByText('₱123.21')).toBeInTheDocument();
     expect(within(totals).getByText('₱1,150.00')).toBeInTheDocument();
 
-    const customer = section('Customer');
-    expect(within(customer).getByRole('link', { name: '09171234567' })).toHaveAttribute(
+    expect(within(section('Customer')).getByText('maria@example.com')).toBeInTheDocument();
+    expect(within(section('Ship to')).getByRole('link', { name: '09171234567' })).toHaveAttribute(
       'href',
       'tel:09171234567',
     );
+    expect(within(section('Payment')).getByText('Reference GC12345678')).toBeInTheDocument();
+  });
+
+  it('shows the payment and status as badges beside the number', async () => {
+    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }));
+    renderApp('/orders/order-1');
+
+    const header = (await heading('ORD-000123')).parentElement;
+    if (!header) throw new Error('No header');
+    // Green when done, blue while in progress.
+    expect(within(header).getByText('Paid')).toHaveAttribute('data-variant', 'success');
+    expect(within(header).getByText('Confirmed')).toHaveAttribute('data-variant', 'info');
   });
 
   it('says when the order does not exist', async () => {
@@ -98,12 +140,11 @@ describe('the order page', () => {
 });
 
 describe('steps', () => {
-  it('shows the total in the header and where a manual order is now', async () => {
+  it('shows where a manual order is now', async () => {
     serve(makeOrder());
     renderApp('/orders/order-1');
 
-    const title = await heading('ORD-000123');
-    expect(title.parentElement).toHaveTextContent('₱1,150.00');
+    await heading('ORD-000123');
     expect(stepLabels('Status steps')).toEqual([
       'Awaiting payment',
       'Pending',
@@ -114,7 +155,6 @@ describe('steps', () => {
     expect(currentStep('Status steps')).toHaveTextContent('Awaiting payment');
     expect(stepLabels('Payment steps')).toEqual(['Unpaid', 'Payment to check', 'Paid']);
     expect(currentStep('Payment steps')).toHaveTextContent('Payment to check');
-    expect(currentStep('Payment steps')).toHaveTextContent('GC12345678');
   });
 
   it('leaves out the wait for payment on cash on delivery orders', async () => {
@@ -154,13 +194,56 @@ describe('steps', () => {
   });
 });
 
-describe('payments', () => {
-  it('confirms a submitted payment after showing the amount and reference', async () => {
-    serve(makeOrder(), () => makeOrder({ status: 'pending', paymentStatus: 'paid' }));
+describe('the next step', () => {
+  it('asks to check a submitted payment, with the reference', async () => {
+    serve(makeOrder());
     renderApp('/orders/order-1');
 
-    expect(await screen.findByText('GC12345678')).toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: 'Confirm payment' }));
+    const step = within(await screen.findByRole('region', { name: 'Check the payment' }));
+    expect(step.getByText('GC12345678')).toBeInTheDocument();
+    expect(step.getByText(/sent ₱1,150.00/)).toBeInTheDocument();
+    expect(step.getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Reject',
+      'Confirm payment',
+    ]);
+  });
+
+  it('says when the order waits for the customer to pay', async () => {
+    serve(makeOrder({ paymentStatus: 'unpaid', paymentReference: null }));
+    renderApp('/orders/order-1');
+
+    const step = within(await screen.findByRole('region', { name: 'Waiting for payment' }));
+    expect(step.getByText(/Waiting for the customer to pay by/)).toBeInTheDocument();
+    expect(step.queryByRole('button')).not.toBeInTheDocument();
+  });
+
+  it('offers the move forward, and keeps returns in the More menu', async () => {
+    serve(makeOrder({ status: 'shipped', paymentStatus: 'paid' }));
+    renderApp('/orders/order-1');
+
+    const step = within(await screen.findByRole('region', { name: 'Waiting for delivery' }));
+    expect(step.getAllByRole('button').map((button) => button.textContent)).toEqual([
+      'Mark delivered',
+    ]);
+    const menu = within(await openMore());
+    expect(menu.getByRole('menuitem', { name: 'Mark returned' })).toBeInTheDocument();
+  });
+
+  it('has nothing to do once the order is delivered', async () => {
+    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }));
+    renderApp('/orders/order-1');
+
+    await heading('ORD-000123');
+    expect(screen.queryByText('Next step')).not.toBeInTheDocument();
+  });
+});
+
+describe('payments', () => {
+  it('confirms a submitted payment after showing the amount and reference', async () => {
+    serve(makeOrder(), { change: () => makeOrder({ status: 'pending', paymentStatus: 'paid' }) });
+    renderApp('/orders/order-1');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'Confirm payment' }));
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveTextContent('₱1,150.00');
     expect(dialog).toHaveTextContent('GC12345678');
@@ -170,10 +253,12 @@ describe('payments', () => {
     expect(requestMock).toHaveBeenCalledWith('/api/orders/admin/order-1/payment/confirm', {
       method: 'POST',
     });
+    // The paid order's next step is to confirm it.
+    expect(await screen.findByRole('region', { name: 'Confirm the order' })).toBeInTheDocument();
   });
 
   it('asks before rejecting a payment, and explains that it cancels the order', async () => {
-    serve(makeOrder(), () => makeOrder({ status: 'cancelled' }));
+    serve(makeOrder(), { change: () => makeOrder({ status: 'cancelled' }) });
     renderApp('/orders/order-1');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Reject' }));
@@ -194,30 +279,34 @@ describe('payments', () => {
     serve(makeOrder({ status: 'shipped', paymentStatus: 'paid' }));
     renderApp('/orders/order-1');
 
-    await heading('ORD-000123');
-    expect(screen.queryByRole('button', { name: 'Record refund' })).not.toBeInTheDocument();
+    const menu = within(await openMore());
+    expect(menu.queryByRole('menuitem', { name: 'Record refund' })).not.toBeInTheDocument();
   });
 
-  it('records a refund after confirming', async () => {
-    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), () =>
-      makeOrder({ status: 'delivered', paymentStatus: 'refunded' }),
-    );
+  it('records a refund from the More menu after confirming', async () => {
+    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), {
+      change: () => makeOrder({ status: 'delivered', paymentStatus: 'refunded' }),
+    });
     renderApp('/orders/order-1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Record refund' }));
+    await userEvent.click(
+      within(await openMore()).getByRole('menuitem', { name: 'Record refund' }),
+    );
     await userEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Record refund' }),
     );
 
     expect(await screen.findByText('Refund recorded')).toBeInTheDocument();
-    expect(currentStep('Payment steps')).toHaveTextContent('Refunded');
+    await waitFor(() => expect(currentStep('Payment steps')).toHaveTextContent('Refunded'));
   });
 
   it('shows the backend message when it refuses', async () => {
-    serve(makeOrder(), () => {
-      throw new ApiError(409, {
-        error: { message: 'This order has no payment waiting for confirmation' },
-      });
+    serve(makeOrder(), {
+      change: () => {
+        throw new ApiError(409, {
+          error: { message: 'This order has no payment waiting for confirmation' },
+        });
+      },
     });
     renderApp('/orders/order-1');
 
@@ -232,23 +321,10 @@ describe('payments', () => {
 });
 
 describe('status changes', () => {
-  it('shows only the moves the order allows', async () => {
-    serve(makeOrder({ status: 'shipped', paymentStatus: 'paid' }));
-    renderApp('/orders/order-1');
-
-    await heading('ORD-000123');
-    const status = section('Status');
-    const labels = within(status)
-      .getAllByRole('button')
-      .map((button) => button.textContent);
-    // The main move goes last, where the footer puts its main action.
-    expect(labels).toEqual(['Mark returned', 'Mark delivered']);
-  });
-
   it('marks an order shipped straight away', async () => {
-    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }), () =>
-      makeOrder({ status: 'shipped', paymentStatus: 'paid' }),
-    );
+    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }), {
+      change: () => makeOrder({ status: 'shipped', paymentStatus: 'paid' }),
+    });
     renderApp('/orders/order-1');
 
     await userEvent.click(await screen.findByRole('button', { name: 'Mark shipped' }));
@@ -260,25 +336,31 @@ describe('status changes', () => {
     });
   });
 
-  it('asks before cancelling an order', async () => {
-    serve(makeOrder({ status: 'pending', paymentStatus: 'paid' }), () =>
-      makeOrder({ status: 'cancelled', paymentStatus: 'paid' }),
-    );
+  it('asks before cancelling an order from the More menu', async () => {
+    serve(makeOrder({ status: 'pending', paymentStatus: 'paid' }), {
+      change: () => makeOrder({ status: 'cancelled', paymentStatus: 'paid' }),
+    });
     renderApp('/orders/order-1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Cancel order' }));
+    await userEvent.click(within(await openMore()).getByRole('menuitem', { name: 'Cancel order' }));
     const dialog = screen.getByRole('dialog', { name: 'Cancel order' });
     expect(dialog).toHaveTextContent('stock goes back on sale');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel order' }));
 
     expect(await screen.findByText('Order is now cancelled')).toBeInTheDocument();
     // A paid order that was cancelled can now be refunded.
-    expect(screen.getByRole('button', { name: 'Record refund' })).toBeInTheDocument();
+    await waitFor(() =>
+      expect(screen.getByText('Cancelled', { selector: '[data-slot=badge]' })).toBeInTheDocument(),
+    );
+    const menu = within(await openMore());
+    expect(menu.getByRole('menuitem', { name: 'Record refund' })).toBeInTheDocument();
   });
 
   it('shows the backend message when a move is refused', async () => {
-    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }), () => {
-      throw new ApiError(409, { error: { message: 'An order cannot move from cancelled' } });
+    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }), {
+      change: () => {
+        throw new ApiError(409, { error: { message: 'An order cannot move from cancelled' } });
+      },
     });
     renderApp('/orders/order-1');
 
@@ -288,40 +370,84 @@ describe('status changes', () => {
   });
 });
 
+describe('activity', () => {
+  it('lists staff changes with who made them, then when the order was placed', async () => {
+    serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }), {
+      entries: [
+        makeEntry({
+          action: 'status_change',
+          changes: { status: ['pending', 'confirmed'] },
+          createdAt: '2026-11-10T04:00:00.000Z',
+        }),
+        makeEntry(),
+      ],
+    });
+    renderApp('/orders/order-1');
+
+    const activity = within(await screen.findByRole('list', { name: 'Activity' }));
+    const events = activity.getAllByRole('listitem');
+    expect(events).toHaveLength(3);
+    expect(events[0]).toHaveTextContent('Status changed');
+    expect(events[0]).toHaveTextContent('Status: Pending → Confirmed');
+    expect(events[0]).toHaveTextContent('ana@example.com');
+    expect(events[1]).toHaveTextContent('Payment status: Payment to check → Paid');
+    expect(events[2]).toHaveTextContent('Placed by the customer');
+    expect(requestMock).toHaveBeenCalledWith('/api/audit-logs', {
+      query: { page: 1, entityType: 'order', entityId: 'order-1', limit: 20 },
+    });
+  });
+
+  it('links to the full log when there are more entries than it shows', async () => {
+    serve(makeOrder(), { entries: [makeEntry()], total: 25 });
+    renderApp('/orders/order-1');
+
+    expect(await screen.findByRole('link', { name: 'See all in Audit log' })).toHaveAttribute(
+      'href',
+      '/audit-log?entityType=order&entityId=order-1',
+    );
+    expect(screen.queryByText('Placed by the customer')).not.toBeInTheDocument();
+  });
+});
+
 describe('permissions', () => {
-  it('links to the order history for roles that can read the audit log', async () => {
+  it('links to the order history from the More menu', async () => {
     serve(makeOrder());
     renderApp('/orders/order-1');
 
-    expect(await screen.findByRole('link', { name: 'History' })).toHaveAttribute(
+    const menu = within(await openMore());
+    expect(menu.getByRole('menuitem', { name: 'History' })).toHaveAttribute(
       'href',
       '/audit-log?entityType=order&entityId=order-1',
     );
   });
 
-  it('leaves out History for roles that cannot', async () => {
-    serve(makeOrder(), undefined, staff);
+  it('leaves out History and Activity for roles that cannot read the audit log', async () => {
+    serve(makeOrder({ status: 'pending', paymentStatus: 'paid' }), { user: staff });
     renderApp('/orders/order-1');
 
-    await heading('ORD-000123');
-    expect(screen.queryByRole('link', { name: 'History' })).not.toBeInTheDocument();
+    const menu = within(await openMore());
+    expect(menu.queryByRole('menuitem', { name: 'History' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Activity' })).not.toBeInTheDocument();
+    expect(requestMock).not.toHaveBeenCalledWith('/api/audit-logs', expect.anything());
   });
 
   it('leaves out Record refund for roles without orders.refund', async () => {
-    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), undefined, staff);
+    serve(makeOrder({ status: 'delivered', paymentStatus: 'paid' }), { user: staff });
     renderApp('/orders/order-1');
 
     await heading('ORD-000123');
-    expect(screen.queryByRole('button', { name: 'Record refund' })).not.toBeInTheDocument();
+    // Staff can neither refund nor read the log, so a delivered order has no More menu.
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
   });
 
   it('shows the order without actions to roles that can only view it', async () => {
-    serve(makeOrder(), undefined, { ...staff, permissions: ['orders.view'] });
+    serve(makeOrder(), { user: { ...staff, permissions: ['orders.view'] } });
     renderApp('/orders/order-1');
 
     await heading('ORD-000123');
+    expect(section('Check the payment')).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Confirm payment' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Reject' })).not.toBeInTheDocument();
-    expect(within(section('Status')).queryByRole('button')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
   });
 });
