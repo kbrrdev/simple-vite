@@ -14,8 +14,6 @@ interface Props {
   onChange: (change: Partial<ProductFieldValues>) => void;
   /** Messages keyed by field name. */
   errors: Record<string, string | undefined>;
-  /** New products choose here. Existing ones use Deactivate and Turn on instead. */
-  showActive?: boolean;
   /** The product page shows the category in its side panel instead. */
   withCategory?: boolean;
 }
@@ -55,14 +53,8 @@ export function CategoryField({
   );
 }
 
-/** Name, category, description, and, for new products, whether it is on sale. */
-export function ProductFields({
-  values,
-  onChange,
-  errors,
-  showActive = false,
-  withCategory = true,
-}: Props) {
+/** Name, category, and description. */
+export function ProductFields({ values, onChange, errors, withCategory = true }: Props) {
   const describedBy = (field: string) => (errors[field] ? `product-${field}-error` : undefined);
 
   return (
@@ -102,18 +94,6 @@ export function ProductFields({
         />
         <FieldError id="product-description-error" message={errors.description} />
       </div>
-
-      {showActive && (
-        <label className="flex min-h-11 items-center gap-3 text-sm md:min-h-8">
-          <input
-            type="checkbox"
-            className="size-5 accent-primary"
-            checked={values.active}
-            onChange={(event) => onChange({ active: event.target.checked })}
-          />
-          On sale as soon as it is created
-        </label>
-      )}
     </div>
   );
 }

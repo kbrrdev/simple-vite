@@ -1,14 +1,20 @@
 import { useState, type FormEvent } from 'react';
-import { Link, useNavigate } from 'react-router';
+import { useNavigate } from 'react-router';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
+import { cn } from 'cn';
+import { RecordHeader } from '@/components/RecordHeader';
+import { SaveBar } from '@/components/SaveBar';
+import { PanelSection, SidePanel } from '@/components/SidePanel';
 import { ApiError, errorMessage } from '@/lib/api';
 import { parsePesos } from '@/lib/money';
+import { useLeaveGuard } from '@/lib/use-leave-guard';
 import { useCreateProduct, type CreateProductBody } from './api';
-import { ProductFields, type ProductFieldValues } from './ProductFields';
+import { CategoryField, ProductFields, type ProductFieldValues } from './ProductFields';
 import { useVariantBuilder, type VariantBuilderState } from './use-variant-builder';
 import { VariantBuilder } from './VariantBuilder';
 import { maxVariants, parseStock } from './variants';
+
+const formId = 'new-product';
 
 /** Checks the form before sending. The backend still decides, and its errors are shown too. */
 function validate(fields: ProductFieldValues, builder: VariantBuilderState) {
@@ -70,7 +76,19 @@ function toBody(fields: ProductFieldValues, builder: VariantBuilderState): Creat
   };
 }
 
-export function NewProductPage() {
+/** Whether anything has been entered, so that the save bar shows and leaving asks first. */
+function hasInput(fields: ProductFieldValues, builder: VariantBuilderState) {
+  return (
+    Boolean(fields.name.trim() || fields.description.trim() || fields.categoryId) ||
+    !fields.active ||
+    builder.options.some((option) => option.name.trim() || option.values.length > 0) ||
+    builder.rows.some((row) => row.price || row.stock) ||
+    builder.removedCount > 0
+  );
+}
+
+/** Shopify's layout, as on the product page: details and variants left, status and category right. */
+function NewProductForm({ onDiscard }: { onDiscard: () => void }) {
   const [fields, setFields] = useState<ProductFieldValues>({
     name: '',
     categoryId: '',
@@ -81,6 +99,12 @@ export function NewProductPage() {
   const builder = useVariantBuilder();
   const create = useCreateProduct();
   const navigate = useNavigate();
+  const dirty = hasInput(fields, builder);
+  const leaveGuard = useLeaveGuard(dirty, 'This product will not be created.');
+
+  function set(change: Partial<ProductFieldValues>) {
+    setFields((current) => ({ ...current, ...change }));
+  }
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -92,6 +116,7 @@ export function NewProductPage() {
     create.mutate(toBody(fields, builder), {
       onSuccess: ({ data }) => {
         toast.success('Product created. Add its images next.');
+        leaveGuard.allowLeave();
         navigate(`/products/${data.id}`);
       },
     });
@@ -100,7 +125,7 @@ export function NewProductPage() {
   // Backend errors for the main fields go next to them; the rest are listed together.
   const apiError = create.error instanceof ApiError ? create.error : undefined;
   const fieldNames = ['name', 'categoryId', 'description'];
-  const apiFieldErrors = Object.fromEntries(
+  const apiFieldErrors: Record<string, string> = Object.fromEntries(
     (apiError?.details ?? [])
       .filter((detail) => fieldNames.includes(detail.field))
       .map((detail) => [detail.field, detail.message]),
@@ -109,61 +134,101 @@ export function NewProductPage() {
     (detail) => !fieldNames.includes(detail.field),
   );
   const hasErrors = Object.keys(errors).length > 0;
+  const allErrors = { ...apiFieldErrors, ...errors };
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <Button variant="ghost" asChild className="-ml-2">
-          <Link to="/products">Back to products</Link>
-        </Button>
-        <h1 className="text-2xl font-semibold">New product</h1>
-      </div>
+    // Room at the end for the save bar, so it never covers the last card.
+    <div className={cn('mx-auto max-w-6xl space-y-6', dirty && 'pb-24')}>
+      <RecordHeader back={{ to: '/products', label: 'Back to products' }} title="New product" />
 
-      <section aria-labelledby="details-heading" className="space-y-4 rounded-lg border p-4">
-        <h2 id="details-heading" className="font-medium">
-          Details
-        </h2>
-        <ProductFields
-          values={fields}
-          onChange={(change) => setFields((current) => ({ ...current, ...change }))}
-          errors={{ ...apiFieldErrors, ...errors }}
-          showActive
-        />
-      </section>
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        noValidate
+        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+      >
+        <div className="min-w-0 space-y-4">
+          <section aria-labelledby="details-heading" className="space-y-4 rounded-lg border p-4">
+            <h2 id="details-heading" className="font-medium">
+              Details
+            </h2>
+            <ProductFields values={fields} onChange={set} errors={allErrors} withCategory={false} />
+          </section>
 
-      <section aria-labelledby="variants-heading" className="space-y-4 rounded-lg border p-4">
-        <h2 id="variants-heading" className="font-medium">
-          Options and variants
-        </h2>
-        <VariantBuilder builder={builder} errors={errors} />
-      </section>
+          <section aria-labelledby="variants-heading" className="space-y-4 rounded-lg border p-4">
+            <h2 id="variants-heading" className="font-medium">
+              Options and variants
+            </h2>
+            <VariantBuilder builder={builder} errors={errors} />
+          </section>
 
-      {hasErrors && (
-        <p role="alert" className="text-sm text-destructive">
-          Fix the highlighted fields, then save again.
-        </p>
-      )}
-      {create.error && !hasErrors && (
-        <div role="alert" className="space-y-1 text-sm text-destructive">
-          <p>{errorMessage(create.error)}</p>
-          {otherDetails.length > 0 && (
-            <ul className="list-disc pl-5">
-              {otherDetails.map((detail) => (
-                <li key={`${detail.field}-${detail.message}`}>{detail.message}</li>
-              ))}
-            </ul>
+          {hasErrors && (
+            <p role="alert" className="text-sm text-destructive">
+              Fix the highlighted fields, then save again.
+            </p>
+          )}
+          {create.error && !hasErrors && (
+            <div role="alert" className="space-y-1 text-sm text-destructive">
+              <p>{errorMessage(create.error)}</p>
+              {otherDetails.length > 0 && (
+                <ul className="list-disc pl-5">
+                  {otherDetails.map((detail) => (
+                    <li key={`${detail.field}-${detail.message}`}>{detail.message}</li>
+                  ))}
+                </ul>
+              )}
+            </div>
           )}
         </div>
-      )}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-        <Button variant="outline" asChild>
-          <Link to="/products">Cancel</Link>
-        </Button>
-        <Button type="submit" disabled={create.isPending}>
-          {create.isPending ? 'Creating…' : 'Create product'}
-        </Button>
-      </div>
-    </form>
+        <SidePanel>
+          <PanelSection title="Status">
+            <div role="radiogroup" aria-label="Status" className="space-y-1">
+              {(
+                [
+                  [true, 'On sale', 'Shoppers can find and buy it once it is created.'],
+                  [false, 'Inactive', 'Hidden from the store until you turn it on.'],
+                ] as const
+              ).map(([active, label, hint]) => (
+                <label
+                  key={label}
+                  className="flex min-h-11 items-start gap-3 py-1 text-sm md:min-h-8"
+                >
+                  <input
+                    type="radio"
+                    name="product-status"
+                    className="mt-0.5 size-5 shrink-0 accent-primary"
+                    checked={fields.active === active}
+                    onChange={() => set({ active })}
+                  />
+                  <span>
+                    <span className="block font-medium">{label}</span>
+                    <span className="block text-muted-foreground">{hint}</span>
+                  </span>
+                </label>
+              ))}
+            </div>
+          </PanelSection>
+
+          <PanelSection title="Organization">
+            <CategoryField
+              value={fields.categoryId}
+              onChange={(categoryId) => set({ categoryId })}
+              error={allErrors.categoryId}
+            />
+          </PanelSection>
+        </SidePanel>
+      </form>
+
+      {dirty && <SaveBar formId={formId} saving={create.isPending} onDiscard={onDiscard} />}
+
+      {leaveGuard.dialog}
+    </div>
   );
+}
+
+export function NewProductPage() {
+  // Discard starts over with an empty form, which also empties the variant builder.
+  const [round, setRound] = useState(0);
+  return <NewProductForm key={round} onDiscard={() => setRound((current) => current + 1)} />;
 }
