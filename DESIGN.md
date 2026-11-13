@@ -283,6 +283,8 @@ Every page for one record, such as an order, product, blog post, or role, starts
 - **Phone order:** Details, the side panel, Images, then Variants.
 - **Saving:** no Save button in a card. Fields in both columns save together through the save bar.
 
+**The Blog post page** uses the same two columns, after Shopify's post editor: Title and Content on the left, then Visibility (Published or Draft, as radio buttons), Cover image, and Author on the right. Choosing Draft on a published post says that shoppers can no longer read it once saved.
+
 ### Save bar
 
 - **Use:** a record page whose fields are spread across cards or columns, such as the Product page. `SaveBar` from `src/components/`.
@@ -310,7 +312,7 @@ Every page for one record, such as an order, product, blog post, or role, starts
 
 - **Short forms**, with one to three fields, such as a category, open in a dialog.
 - **Long forms**, such as a new product, get their own page, with sections in bordered cards, Cancel and the main action at the end, and Back at the top.
-- **Editors** for long text, such as a blog post, keep only the save actions at the end, with the main action last. Unpublish and Delete are in the header's More menu. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, a toolbar of icon buttons (each with a label for screen readers) that wraps the selection or starts the selected lines, and a "Formatting help" panel that shows each example through the same renderer as the preview, so the guide can never drift from the real result.
+- **Editors** for long text, such as a blog post, use the record page layout: the text on the left, its settings in the side panel, and the save bar. Delete is in the header's More menu. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, a toolbar of icon buttons (each with a label for screen readers) that wraps the selection or starts the selected lines, and a "Formatting help" panel that shows each example through the same renderer as the preview, so the guide can never drift from the real result.
 - **Repeated values**, such as option values, are typed and added as removable chips, so a phone keyboard never needs commas.
 - **Money** is typed in pesos in a field with a ₱ prefix and a decimal keyboard, and checked for at most two decimals before sending.
 

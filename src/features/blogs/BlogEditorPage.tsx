@@ -1,10 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
+import { cn } from 'cn';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DetailSkeleton } from '@/components/Loading';
 import type { MoreMenuItem } from '@/components/MoreMenu';
 import { RecordHeader } from '@/components/RecordHeader';
+import { SaveBar } from '@/components/SaveBar';
+import { PanelSection, SidePanel } from '@/components/SidePanel';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,11 +26,14 @@ import {
 } from './api';
 import { ContentField } from './ContentField';
 
+const formId = 'blog-post';
+
 interface Values {
   title: string;
   author: string;
   content: string;
   cover: ChosenImage | null;
+  published: boolean;
 }
 
 function valuesOf(blog?: Blog): Values {
@@ -36,6 +42,7 @@ function valuesOf(blog?: Blog): Values {
     author: blog?.author ?? '',
     content: blog?.content ?? '',
     cover: blog?.coverAssetId ? { id: blog.coverAssetId, url: blog.coverImageUrl } : null,
+    published: blog?.published ?? false,
   };
 }
 
@@ -49,33 +56,47 @@ function changesFrom(values: Values, blog?: Blog): BlogChanges {
   if ((values.cover?.id ?? null) !== (saved.cover?.id ?? null)) {
     changes.coverAssetId = values.cover?.id ?? null;
   }
+  if (values.published !== saved.published) changes.published = values.published;
   return changes;
 }
 
-type Confirming = 'unpublish' | 'delete';
-
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
+function FieldError({ id, message }: { id: string; message?: string }) {
+  if (!message) return null;
+  return (
+    <p id={id} className="text-sm text-destructive">
+      {message}
+    </p>
+  );
+}
+
+/**
+ * Shopify's post editor: the title and text on the left, and visibility, cover, and author on
+ * the right. Everything saves together through the save bar.
+ */
 function Editor({ blog }: { blog?: Blog }) {
   const [values, setValues] = useState(() => valuesOf(blog));
   const [missing, setMissing] = useState<string[]>([]);
   const [uploading, setUploading] = useState(false);
-  const [confirming, setConfirming] = useState<Confirming | null>(null);
+  const [confirmingDelete, setConfirmingDelete] = useState(false);
   const create = useCreateBlog();
   const update = useUpdateBlog();
   const remove = useDeleteBlog();
   const save = blog ? update : create;
   const navigate = useNavigate();
   const history = useHistoryItem('blog', blog?.id);
-  const dirty = Object.keys(changesFrom(values, blog)).length > 0;
+  const changes = changesFrom(values, blog);
+  const dirty = Object.keys(changes).length > 0;
   const leaveGuard = useLeaveGuard(dirty, 'Your changes to this post will be lost.');
 
   function set(change: Partial<Values>) {
     setValues((current) => ({ ...current, ...change }));
   }
 
-  /** Saves the form. `published` is left out to keep the post as it is. */
-  function submit(published?: boolean) {
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
     const empty = (['title', 'author', 'content'] as const).filter(
       (field) => !values[field].trim(),
     );
@@ -89,11 +110,11 @@ function Editor({ blog }: { blog?: Blog }) {
           author: values.author.trim(),
           content: values.content.trim(),
           coverAssetId: values.cover?.id ?? null,
-          published: published ?? false,
+          published: values.published,
         },
         {
           onSuccess: ({ data }) => {
-            toast.success(published ? 'Post published' : 'Draft saved');
+            toast.success(values.published ? 'Post published' : 'Draft saved');
             leaveGuard.allowLeave();
             navigate(`/blogs/${data.id}`, { replace: true });
           },
@@ -102,9 +123,7 @@ function Editor({ blog }: { blog?: Blog }) {
       return;
     }
 
-    const changes = changesFrom(values, blog);
-    if (published !== undefined && published !== blog.published) changes.published = published;
-    if (Object.keys(changes).length === 0) {
+    if (!dirty) {
       toast.info('No changes to save.');
       return;
     }
@@ -112,20 +131,13 @@ function Editor({ blog }: { blog?: Blog }) {
     let message = 'Post saved';
     if (changes.published === true) message = 'Post published';
     if (changes.published === false) message = 'Post moved to drafts';
-    update.mutate(
-      { id: blog.id, body: changes },
-      {
-        onSuccess: () => {
-          toast.success(message);
-          setConfirming(null);
-        },
-      },
-    );
+    update.mutate({ id: blog.id, body: changes }, { onSuccess: () => toast.success(message) });
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    submit();
+  function discard() {
+    setValues(valuesOf(blog));
+    setMissing([]);
+    save.reset();
   }
 
   const apiError = save.error instanceof ApiError ? save.error : undefined;
@@ -135,23 +147,20 @@ function Editor({ blog }: { blog?: Blog }) {
       : apiError?.details.find((item) => item.field === field)?.message;
   const fields = ['title', 'author', 'content', 'coverAssetId'];
   const otherError = save.error && !apiError?.details.some((item) => fields.includes(item.field));
-  const busy = save.isPending || uploading;
 
   const menu: MoreMenuItem[] = [...history];
-  if (blog?.published) {
-    menu.push({ key: 'unpublish', label: 'Unpublish', onSelect: () => setConfirming('unpublish') });
-  }
   if (blog) {
     menu.push({
       key: 'delete',
       label: 'Delete',
       destructive: true,
-      onSelect: () => setConfirming('delete'),
+      onSelect: () => setConfirmingDelete(true),
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
+    // Room at the end for the save bar, so it never covers the last card.
+    <div className={cn('mx-auto max-w-6xl space-y-6', dirty && 'pb-24')}>
       {/* The saved title, so the header names the post while its field is being edited. */}
       <RecordHeader
         back={{ to: '/blogs', label: 'Back to blog' }}
@@ -170,87 +179,111 @@ function Editor({ blog }: { blog?: Blog }) {
         }
       />
 
-      <section className="grid gap-4 rounded-lg border p-4">
-        {(['title', 'author'] as const).map((field) => {
-          const error = fieldError(field);
-          return (
-            <div key={field} className="space-y-2">
-              <Label htmlFor={`blog-${field}`}>{field === 'title' ? 'Title' : 'Author'}</Label>
-              <Input
-                id={`blog-${field}`}
-                maxLength={field === 'title' ? 255 : 100}
-                aria-invalid={Boolean(error)}
-                aria-describedby={error ? `blog-${field}-error` : undefined}
-                value={values[field]}
-                onChange={(event) => set({ [field]: event.target.value })}
-              />
-              {error && (
-                <p id={`blog-${field}-error`} className="text-sm text-destructive">
-                  {error}
-                </p>
-              )}
+      <form
+        id={formId}
+        onSubmit={handleSubmit}
+        noValidate
+        className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-start"
+      >
+        <section aria-label="Post" className="min-w-0 space-y-4 rounded-lg border p-4">
+          <div className="space-y-2">
+            <Label htmlFor="blog-title">Title</Label>
+            <Input
+              id="blog-title"
+              maxLength={255}
+              aria-invalid={Boolean(fieldError('title'))}
+              aria-describedby={fieldError('title') ? 'blog-title-error' : undefined}
+              value={values.title}
+              onChange={(event) => set({ title: event.target.value })}
+            />
+            <FieldError id="blog-title-error" message={fieldError('title')} />
+          </div>
+
+          <ContentField
+            value={values.content}
+            onChange={(content) => set({ content })}
+            error={fieldError('content')}
+          />
+
+          {otherError && (
+            <p role="alert" className="text-sm text-destructive">
+              {errorMessage(save.error)}
+            </p>
+          )}
+        </section>
+
+        <SidePanel>
+          <PanelSection title="Visibility">
+            <div role="radiogroup" aria-label="Visibility" className="space-y-1">
+              {(
+                [
+                  [true, 'Published', 'Shoppers can read it.'],
+                  [false, 'Draft', 'Only staff can see it.'],
+                ] as const
+              ).map(([published, label, hint]) => (
+                <label
+                  key={label}
+                  className="flex min-h-11 items-start gap-3 py-1 text-sm md:min-h-8"
+                >
+                  <input
+                    type="radio"
+                    name="blog-visibility"
+                    className="mt-0.5 size-5 shrink-0 accent-primary"
+                    checked={values.published === published}
+                    onChange={() => set({ published })}
+                  />
+                  <span>
+                    <span className="block font-medium">{label}</span>
+                    <span className="block text-muted-foreground">{hint}</span>
+                  </span>
+                </label>
+              ))}
             </div>
-          );
-        })}
+            {blog?.published && !values.published && (
+              <p className="text-sm text-muted-foreground">
+                Once you save, shoppers can no longer read it. It stays here as a draft.
+              </p>
+            )}
+          </PanelSection>
 
-        <ImageField
-          legend="Cover image"
-          image={values.cover}
-          onChange={(cover) => set({ cover })}
-          error={fieldError('coverAssetId')}
-          onUploadingChange={setUploading}
-        />
+          <PanelSection title="Cover image">
+            <ImageField
+              legend="Cover image"
+              image={values.cover}
+              onChange={(cover) => set({ cover })}
+              error={fieldError('coverAssetId')}
+              onUploadingChange={setUploading}
+            />
+          </PanelSection>
 
-        <ContentField
-          value={values.content}
-          onChange={(content) => set({ content })}
-          error={fieldError('content')}
-        />
-      </section>
+          <PanelSection title="Author">
+            <div className="space-y-2">
+              <Label htmlFor="blog-author" className="sr-only">
+                Author
+              </Label>
+              <Input
+                id="blog-author"
+                maxLength={100}
+                aria-invalid={Boolean(fieldError('author'))}
+                aria-describedby={fieldError('author') ? 'blog-author-error' : undefined}
+                value={values.author}
+                onChange={(event) => set({ author: event.target.value })}
+              />
+              <FieldError id="blog-author-error" message={fieldError('author')} />
+            </div>
+          </PanelSection>
+        </SidePanel>
+      </form>
 
-      {otherError && (
-        <p role="alert" className="text-sm text-destructive">
-          {errorMessage(save.error)}
-        </p>
+      {/* Waits for an upload, so that the post never saves without its cover. */}
+      {dirty && (
+        <SaveBar formId={formId} saving={save.isPending || uploading} onDiscard={discard} />
       )}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-        {blog?.published ? (
-          <Button type="submit" disabled={busy}>
-            {save.isPending ? 'Saving…' : 'Save'}
-          </Button>
-        ) : (
-          <>
-            <Button type="submit" variant="outline" disabled={busy}>
-              Save draft
-            </Button>
-            <Button type="button" disabled={busy} onClick={() => submit(true)}>
-              {save.isPending ? 'Saving…' : 'Publish'}
-            </Button>
-          </>
-        )}
-      </div>
-
-      {confirming === 'unpublish' && (
-        <ConfirmDialog
-          title="Unpublish post"
-          description="Shoppers can no longer read it. It stays here as a draft."
-          actionLabel="Unpublish"
-          destructive
-          pending={update.isPending}
-          error={update.error}
-          onConfirm={() => submit(false)}
-          onClose={() => {
-            update.reset();
-            setConfirming(null);
-          }}
-        />
-      )}
-
-      {confirming === 'delete' && blog && (
+      {confirmingDelete && blog && (
         <ConfirmDialog
           title="Delete post"
-          description={`Delete “${blog.title}” for good? This cannot be undone. To hide it but keep it, unpublish it instead.`}
+          description={`Delete “${blog.title}” for good? This cannot be undone. To hide it but keep it, make it a draft instead.`}
           actionLabel="Delete"
           destructive
           pending={remove.isPending}
@@ -266,13 +299,13 @@ function Editor({ blog }: { blog?: Blog }) {
           }
           onClose={() => {
             remove.reset();
-            setConfirming(null);
+            setConfirmingDelete(false);
           }}
         />
       )}
 
       {leaveGuard.dialog}
-    </form>
+    </div>
   );
 }
 

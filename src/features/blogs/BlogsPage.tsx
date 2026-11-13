@@ -1,9 +1,8 @@
 import { Link, Navigate, useSearchParams } from 'react-router';
-import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
+import { ViewTabs } from '@/components/ViewTabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
 import { ListSkeleton } from '@/components/Loading';
@@ -13,7 +12,7 @@ const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
 export function BlogsPage() {
   const [page, setPage] = usePageParam();
-  const [searchParams, setSearchParams] = useSearchParams();
+  const [searchParams] = useSearchParams();
   const publishedParam = searchParams.get('published');
   const published =
     publishedParam === 'true' ? true : publishedParam === 'false' ? false : undefined;
@@ -28,9 +27,11 @@ export function BlogsPage() {
     return <Navigate to={`?${params}`} replace />;
   }
 
-  function setFilter(value: string) {
-    setSearchParams(value ? { published: value } : {});
-  }
+  const views = [
+    { label: 'All', value: undefined, to: '?' },
+    { label: 'Published', value: true, to: '?published=true' },
+    { label: 'Drafts', value: false, to: '?published=false' },
+  ].map((view) => ({ label: view.label, to: view.to, selected: view.value === published }));
 
   let empty = 'No posts yet. Write one to tell shoppers what is new.';
   if (published === true) empty = 'No published posts.';
@@ -45,18 +46,7 @@ export function BlogsPage() {
         </Button>
       </div>
 
-      <div className="space-y-2 sm:w-48">
-        <Label htmlFor="blog-filter">Show</Label>
-        <NativeSelect
-          id="blog-filter"
-          value={publishedParam === 'true' || publishedParam === 'false' ? publishedParam : ''}
-          onChange={(event) => setFilter(event.target.value)}
-        >
-          <option value="">All posts</option>
-          <option value="true">Published</option>
-          <option value="false">Drafts</option>
-        </NativeSelect>
-      </div>
+      <ViewTabs label="Post views" tabs={views} />
 
       {blogs.isPending && <ListSkeleton media />}
 
@@ -96,7 +86,11 @@ export function BlogsPage() {
                   <div className="min-w-0 flex-1">
                     <p className="flex items-center gap-2 font-medium">
                       <span className="truncate">{blog.title}</span>
-                      {!blog.published && <Badge variant="secondary">Draft</Badge>}
+                      {blog.published ? (
+                        <Badge variant="success">Published</Badge>
+                      ) : (
+                        <Badge variant="secondary">Draft</Badge>
+                      )}
                     </p>
                     <p className="truncate text-sm text-muted-foreground">
                       {blog.author} · Updated {dateFormat.format(new Date(blog.updatedAt))}

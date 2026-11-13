@@ -25,7 +25,8 @@ export function DeleteAssetDialog({ asset, onClose }: Props) {
         <DialogHeader>
           <DialogTitle>Delete image</DialogTitle>
           <DialogDescription>
-            Delete this image? Images that a product or blog still uses cannot be deleted.
+            Delete this image? Images that a product or blog still uses cannot be deleted. Images
+            inside a post&apos;s text are not checked, so make sure no post shows it.
           </DialogDescription>
         </DialogHeader>
         <img src={asset.url} alt="" className="max-h-48 w-full rounded-md object-contain" />
