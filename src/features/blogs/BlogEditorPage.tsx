@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Link, useBlocker, useNavigate, useParams } from 'react-router';
+import { useState, type FormEvent } from 'react';
+import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { DetailSkeleton } from '@/components/Loading';
@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
+import { useLeaveGuard } from '@/lib/use-leave-guard';
 import { useHistoryItem } from '@/features/audit-log/history';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
 import {
@@ -66,22 +67,8 @@ function Editor({ blog }: { blog?: Blog }) {
   const save = blog ? update : create;
   const navigate = useNavigate();
   const history = useHistoryItem('blog', blog?.id);
-  // Set just before leaving on purpose, after a save or a delete.
-  const leaving = useRef(false);
-
   const dirty = Object.keys(changesFrom(values, blog)).length > 0;
-  const blocker = useBlocker(
-    ({ currentLocation, nextLocation }) =>
-      dirty && !leaving.current && currentLocation.pathname !== nextLocation.pathname,
-  );
-
-  // Closing or reloading the tab is outside React Router, so the browser asks instead.
-  useEffect(() => {
-    if (!dirty) return;
-    const warn = (event: BeforeUnloadEvent) => event.preventDefault();
-    window.addEventListener('beforeunload', warn);
-    return () => window.removeEventListener('beforeunload', warn);
-  }, [dirty]);
+  const leaveGuard = useLeaveGuard(dirty, 'Your changes to this post will be lost.');
 
   function set(change: Partial<Values>) {
     setValues((current) => ({ ...current, ...change }));
@@ -107,7 +94,7 @@ function Editor({ blog }: { blog?: Blog }) {
         {
           onSuccess: ({ data }) => {
             toast.success(published ? 'Post published' : 'Draft saved');
-            leaving.current = true;
+            leaveGuard.allowLeave();
             navigate(`/blogs/${data.id}`, { replace: true });
           },
         },
@@ -272,7 +259,7 @@ function Editor({ blog }: { blog?: Blog }) {
             remove.mutate(blog.id, {
               onSuccess: () => {
                 toast.success('Post deleted');
-                leaving.current = true;
+                leaveGuard.allowLeave();
                 navigate('/blogs', { replace: true });
               },
             })
@@ -284,18 +271,7 @@ function Editor({ blog }: { blog?: Blog }) {
         />
       )}
 
-      {blocker.state === 'blocked' && (
-        <ConfirmDialog
-          title="Leave without saving?"
-          description="Your changes to this post will be lost."
-          actionLabel="Leave"
-          destructive
-          pending={false}
-          error={null}
-          onConfirm={() => blocker.proceed()}
-          onClose={() => blocker.reset()}
-        />
-      )}
+      {leaveGuard.dialog}
     </form>
   );
 }
