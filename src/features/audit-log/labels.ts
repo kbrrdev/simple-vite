@@ -30,6 +30,7 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   role: (id) => `/roles/${id}`,
   // Banners have no page each, so their entries open the list.
   banner: () => '/banners',
+  sale: (id) => `/discounts/sales/${id}`,
 };
 
 const actionLabels: Record<string, string> = {

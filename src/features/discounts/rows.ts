@@ -2,6 +2,17 @@ import { formatCents } from '@/lib/money';
 import { scheduleStatus, type ScheduleStatus } from '@/lib/schedule';
 import type { Coupon, DiscountKind, Promotion, Sale } from './api';
 
+/** The badge for each status: Active is green, Scheduled blue, and the rest grey. */
+export const statusBadges: Record<
+  ScheduleStatus,
+  { label: string; variant: 'success' | 'info' | 'secondary' }
+> = {
+  live: { label: 'Active', variant: 'success' },
+  scheduled: { label: 'Scheduled', variant: 'info' },
+  ended: { label: 'Expired', variant: 'secondary' },
+  off: { label: 'Off', variant: 'secondary' },
+};
+
 /** One line of the combined list, whatever kind of discount it is. */
 export interface DiscountRow {
   kind: DiscountKind;
@@ -17,6 +28,8 @@ export interface DiscountRow {
   status: ScheduleStatus;
   isActive: boolean;
   createdAt: string;
+  /** Its editor page, once the kind has one. */
+  href?: string;
 }
 
 function amount(type: 'percent' | 'fixed' | null, value: number | null) {
@@ -41,6 +54,7 @@ export function saleRow(sale: Sale): DiscountRow {
   return {
     kind: 'sales',
     id: sale.id,
+    href: `/discounts/sales/${sale.id}`,
     title: sale.name,
     // A flash sale is a sale with a stock cap, as the backend describes it.
     type: sale.stockCap === null ? 'Sale' : 'Flash sale',
