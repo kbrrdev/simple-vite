@@ -49,9 +49,11 @@ export function useTopProducts(range: DateRange, sort: TopProductsSort) {
 }
 
 /** The store as it is now: orders per status, and the work waiting for staff. */
-export function useOrderStatus() {
+/** `enabled` is false for roles without `reports.operations`, which the report needs. */
+export function useOrderStatus(enabled = true) {
   return useQuery({
     queryKey: ['reports', 'order-status'],
+    enabled,
     queryFn: () => request<{ data: Schemas['ReportOrderStatus'] }>('/api/reports/order-status'),
   });
 }
