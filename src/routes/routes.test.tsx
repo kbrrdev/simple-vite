@@ -25,6 +25,12 @@ function signedOut() {
   refreshMock.mockResolvedValue(false);
 }
 
+function navLinks(nav: HTMLElement) {
+  return within(nav)
+    .getAllByRole('link')
+    .map((link) => link.textContent);
+}
+
 async function logIn() {
   const user = userEvent.setup();
   await user.type(await screen.findByLabelText('Email'), 'admin@example.com');
@@ -78,58 +84,80 @@ describe('the staff guard', () => {
 });
 
 describe('permissions', () => {
-  it('shows only the pages the role can use', async () => {
+  it('shows only the areas the role can use', async () => {
     signedInAs(staff);
     renderApp('/');
 
     const nav = await screen.findByRole('navigation', { name: 'Main' });
-    const links = within(nav)
-      .getAllByRole('link')
-      .map((link) => link.textContent);
-    expect(links).toEqual(['Dashboard', 'Orders', 'Products', 'Files']);
+    expect(navLinks(nav)).toEqual(['Home', 'Orders', 'Products', 'Content']);
+    // Staff can only use Files, so Content opens it.
+    expect(within(nav).getByRole('link', { name: 'Content' })).toHaveAttribute('href', '/files');
     expect(screen.getAllByText('Staff').length).toBeGreaterThan(0);
   });
 
-  it('groups the nav, and leaves out groups the role has nothing in', async () => {
-    signedInAs(staff);
-    renderApp('/');
-
-    const nav = await screen.findByRole('navigation', { name: 'Main' });
-    const groups = within(nav)
-      .getAllByRole('group')
-      .map((group) => group.firstChild?.textContent);
-    expect(groups).toEqual(['Catalog', 'Content']);
-    expect(
-      within(within(nav).getByRole('group', { name: 'Catalog' })).getByRole('link'),
-    ).toHaveTextContent('Products');
-  });
-
-  it('shows a super admin every group, daily work first', async () => {
+  it("shows an area's pages only while inside it", async () => {
     signedInAs(admin);
-    renderApp('/');
+    const { router } = renderApp('/');
 
     const nav = await screen.findByRole('navigation', { name: 'Main' });
-    const groups = within(nav)
-      .getAllByRole('group')
-      .map((group) => group.firstChild?.textContent);
-    expect(groups).toEqual(['Catalog', 'Content', 'Settings', 'Team']);
-    expect(
-      within(nav)
-        .getAllByRole('link')
-        .map((link) => link.textContent),
-    ).toEqual([
-      'Dashboard',
+    expect(navLinks(nav)).toEqual(['Home', 'Orders', 'Products', 'Content', 'Settings']);
+
+    await userEvent.click(within(nav).getByRole('link', { name: 'Products' }));
+    // The page's code loads before the navigation finishes.
+    await waitFor(() => expect(router.state.location.pathname).toBe('/products'));
+    expect(navLinks(nav)).toEqual([
+      'Home',
       'Orders',
       'Products',
       'Categories',
-      'Blog',
-      'Banners',
-      'Files',
+      'Content',
+      'Settings',
+    ]);
+
+    await userEvent.click(within(nav).getByRole('link', { name: 'Settings' }));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/payment-methods'));
+    expect(navLinks(nav)).toEqual([
+      'Home',
+      'Orders',
+      'Products',
+      'Content',
+      'Settings',
       'Payment methods',
       'People',
       'Roles',
       'Audit log',
     ]);
+  });
+
+  it('counts the payments to check beside Orders, for roles that can read the report', async () => {
+    refreshMock.mockResolvedValue(true);
+    requestMock.mockImplementation(async (path) => {
+      if (path === '/api/auth/me') return { data: admin };
+      if (path === '/api/reports/order-status') {
+        return {
+          data: {
+            counts: [],
+            needsAttention: { paymentsToConfirm: 3, ordersToConfirm: 1, ordersToShip: 2 },
+          },
+        };
+      }
+      return undefined;
+    });
+    renderApp('/files');
+
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    expect(
+      await within(nav).findByRole('link', { name: 'Orders 3 payments to check' }),
+    ).toBeInTheDocument();
+  });
+
+  it('leaves out the count for roles that cannot read the report', async () => {
+    signedInAs({ ...staff, permissions: ['orders.view'] });
+    renderApp('/orders');
+
+    const nav = await screen.findByRole('navigation', { name: 'Main' });
+    expect(within(nav).getByRole('link', { name: 'Orders' })).toBeInTheDocument();
+    expect(requestMock).not.toHaveBeenCalledWith('/api/reports/order-status');
   });
 
   it('explains a page the role cannot use, without asking the backend for it', async () => {
@@ -233,9 +261,9 @@ describe('the layout', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Open menu' }));
     const menu = await screen.findByRole('dialog', { name: 'Store Admin' });
-    await user.click(within(menu).getByRole('link', { name: 'Categories' }));
+    await user.click(within(menu).getByRole('link', { name: 'Orders' }));
 
-    expect(router.state.location.pathname).toBe('/categories');
+    expect(router.state.location.pathname).toBe('/orders');
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
   });
 });
@@ -245,7 +273,9 @@ describe('logging out', () => {
     signedInAs(admin);
     renderApp('/');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Log out' }));
+    // Log out is in the account menu, so that a stray tap cannot sign someone out.
+    await userEvent.click(await screen.findByRole('button', { name: /admin@example.com/ }));
+    await userEvent.click(await screen.findByRole('menuitem', { name: 'Log out' }));
 
     expect(await screen.findByRole('button', { name: 'Log in' })).toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/auth/logout', { method: 'POST' });

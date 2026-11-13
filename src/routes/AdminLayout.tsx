@@ -1,12 +1,30 @@
-import { useId, useState } from 'react';
-import { MenuIcon } from 'lucide-react';
-import { NavLink, Outlet, useNavigation } from 'react-router';
+import { useState } from 'react';
+import {
+  ChevronsUpDownIcon,
+  FileTextIcon,
+  HouseIcon,
+  InboxIcon,
+  MenuIcon,
+  SettingsIcon,
+  TagIcon,
+  type LucideIcon,
+} from 'lucide-react';
+import { Link, NavLink, Outlet, useLocation, useNavigation } from 'react-router';
+import { cn } from 'cn';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from '@/components/ui/sheet';
 import { env } from '@/config/env';
-import { useLogout, useSession, type Permission } from '@/lib/auth';
+import { useCan, useLogout, useSession, type Permission, type User } from '@/lib/auth';
+import { useOrderStatus } from '@/features/reports/api';
 
-interface NavItem {
+interface Page {
   to: string;
   label: string;
   /** The permission the page's route needs. */
@@ -15,130 +33,206 @@ interface NavItem {
   superAdmin?: true;
 }
 
+interface Area {
+  label: string;
+  icon: LucideIcon;
+  /** The area's own page, such as the products list. Areas without one open their first page. */
+  page?: Page;
+  /** Pages shown under the area while one of its pages is open. */
+  pages?: Page[];
+}
+
 /**
- * The nav, in groups ordered by how often each area is used: daily work first, setup last.
- * Each feature adds its link here when its screens are built.
+ * The nav, after Shopify Admin: a few areas with icons, their pages shown only while inside
+ * them, and Settings at the bottom. Each feature adds its page here when its screen is built.
  */
-const groups: { label?: string; items: NavItem[] }[] = [
+const areas: Area[] = [
+  { label: 'Home', icon: HouseIcon, page: { to: '/', label: 'Home' } },
   {
-    items: [
-      { to: '/', label: 'Dashboard' },
-      { to: '/orders', label: 'Orders', permission: 'orders.view' },
-    ],
+    label: 'Orders',
+    icon: InboxIcon,
+    page: { to: '/orders', label: 'Orders', permission: 'orders.view' },
   },
   {
-    label: 'Catalog',
-    items: [
-      { to: '/products', label: 'Products', permission: 'products.view' },
-      { to: '/categories', label: 'Categories', permission: 'categories.manage' },
-    ],
+    label: 'Products',
+    icon: TagIcon,
+    page: { to: '/products', label: 'Products', permission: 'products.view' },
+    pages: [{ to: '/categories', label: 'Categories', permission: 'categories.manage' }],
   },
   {
     label: 'Content',
-    items: [
+    icon: FileTextIcon,
+    pages: [
       { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
       { to: '/banners', label: 'Banners', permission: 'banners.manage' },
       { to: '/files', label: 'Files', permission: 'assets.manage' },
     ],
   },
-  {
-    label: 'Settings',
-    items: [
-      { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
-    ],
-  },
-  {
-    label: 'Team',
-    items: [
-      { to: '/people', label: 'People', superAdmin: true },
-      { to: '/roles', label: 'Roles', superAdmin: true },
-      { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
-    ],
-  },
 ];
 
-function NavItemLink({ item, onNavigate }: { item: NavItem; onNavigate?: () => void }) {
+const settings: Area = {
+  label: 'Settings',
+  icon: SettingsIcon,
+  pages: [
+    { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
+    { to: '/people', label: 'People', superAdmin: true },
+    { to: '/roles', label: 'Roles', superAdmin: true },
+    { to: '/audit-log', label: 'Audit log', permission: 'audit_logs.view' },
+  ],
+};
+
+function allowed(page: Page, user?: User | null) {
   return (
-    <NavLink
-      to={item.to}
-      end={item.to === '/'}
-      onClick={onNavigate}
-      className={({ isActive }) =>
-        `flex min-h-11 items-center rounded-md px-2 text-sm md:min-h-8 ${isActive ? 'bg-sidebar-accent font-medium text-sidebar-accent-foreground' : 'text-foreground hover:bg-sidebar-accent/50'}`
-      }
-    >
-      {item.label}
-    </NavLink>
+    (!page.permission || Boolean(user?.permissions.includes(page.permission))) &&
+    (!page.superAdmin || Boolean(user?.superAdmin))
   );
 }
 
-/** The nav links, the signed-in email, and Log out. The sidebar and the phone menu share them. */
-function NavContent({ onNavigate }: { onNavigate?: () => void }) {
-  const { data: user } = useSession();
-  const logout = useLogout();
-  // The sidebar and the phone menu both render this, so their heading ids must differ.
-  const idPrefix = useId();
-  // Links the role cannot use are left out, as their pages would only say so. A group with
-  // none left is left out with its heading.
-  const shown = groups
-    .map((group) => ({
-      ...group,
-      items: group.items.filter(
-        (item) =>
-          (!item.permission || user?.permissions.includes(item.permission)) &&
-          (!item.superAdmin || user?.superAdmin),
-      ),
-    }))
-    .filter((group) => group.items.length > 0);
+/** Whether a path is a page or one of its own pages, such as /orders/123 under /orders. */
+function inside(pathname: string, to: string) {
+  return to === '/' ? pathname === '/' : pathname === to || pathname.startsWith(`${to}/`);
+}
+
+const rowClass =
+  'flex min-h-11 items-center gap-3 rounded-md px-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring md:min-h-9';
+
+/** The number of payments waiting to be checked, for roles that can read the order report. */
+function OrdersCount() {
+  const canCount = useCan('reports.operations');
+  const report = useOrderStatus(canCount);
+  // A count is a nicety, so a report that is late or shaped differently shows none.
+  const count = report.data?.data?.needsAttention?.paymentsToConfirm ?? 0;
+  if (count === 0) return null;
 
   return (
     <>
-      <nav aria-label="Main" className="flex flex-col gap-4">
-        {shown.map((group) => {
-          const links = group.items.map((item) => (
-            <NavItemLink key={item.to} item={item} onNavigate={onNavigate} />
-          ));
-          if (!group.label) {
-            return (
-              <div key="main" className="flex flex-col gap-1">
-                {links}
-              </div>
-            );
-          }
+      {/* Keeps the count apart from the label when read aloud. */}{' '}
+      <Badge variant="warning" className="ml-auto tabular-nums">
+        {count} <span className="sr-only">{count === 1 ? 'payment' : 'payments'} to check</span>
+      </Badge>
+    </>
+  );
+}
 
-          const headingId = `${idPrefix}-${group.label}`;
-          return (
-            <div
-              key={group.label}
-              role="group"
-              aria-labelledby={headingId}
-              className="flex flex-col gap-1"
-            >
-              {/* Small caps in grey, so that headings read as labels and the dark links as places to go. */}
-              <p
-                id={headingId}
-                className="px-2 text-[11px] font-semibold tracking-wider text-muted-foreground uppercase"
+function AreaLinks({ area, onNavigate }: { area: Area; onNavigate?: () => void }) {
+  const { data: user } = useSession();
+  const { pathname } = useLocation();
+  const page = area.page && allowed(area.page, user) ? area.page : undefined;
+  const pages = (area.pages ?? []).filter((item) => allowed(item, user));
+  // An area with nothing the role can use is left out.
+  const target = page ?? pages[0];
+  if (!target) return null;
+
+  const open = [area.page, ...(area.pages ?? [])].some((item) => item && inside(pathname, item.to));
+  const Icon = area.icon;
+
+  return (
+    <li>
+      <NavLink
+        to={target.to}
+        end={target.to === '/'}
+        onClick={onNavigate}
+        className={cn(
+          rowClass,
+          open
+            ? 'bg-sidebar-accent font-semibold text-sidebar-accent-foreground'
+            : 'text-foreground hover:bg-sidebar-accent/50',
+        )}
+      >
+        <Icon aria-hidden className="size-5 shrink-0" strokeWidth={open ? 2.25 : 1.75} />
+        {area.label}
+        {area.label === 'Orders' && <OrdersCount />}
+      </NavLink>
+
+      {/* Its pages show only while inside the area, so the nav stays short. */}
+      {open && pages.length > 0 && (
+        <ul className="mt-1 space-y-1">
+          {pages.map((item) => (
+            <li key={item.to}>
+              <NavLink
+                to={item.to}
+                onClick={onNavigate}
+                className={({ isActive }) =>
+                  cn(
+                    rowClass,
+                    'pl-10',
+                    isActive || inside(pathname, item.to)
+                      ? 'font-medium text-foreground'
+                      : 'text-muted-foreground hover:bg-sidebar-accent/50 hover:text-foreground',
+                  )
+                }
               >
-                {group.label}
-              </p>
-              {links}
-            </div>
-          );
-        })}
-      </nav>
-      <div className="mt-auto space-y-2 px-2">
-        <div className="text-sm">
-          <p className="truncate text-muted-foreground">{user?.email}</p>
-          {user?.role && <p className="truncate text-muted-foreground">{user.role.name}</p>}
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => logout.mutate()}
+                {item.label}
+              </NavLink>
+            </li>
+          ))}
+        </ul>
+      )}
+    </li>
+  );
+}
+
+/** Initials for the account button, from the email's name. */
+function initials(email = '') {
+  return email.slice(0, 2).toUpperCase();
+}
+
+/** Who is signed in, with Log out in a menu so that a stray tap cannot sign them out. */
+function AccountMenu() {
+  const { data: user } = useSession();
+  const logout = useLogout();
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(rowClass, 'w-full text-left hover:bg-sidebar-accent/50')}
+        >
+          <span
+            aria-hidden
+            className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-xs font-semibold text-primary-foreground"
+          >
+            {initials(user?.email)}
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block truncate">{user?.email}</span>
+            {user?.role && (
+              <span className="block truncate text-xs text-muted-foreground">{user.role.name}</span>
+            )}
+          </span>
+          <ChevronsUpDownIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="start" side="top" className="min-w-52">
+        <DropdownMenuItem
+          className="min-h-11 md:min-h-8"
           disabled={logout.isPending}
+          onSelect={() => logout.mutate()}
         >
           Log out
-        </Button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+/** The areas, Settings, and the account. The sidebar and the phone menu share them. */
+function NavContent({ onNavigate }: { onNavigate?: () => void }) {
+  return (
+    <>
+      <nav aria-label="Main" className="flex flex-1 flex-col">
+        <ul className="space-y-1">
+          {areas.map((area) => (
+            <AreaLinks key={area.label} area={area} onNavigate={onNavigate} />
+          ))}
+        </ul>
+        <ul className="mt-auto space-y-1 pt-6">
+          <AreaLinks area={settings} onNavigate={onNavigate} />
+        </ul>
+      </nav>
+      <div className="mt-4 border-t pt-4">
+        <AccountMenu />
       </div>
     </>
   );
@@ -164,16 +258,18 @@ export function AdminLayout() {
       </header>
 
       <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
-        <SheetContent side="left" className="bg-sidebar p-4">
+        <SheetContent side="left" className="flex flex-col bg-sidebar p-4">
           <SheetTitle className="mb-4 px-2 font-semibold">{env.storeName}</SheetTitle>
           <SheetDescription className="sr-only">Pages and account</SheetDescription>
           <NavContent onNavigate={() => setMenuOpen(false)} />
         </SheetContent>
       </Sheet>
 
-      {/* Window height and sticky, so that Log out stays in view on long pages. */}
+      {/* Window height and sticky, so that Settings and the account stay in view on long pages. */}
       <aside className="sticky top-0 hidden h-svh w-56 shrink-0 flex-col self-start overflow-y-auto border-r bg-sidebar p-4 md:flex">
-        <p className="mb-6 px-2 font-semibold">{env.storeName}</p>
+        <Link to="/" className="mb-6 px-2 font-semibold">
+          {env.storeName}
+        </Link>
         <NavContent />
       </aside>
 
