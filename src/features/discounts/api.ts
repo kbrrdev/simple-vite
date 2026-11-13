@@ -8,6 +8,8 @@ export type CreateSaleBody = Schemas['CreateSale'];
 export type SaleChanges = Schemas['UpdateSale'];
 export type CreateCouponBody = Schemas['CreateCoupon'];
 export type CouponChanges = Schemas['UpdateCoupon'];
+export type CreatePromotionBody = Schemas['CreatePromotion'];
+export type PromotionChanges = Schemas['UpdatePromotion'];
 
 /** The three kinds the backend keeps apart, and the route each lives under. */
 export type DiscountKind = 'sales' | 'coupons' | 'promotions';
@@ -83,5 +85,24 @@ export function useCreateCoupon() {
 export function useUpdateCoupon() {
   return useDiscountMutation(({ id, body }: { id: string; body: CouponChanges }) =>
     request(`/api/coupons/${id}`, { method: 'PATCH', body }),
+  );
+}
+
+export function usePromotion(id: string) {
+  return useQuery({
+    queryKey: ['discounts', 'promotions', id],
+    queryFn: () => request<{ data: Promotion }>(`/api/promotions/${id}`),
+  });
+}
+
+export function useCreatePromotion() {
+  return useDiscountMutation((body: CreatePromotionBody) =>
+    request<{ data: Promotion }>('/api/promotions', { method: 'POST', body }),
+  );
+}
+
+export function useUpdatePromotion() {
+  return useDiscountMutation(({ id, body }: { id: string; body: PromotionChanges }) =>
+    request(`/api/promotions/${id}`, { method: 'PATCH', body }),
   );
 }

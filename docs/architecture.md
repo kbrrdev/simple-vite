@@ -48,21 +48,21 @@ src/
 
 ## Screens and Backend Modules
 
-| Screen          | Status      | Backend routes                                                                                                                                         |
-| --------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login           | Built       | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Dashboard       | Built       | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
-| Products        | Built       | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
-| Categories      | Built       | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
-| Orders          | Built       | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
-| Payment methods | Built       | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
-| Blogs           | Built       | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
-| Banners         | Built       | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
-| Discounts       | In progress | `GET /api/sales`, `/api/coupons`, `/api/promotions`, with `PATCH` and `DELETE` on each `/:id`, all needing `promotions.manage`                         |
-| Files           | Built       | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
-| Audit log       | Built       | `GET /api/audit-logs`                                                                                                                                  |
-| Roles           | Built       | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
-| People          | Built       | `GET /api/users`, `PATCH /api/users/:id/role`, both super admin only                                                                                   |
+| Screen          | Status | Backend routes                                                                                                                                         |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login           | Built  | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
+| Dashboard       | Built  | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
+| Products        | Built  | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
+| Categories      | Built  | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
+| Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
+| Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Banners         | Built  | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
+| Discounts       | Built  | `GET /api/sales`, `/api/coupons`, `/api/promotions`, with `PATCH` and `DELETE` on each `/:id`, all needing `promotions.manage`                         |
+| Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
+| Audit log       | Built  | `GET /api/audit-logs`                                                                                                                                  |
+| Roles           | Built  | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
+| People          | Built  | `GET /api/users`, `PATCH /api/users/:id/role`, both super admin only                                                                                   |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -150,9 +150,10 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Each row says what the discount does, worked out in `features/discounts/rows.ts` from the backend's fields, and its use so far, from the backend's `soldCount`, `usedCount`, and `discountGivenCents`.
 - The status badge comes from `scheduleStatus` in `src/lib/schedule.ts`, which banners share: Active, Scheduled, Expired, or Off. The tabs filter by it, and Off shows under All only.
 - Turn off and Delete ask first. A coupon that orders used cannot be deleted, and the backend's `409` says so.
-- **Create discount** opens a menu of the kinds there are editors for, and a row's name opens its editor. Promotions get theirs in a later change.
+- **Create discount** opens a menu of every kind: Sale, Coupon code, Automatic discount, Free shipping, Buy X get Y, and Bundle. A row's name opens its editor.
 - The sale editor, `/discounts/sales/:id`, follows the record page layout: name, discount, and what it applies to on the left, and status, schedule, and stock cap on the right, saved through the save bar. Percent is a whole number from 1 to 90, and a fixed amount is typed in pesos and sent as cents. It needs at least one product or category, and a stock cap cannot go below the units already sold. These are hints, and the backend decides.
 - The coupon editor, `/discounts/coupons/:id`, covers coupon codes, automatic discounts, and free shipping. Create discount starts the last two with `?automatic=1` and `?type=free_shipping`. Codes are 3 to 32 letters, digits, `-` or `_`, shown and sent in capitals, and a taken code is the backend's `409`, shown beside the code. A percent is 1 to 100 with an optional cap, a fixed amount and the minimum spend are in pesos sent as cents, and free shipping has no amount. A new code coupon starts at one use per shopper and an automatic one at no limit, as the backend's defaults. Changing the discount sends its type and value together. Usage shows the backend's uses and the amount given.
+- The promotion editor, `/discounts/promotions/:id`, covers buy X get Y and bundles, and Create discount starts a bundle with `?type=bundle`. Buy X get Y takes a buy and a get quantity from 1 to 100 and a percent off from 1 to 100, where 100 is free, on products and/or categories. A bundle takes 2 to 10 products and no categories, with a percent or a fixed amount off each complete set. The other type's fields are sent as null, and when any part of the offer changes the whole offer is sent, so the backend checks it as one.
 - `ProductPicker` searches products by name and shows the chosen ones as chips, and `CategoryPicker` lists the whole tree as checkboxes. Promotions use them too. The picker reads each chosen product for its name, as the list cannot filter by ids.
 
 ## Blog

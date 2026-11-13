@@ -171,6 +171,20 @@ export const routes: RouteObject[] = [
                             .CouponEditorPage,
                         }),
                       },
+                      {
+                        path: '/discounts/promotions/new',
+                        lazy: async () => ({
+                          Component: (await import('@/features/discounts/PromotionEditorPage'))
+                            .NewPromotionPage,
+                        }),
+                      },
+                      {
+                        path: '/discounts/promotions/:id',
+                        lazy: async () => ({
+                          Component: (await import('@/features/discounts/PromotionEditorPage'))
+                            .PromotionEditorPage,
+                        }),
+                      },
                     ],
                   },
                   {

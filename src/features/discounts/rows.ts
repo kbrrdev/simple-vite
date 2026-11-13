@@ -28,8 +28,8 @@ export interface DiscountRow {
   status: ScheduleStatus;
   isActive: boolean;
   createdAt: string;
-  /** Its editor page, once the kind has one. */
-  href?: string;
+  /** Its editor page. */
+  href: string;
 }
 
 function amount(type: 'percent' | 'fixed' | null, value: number | null) {
@@ -112,6 +112,7 @@ export function promotionRow(promotion: Promotion): DiscountRow {
   return {
     kind: 'promotions',
     id: promotion.id,
+    href: `/discounts/promotions/${promotion.id}`,
     title: promotion.name,
     type: promotion.type === 'buy_x_get_y' ? 'Buy X get Y' : 'Bundle',
     summary,
