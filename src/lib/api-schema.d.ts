@@ -720,6 +720,211 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/banners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List the banners the storefront shows
+         * @description Returns active banners whose dates include now, in position order. Show mobileImageUrl on phones when it is set, and imageUrl otherwise.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The current banners */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Banner"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /**
+         * Add a banner (needs banners.manage)
+         * @description Upload the images through /api/assets first, then send their ids. A store can have at most 15 banners, counting inactive ones.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateBanner"];
+                };
+            };
+            responses: {
+                /** @description The created banner */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Banner"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/banners/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every banner, including inactive and scheduled ones (needs banners.manage)
+         * @description meta.maxBanners is the most a store can have, counting inactive ones, so the admin app can warn before the limit.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description All banners */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Banner"][];
+                            meta: components["schemas"]["PageMeta"] & {
+                                /** @example 15 */
+                                maxBanners: number;
+                            };
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/banners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Delete a banner (needs banners.manage)
+         * @description Its images stay in /api/assets.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["BannerId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The banner was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update a banner (needs banners.manage)
+         * @description Set mobileAssetId to null to use the default image on phones.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["BannerId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateBanner"];
+                };
+            };
+            responses: {
+                /** @description The updated banner */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Banner"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
     "/api/categories": {
         parameters: {
             query?: never;
@@ -3324,7 +3529,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     actorUserId?: string;
-                    entityType?: "asset" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+                    entityType?: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
                     entityId?: string;
                     action?: string;
                     /** @description First day, in Manila time */
@@ -3390,7 +3595,7 @@ export interface paths {
                         "application/json": {
                             data: {
                                 /** @enum {string} */
-                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
+                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
                                 description: string;
                             }[];
                         };
@@ -3733,7 +3938,7 @@ export interface components {
             /** @description Only super admins manage roles and users. Admin can hold every permission too, so check this rather than the permissions. */
             superAdmin: boolean;
             /** @description What the user can do, for hiding what they cannot. Empty for customers. */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             /** Format: date-time */
             createdAt: string;
         };
@@ -3830,6 +4035,137 @@ export interface components {
             published?: boolean;
             /** Format: uuid */
             coverAssetId?: string | null;
+        };
+        Banner: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * Format: uuid
+             * @description The default image
+             */
+            assetId: string;
+            /**
+             * Format: uuid
+             * @description Shown on phones instead of the default image
+             */
+            mobileAssetId: string | null;
+            /** Format: uri */
+            imageUrl: string;
+            /** Format: uri */
+            mobileImageUrl: string | null;
+            /**
+             * @description Describes both images
+             * @example Holiday sale, up to 30% off
+             */
+            altText: string;
+            /** @example Holiday Sale */
+            title: string | null;
+            /** @example Up to 30% off */
+            subtitle: string | null;
+            /**
+             * @description A storefront path starting with /, or an https:// link
+             * @example /categories
+             */
+            linkUrl: string | null;
+            /** @description Lower comes first */
+            position: number;
+            isActive: boolean;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateBanner: {
+            /**
+             * Format: uuid
+             * @description The default image
+             */
+            assetId: string;
+            /**
+             * Format: uuid
+             * @description Shown on phones instead of the default image
+             */
+            mobileAssetId?: string | null;
+            /**
+             * @description Describes both images
+             * @example Holiday sale, up to 30% off
+             */
+            altText: string;
+            /** @example Holiday Sale */
+            title?: string | null;
+            /** @example Up to 30% off */
+            subtitle?: string | null;
+            /**
+             * @description A storefront path starting with /, or an https:// link
+             * @example /categories
+             */
+            linkUrl?: string | null;
+            /**
+             * @description Lower comes first
+             * @default 0
+             */
+            position: number;
+            /** @default true */
+            isActive: boolean;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Must be after startsAt. Null means no limit.
+             */
+            endsAt?: string | null;
+        };
+        UpdateBanner: {
+            /**
+             * Format: uuid
+             * @description The default image
+             */
+            assetId?: string;
+            /**
+             * Format: uuid
+             * @description Shown on phones instead of the default image
+             */
+            mobileAssetId?: string | null;
+            /**
+             * @description Describes both images
+             * @example Holiday sale, up to 30% off
+             */
+            altText?: string;
+            /** @example Holiday Sale */
+            title?: string | null;
+            /** @example Up to 30% off */
+            subtitle?: string | null;
+            /**
+             * @description A storefront path starting with /, or an https:// link
+             * @example /categories
+             */
+            linkUrl?: string | null;
+            /** @description Lower comes first */
+            position?: number;
+            isActive?: boolean;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
         };
         Category: {
             /** Format: uuid */
@@ -4736,7 +5072,7 @@ export interface components {
             actorUserId: string | null;
             actorEmail: string | null;
             /** @enum {string} */
-            entityType: "asset" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+            entityType: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
             /** Format: uuid */
             entityId: string;
             /** @example update */
@@ -4775,7 +5111,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             userCount: number;
             /** Format: date-time */
             createdAt: string;
@@ -4793,7 +5129,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         UpdateRoleBody: {
             name?: string;
@@ -4804,7 +5140,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         PageMeta: {
             /** @example 1 */
@@ -4903,6 +5239,7 @@ export interface components {
     };
     parameters: {
         BlogId: string;
+        BannerId: string;
         CategoryId: string;
         ProductId: string;
         ImageId: string;

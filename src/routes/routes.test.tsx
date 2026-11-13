@@ -123,6 +123,7 @@ describe('permissions', () => {
       'Products',
       'Categories',
       'Blog',
+      'Banners',
       'Files',
       'Payment methods',
       'People',
