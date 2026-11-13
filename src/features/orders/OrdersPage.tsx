@@ -1,5 +1,8 @@
 import type { FormEvent } from 'react';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { InboxIcon, SearchIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
@@ -90,7 +93,7 @@ export function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-semibold">Orders</h1>
+      <PageHeader title="Orders" />
 
       <form role="search" onSubmit={handleSearch} className="flex max-w-xl gap-2">
         <Label htmlFor="order-search" className="sr-only">
@@ -162,11 +165,16 @@ export function OrdersPage() {
         </div>
       )}
 
-      {orders.data?.meta.total === 0 && (
-        <p className="text-muted-foreground">
-          {filtered ? 'No orders match these filters.' : 'No orders yet.'}
-        </p>
-      )}
+      {orders.data?.meta.total === 0 &&
+        (filtered ? (
+          <EmptyState icon={SearchIcon} title="No orders match these filters">
+            Try another search or view, or clear the filters.
+          </EmptyState>
+        ) : (
+          <EmptyState icon={InboxIcon} title="No orders yet">
+            Orders show here as soon as customers check out.
+          </EmptyState>
+        ))}
 
       {orders.data && orders.data.meta.total > 0 && (
         <>

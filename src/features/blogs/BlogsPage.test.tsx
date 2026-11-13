@@ -79,6 +79,6 @@ describe('the blog list', () => {
 
     expect(router.state.location.search).toBe('?published=false');
     expect(lastQuery()).toEqual({ page: 1, limit: 20, published: false });
-    expect(await screen.findByText('No drafts.')).toBeInTheDocument();
+    expect(await screen.findByText('No drafts')).toBeInTheDocument();
   });
 });

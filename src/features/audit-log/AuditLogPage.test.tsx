@@ -105,7 +105,7 @@ describe('the audit log', () => {
     serve(() => []);
     renderApp('/audit-log?entityType=order');
 
-    expect(await screen.findByText('No changes match these filters.')).toBeInTheDocument();
+    expect(await screen.findByText('No changes match these filters')).toBeInTheDocument();
   });
 
   it('shows the request id when the server fails', async () => {

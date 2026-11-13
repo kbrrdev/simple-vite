@@ -1,4 +1,5 @@
 import { Link } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
@@ -53,17 +54,15 @@ export function RolesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Roles</h1>
-          <p className="text-sm text-muted-foreground">
-            Each staff member has one role, and a role decides what they can do.
-          </p>
-        </div>
-        <Button asChild>
-          <Link to="/roles/new">New role</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Roles"
+        description="Each staff member has one role, and a role decides what they can do."
+        actions={
+          <Button asChild>
+            <Link to="/roles/new">New role</Link>
+          </Button>
+        }
+      />
 
       {roles.isPending && <ListSkeleton rows={4} />}
 

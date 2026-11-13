@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { MoreHorizontalIcon, WalletIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -44,10 +46,11 @@ export function PaymentMethodsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Payment methods</h1>
-        <Button onClick={() => setEditing('new')}>New payment method</Button>
-      </div>
+      <PageHeader
+        title="Payment methods"
+        description="How customers pay. Checkout offers the methods that are on."
+        actions={<Button onClick={() => setEditing('new')}>New payment method</Button>}
+      />
 
       {methods.isPending && <ListSkeleton rows={3} media />}
 
@@ -61,9 +64,13 @@ export function PaymentMethodsPage() {
       )}
 
       {methods.data?.data.length === 0 && (
-        <p className="text-muted-foreground">
-          No payment methods yet. Add one so customers can pay by e-wallet or bank transfer.
-        </p>
+        <EmptyState
+          icon={WalletIcon}
+          title="No payment methods yet"
+          action={<Button onClick={() => setEditing('new')}>New payment method</Button>}
+        >
+          Add one so customers can pay by e-wallet or bank transfer.
+        </EmptyState>
       )}
 
       {methods.data && methods.data.data.length > 0 && (

@@ -85,7 +85,7 @@ describe('the people list', () => {
     serve(() => []);
     renderApp('/people?search=zzz');
 
-    expect(await screen.findByText('No staff match these filters.')).toBeInTheDocument();
+    expect(await screen.findByText('No staff match these filters')).toBeInTheDocument();
   });
 
   it('shows the request id when the server fails', async () => {

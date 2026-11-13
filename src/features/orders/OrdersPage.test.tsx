@@ -61,7 +61,7 @@ describe('the orders list', () => {
     api(() => listOf([]));
     renderApp('/orders');
 
-    expect(await screen.findByText('No orders yet.')).toBeInTheDocument();
+    expect(await screen.findByText('No orders yet')).toBeInTheDocument();
   });
 
   it('shows the request id when the server fails', async () => {
@@ -95,7 +95,7 @@ describe('filtering', () => {
     api(() => listOf([]));
     renderApp('/orders?status=lost');
 
-    await screen.findByText('No orders yet.');
+    await screen.findByText('No orders yet');
     expect(lastListQuery()?.status).toBeUndefined();
   });
 
@@ -114,7 +114,7 @@ describe('filtering', () => {
     api(() => listOf([]));
     const { router } = renderApp('/orders?status=delivered');
 
-    expect(await screen.findByText('No orders match these filters.')).toBeInTheDocument();
+    expect(await screen.findByText('No orders match these filters')).toBeInTheDocument();
     await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
     expect(router.state.location.search).toBe('');
   });
@@ -156,7 +156,7 @@ describe('tabs', () => {
     api(() => listOf([]));
     const { router } = renderApp('/orders?status=delivered&page=2');
 
-    await screen.findByText('No orders match these filters.');
+    await screen.findByText('No orders match these filters');
     await userEvent.click(tabs().getByRole('link', { name: 'Payments to check' }));
 
     expect(router.state.location.search).toBe('?paymentStatus=submitted');
@@ -176,7 +176,7 @@ describe('tabs', () => {
     api(() => listOf([]));
     renderApp('/orders?status=confirmed');
 
-    await screen.findByText('No orders match these filters.');
+    await screen.findByText('No orders match these filters');
     expect(tabs().getByRole('link', { name: 'To ship' })).toHaveAttribute('aria-current', 'page');
     expect(screen.getByLabelText('Status')).toHaveValue('confirmed');
 
@@ -194,7 +194,7 @@ describe('tabs', () => {
     );
     renderApp('/orders');
 
-    await screen.findByText('No orders yet.');
+    await screen.findByText('No orders yet');
     expect(await tabs().findByRole('link', { name: 'Payments to check 3' })).toBeInTheDocument();
     expect(tabs().getByRole('link', { name: 'To ship 2' })).toBeInTheDocument();
     // Nothing waiting, so no count.
@@ -209,7 +209,7 @@ describe('tabs', () => {
     });
     renderApp('/orders');
 
-    await screen.findByText('No orders yet.');
+    await screen.findByText('No orders yet');
     expect(tabs().getByRole('link', { name: 'Payments to check' })).toBeInTheDocument();
     expect(requestMock).not.toHaveBeenCalledWith('/api/reports/order-status');
   });
