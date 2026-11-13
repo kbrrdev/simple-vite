@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { GalleryHorizontalIcon, MoreHorizontalIcon } from 'lucide-react';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { ListSkeleton } from '@/components/Loading';
 import { Badge } from '@/components/ui/badge';
@@ -79,22 +81,26 @@ export function BannersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">Banners</h1>
-          {max !== undefined && (
-            <p className="text-sm text-muted-foreground tabular-nums">
+      <PageHeader
+        title="Banners"
+        description={
+          max !== undefined && (
+            <span className="tabular-nums">
               {list.length} of {max} banners
-            </p>
-          )}
-        </div>
-        <div className="flex flex-col items-end gap-1">
-          <Button disabled={full} onClick={() => setEditing('new')}>
-            New banner
-          </Button>
-          {full && <p className="text-sm text-muted-foreground">Delete a banner to add another.</p>}
-        </div>
-      </div>
+            </span>
+          )
+        }
+        actions={
+          <>
+            <Button disabled={full} onClick={() => setEditing('new')}>
+              New banner
+            </Button>
+            {full && (
+              <p className="text-sm text-muted-foreground">Delete a banner to add another.</p>
+            )}
+          </>
+        }
+      />
 
       {banners.isPending && <ListSkeleton rows={3} media />}
 
@@ -108,9 +114,13 @@ export function BannersPage() {
       )}
 
       {banners.data && list.length === 0 && (
-        <p className="text-muted-foreground">
-          No banners yet. Add one to show an image at the top of the store.
-        </p>
+        <EmptyState
+          icon={GalleryHorizontalIcon}
+          title="No banners yet"
+          action={<Button onClick={() => setEditing('new')}>New banner</Button>}
+        >
+          Add one to show an image at the top of the store.
+        </EmptyState>
       )}
 
       {list.length > 0 && (

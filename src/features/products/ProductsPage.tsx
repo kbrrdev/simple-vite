@@ -1,5 +1,8 @@
 import { type FormEvent } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { SearchIcon, TagIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -117,14 +120,16 @@ export function ProductsPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Products</h1>
-        {canManage && (
-          <Button asChild>
-            <Link to="/products/new">New product</Link>
-          </Button>
-        )}
-      </div>
+      <PageHeader
+        title="Products"
+        actions={
+          canManage && (
+            <Button asChild>
+              <Link to="/products/new">New product</Link>
+            </Button>
+          )
+        }
+      />
 
       <ViewTabs label="Product views" tabs={views} />
 
@@ -186,13 +191,26 @@ export function ProductsPage() {
         </div>
       )}
 
-      {products.data?.meta.total === 0 && (
-        <p className="text-muted-foreground">
-          {filtered
-            ? 'No products match these filters.'
-            : 'No products yet. Create one to start selling.'}
-        </p>
-      )}
+      {products.data?.meta.total === 0 &&
+        (filtered ? (
+          <EmptyState icon={SearchIcon} title="No products match these filters">
+            Try another search, category, or view, or clear the filters.
+          </EmptyState>
+        ) : (
+          <EmptyState
+            icon={TagIcon}
+            title="No products yet"
+            action={
+              canManage && (
+                <Button asChild>
+                  <Link to="/products/new">New product</Link>
+                </Button>
+              )
+            }
+          >
+            Create one to start selling.
+          </EmptyState>
+        ))}
 
       {products.data && products.data.meta.total > 0 && (
         <>

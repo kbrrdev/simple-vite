@@ -1,4 +1,7 @@
 import { Link, Navigate, useSearchParams } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { FileTextIcon } from 'lucide-react';
 import { Pagination } from '@/components/Pagination';
 import { ViewTabs } from '@/components/ViewTabs';
 import { Badge } from '@/components/ui/badge';
@@ -33,18 +36,24 @@ export function BlogsPage() {
     { label: 'Drafts', value: false, to: '?published=false' },
   ].map((view) => ({ label: view.label, to: view.to, selected: view.value === published }));
 
-  let empty = 'No posts yet. Write one to tell shoppers what is new.';
-  if (published === true) empty = 'No published posts.';
-  if (published === false) empty = 'No drafts.';
+  let empty = { title: 'No posts yet', text: 'Write one to tell shoppers what is new.' };
+  if (published === true) {
+    empty = { title: 'No published posts', text: 'Posts show here once you publish them.' };
+  }
+  if (published === false) {
+    empty = { title: 'No drafts', text: 'Posts you save as drafts show here.' };
+  }
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Blog</h1>
-        <Button asChild>
-          <Link to="/blogs/new">New post</Link>
-        </Button>
-      </div>
+      <PageHeader
+        title="Blog"
+        actions={
+          <Button asChild>
+            <Link to="/blogs/new">New post</Link>
+          </Button>
+        }
+      />
 
       <ViewTabs label="Post views" tabs={views} />
 
@@ -59,7 +68,21 @@ export function BlogsPage() {
         </div>
       )}
 
-      {blogs.data?.meta.total === 0 && <p className="text-muted-foreground">{empty}</p>}
+      {blogs.data?.meta.total === 0 && (
+        <EmptyState
+          icon={FileTextIcon}
+          title={empty.title}
+          action={
+            published === undefined && (
+              <Button asChild>
+                <Link to="/blogs/new">New post</Link>
+              </Button>
+            )
+          }
+        >
+          {empty.text}
+        </EmptyState>
+      )}
 
       {blogs.data && blogs.data.meta.total > 0 && (
         <>

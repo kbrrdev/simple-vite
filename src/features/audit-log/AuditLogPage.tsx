@@ -1,5 +1,7 @@
-import { XIcon } from 'lucide-react';
+import { HistoryIcon, SearchIcon, XIcon } from 'lucide-react';
 import { Navigate, useSearchParams } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
@@ -81,12 +83,10 @@ export function AuditLogPage() {
 
   return (
     <div className="space-y-6">
-      <div className="space-y-1">
-        <h1 className="text-2xl font-semibold">Audit log</h1>
-        <p className="text-sm text-muted-foreground">
-          Every change staff made, newest first. Entries cannot be edited or removed.
-        </p>
-      </div>
+      <PageHeader
+        title="Audit log"
+        description="Every change staff made, newest first. Entries cannot be edited or removed."
+      />
 
       <div className="grid gap-4 sm:grid-cols-3 md:flex md:items-end">
         <div className="space-y-2 md:w-48">
@@ -172,9 +172,14 @@ export function AuditLogPage() {
       )}
 
       {!badRange && log.data?.meta.total === 0 && (
-        <p className="text-muted-foreground">
-          {filtered ? 'No changes match these filters.' : 'No changes recorded yet.'}
-        </p>
+        <EmptyState
+          icon={filtered ? SearchIcon : HistoryIcon}
+          title={filtered ? 'No changes match these filters' : 'No changes recorded yet'}
+        >
+          {filtered
+            ? 'Try another type, person, or day, or clear the filters.'
+            : 'Staff changes show here as they happen.'}
+        </EmptyState>
       )}
 
       {!badRange && log.data && log.data.meta.total > 0 && (

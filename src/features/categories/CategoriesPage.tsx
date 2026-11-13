@@ -1,5 +1,7 @@
 import { useState } from 'react';
-import { MoreHorizontalIcon } from 'lucide-react';
+import { FolderTreeIcon, MoreHorizontalIcon } from 'lucide-react';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -106,10 +108,10 @@ export function CategoriesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Categories</h1>
-        <Button onClick={() => setEditing({})}>New category</Button>
-      </div>
+      <PageHeader
+        title="Categories"
+        actions={<Button onClick={() => setEditing({})}>New category</Button>}
+      />
 
       {tree.isPending && <ListSkeleton media />}
 
@@ -123,7 +125,13 @@ export function CategoriesPage() {
       )}
 
       {tree.data?.data.length === 0 && (
-        <p className="text-muted-foreground">No categories yet. Create one to get started.</p>
+        <EmptyState
+          icon={FolderTreeIcon}
+          title="No categories yet"
+          action={<Button onClick={() => setEditing({})}>New category</Button>}
+        >
+          Group products so shoppers can browse them.
+        </EmptyState>
       )}
 
       {tree.data && tree.data.data.length > 0 && (

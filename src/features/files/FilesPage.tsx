@@ -1,6 +1,9 @@
 import { useRef, useState, type ChangeEvent } from 'react';
 import { Navigate } from 'react-router';
 import { toast } from 'sonner';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { ImagesIcon } from 'lucide-react';
 import { Loading } from '@/components/Loading';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
@@ -52,22 +55,23 @@ export function FilesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Files</h1>
-        <div>
-          <input
-            ref={fileInput}
-            type="file"
-            accept={allowedTypes.join(',')}
-            aria-label="Image file"
-            className="sr-only"
-            onChange={handleFileChange}
-          />
+      <input
+        ref={fileInput}
+        type="file"
+        accept={allowedTypes.join(',')}
+        aria-label="Image file"
+        className="sr-only"
+        onChange={handleFileChange}
+      />
+      <PageHeader
+        title="Files"
+        description="Images for products, categories, blog posts, banners, and payment QR codes."
+        actions={
           <Button onClick={() => fileInput.current?.click()} disabled={upload.isPending}>
             {upload.isPending ? 'Uploading…' : 'Upload image'}
           </Button>
-        </div>
-      </div>
+        }
+      />
 
       {uploadError && (
         <p role="alert" className="text-sm text-destructive">
@@ -97,9 +101,9 @@ export function FilesPage() {
       )}
 
       {assets.data?.meta.total === 0 && (
-        <p className="text-muted-foreground">
-          No images yet. Upload JPEG, PNG, or WebP images of up to 5 MB.
-        </p>
+        <EmptyState icon={ImagesIcon} title="No images yet">
+          Upload JPEG, PNG, or WebP images of up to 5 MB.
+        </EmptyState>
       )}
 
       {assets.data && assets.data.meta.total > 0 && (

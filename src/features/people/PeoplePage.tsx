@@ -1,5 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
+import { PageHeader } from '@/components/PageHeader';
+import { EmptyState } from '@/components/EmptyState';
+import { SearchIcon, UsersIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Badge } from '@/components/ui/badge';
@@ -104,17 +107,15 @@ export function PeoplePage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-semibold">People</h1>
-          <p className="text-sm text-muted-foreground">
-            Everyone who can sign in to this app, and their role.
-          </p>
-        </div>
-        <Button disabled={!roles.data} onClick={() => setAdding(true)}>
-          Add staff
-        </Button>
-      </div>
+      <PageHeader
+        title="People"
+        description="Everyone who can sign in to this app, and their role."
+        actions={
+          <Button disabled={!roles.data} onClick={() => setAdding(true)}>
+            Add staff
+          </Button>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-[1fr_14rem] md:items-end">
         <form role="search" onSubmit={handleSearch} className="space-y-2">
@@ -169,9 +170,14 @@ export function PeoplePage() {
       )}
 
       {people.data?.meta.total === 0 && (
-        <p className="text-muted-foreground">
-          {filtered ? 'No staff match these filters.' : 'No staff yet.'}
-        </p>
+        <EmptyState
+          icon={filtered ? SearchIcon : UsersIcon}
+          title={filtered ? 'No staff match these filters' : 'No staff yet'}
+        >
+          {filtered
+            ? 'Try another search or role, or clear the filters.'
+            : 'Add staff from the customers who registered in the store.'}
+        </EmptyState>
       )}
 
       {people.data && people.data.meta.total > 0 && (
