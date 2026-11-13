@@ -78,7 +78,8 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 ## Orders
 
 - The list filters by `status` and `paymentStatus`, kept in the URL with the page. **Payments to check** is `paymentStatus=submitted`, and the Dashboard links to it with a count.
-- Tabs above the list, in `OrderTabs.tsx`, are saved views that set the same filters: All, Payments to check, To confirm (`pending`), To ship (`confirmed`), and Shipped. A tab is selected only when the filters match it exactly, and the dropdowns cover everything else.
+- The search box sends `search`, which the backend matches against the order number (`1048` or `ORD-001048`), the customer's email, the recipient's name, and the payment reference. It is kept in the URL, tabs keep it, and Clear filters removes it.
+- Tabs above the list, in `OrderTabs.tsx` on the shared `ViewTabs`, are saved views that set the same filters: All, Payments to check, To confirm (`pending`), To ship (`confirmed`), and Shipped. A tab is selected only when the filters match it exactly, and the dropdowns cover everything else.
 - The tabs show how many orders wait in each view, from the Needs attention counts in `GET /api/reports/order-status`. That report needs `reports.operations`, so other roles see the tabs without counts. Order changes refresh the reports.
 - The order page shows only the status moves the backend allows. `nextStatuses` in `features/orders/labels.ts` mirrors `adminTransitions` as a hint, and the backend's `409` is shown when it refuses.
 - `useOrderActions` in `features/orders/use-order-actions.tsx` splits those actions by role: checking a submitted payment or the move forward goes in the **Next step** card, and Cancel order, Mark returned, and Record refund go in the **More** menu, with History.
@@ -89,13 +90,14 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Marking an order returned does not restock it. Staff adjust stock by hand.
 - Cash on delivery orders become paid when they are marked delivered.
 - Totals are shown exactly as the backend sends them. The browser never adds them up.
+- An item sold on sale shows its list price struck through, from `listPriceCents`, when it differs from the price paid.
 
 ## Dashboard
 
 - The Dashboard is the reports page. It starts with **Needs attention**, a to-do list of payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
 - The summary, the sales chart, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
 - Needs attention and low stock show the store as it is now, so the range does not change them.
-- Every figure comes from the backend. The browser formats it and never adds anything up.
+- Every figure comes from the backend. The browser formats it and never adds anything up. Sale discounts is the amount sales took off list prices.
 - The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
 - Each card loads and fails on its own, so a slow report never blocks Needs attention.
 
@@ -148,6 +150,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 ## Products
 
 - The list searches by name and filters by category, which includes subcategories. Search, category, sort, and page are kept in the URL.
+- Tabs for All, Active, and Inactive set `active` on `GET /api/products/admin`, keeping the other filters. They have no counts, as the backend has no product counts.
 - New products are created with all their variants at once. The form builds a variant for each combination of option values, and prices are typed in pesos and sent as cents.
 - Images can only be added after a product exists, so creating one opens its page.
 - The product page follows Shopify's: details, images, and variants on the left, and status and category in a side panel. The details and category save together through the save bar, which sends only the fields that changed, so a save cannot undo a change made meanwhile. Unsaved edits survive a status or variant change, as the form is keyed by the product's id.

@@ -2,6 +2,7 @@ import { type FormEvent } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
+import { ViewTabs } from '@/components/ViewTabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -61,7 +62,9 @@ export function ProductsPage() {
   const search = searchParams.get('search')?.trim() || undefined;
   const categoryId = searchParams.get('categoryId') || undefined;
   const sort: ProductSort = searchParams.get('sort') === 'name' ? 'name' : 'newest';
-  const products = useProducts({ page, search, categoryId, sort });
+  const activeParam = searchParams.get('active');
+  const active = activeParam === 'true' ? true : activeParam === 'false' ? false : undefined;
+  const products = useProducts({ page, search, categoryId, sort, active });
   const tree = useCategoryTree();
   const canManage = useCan('products.manage');
 
@@ -69,7 +72,25 @@ export function ProductsPage() {
     categoryOptions(tree.data?.data ?? []).map((option) => [option.id, option.label]),
   );
   const totalPages = Math.max(1, Math.ceil((products.data?.meta.total ?? 0) / pageSize));
-  const filtered = Boolean(search || categoryId);
+  const filtered = Boolean(search || categoryId || active !== undefined);
+
+  /** A view keeps the search, category, and sort, and goes back to the first page. */
+  function viewHref(value?: boolean) {
+    const params = new URLSearchParams(searchParams);
+    if (value === undefined) params.delete('active');
+    else params.set('active', String(value));
+    params.delete('page');
+    return `?${params}`;
+  }
+  const views = [
+    { label: 'All', value: undefined },
+    { label: 'Active', value: true },
+    { label: 'Inactive', value: false },
+  ].map((view) => ({
+    label: view.label,
+    to: viewHref(view.value),
+    selected: view.value === active,
+  }));
 
   // A change can empty the last page, so step back to the new last page.
   if (products.data && !products.isPlaceholderData && page > totalPages) {
@@ -104,6 +125,8 @@ export function ProductsPage() {
           </Button>
         )}
       </div>
+
+      <ViewTabs label="Product views" tabs={views} />
 
       <div className="grid gap-4 md:grid-cols-[1fr_14rem_10rem] md:items-end">
         <form role="search" onSubmit={handleSearch} className="space-y-2">

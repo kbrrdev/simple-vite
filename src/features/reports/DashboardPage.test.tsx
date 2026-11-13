@@ -25,6 +25,7 @@ const summary: ReportSummary = {
   itemsSold: 112,
   collectedCents: 4310000,
   refundedCents: 120000,
+  discountCents: 35000,
   netCollectedCents: 4190000,
   taxCents: 517000,
   shippingCents: 435000,
@@ -191,6 +192,7 @@ describe('the summary', () => {
     expect(pairs).toEqual([
       ['Items sold', '112'],
       ['Refunded', '₱1,200.00'],
+      ['Sale discounts', '₱350.00'],
       ['Cancelled orders', '2'],
       ['New customers', '9'],
       ['Tax', '₱5,170.00'],

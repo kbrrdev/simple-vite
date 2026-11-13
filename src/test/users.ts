@@ -12,6 +12,7 @@ const everything: Permission[] = [
   'banners.manage',
   'assets.manage',
   'payment_methods.manage',
+  'promotions.manage',
   'reports.operations',
   'reports.sales',
   'audit_logs.view',

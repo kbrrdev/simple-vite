@@ -43,6 +43,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
         option2Name: null,
         option2Value: null,
         unitPriceCents: 50000,
+        listPriceCents: 50000,
         quantity: 2,
         taxCents: 10714,
         lineTotalCents: 100000,

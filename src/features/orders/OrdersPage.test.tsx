@@ -120,6 +120,31 @@ describe('filtering', () => {
   });
 });
 
+describe('search', () => {
+  it('searches on submit, keeps it in the URL, and keeps it across tabs', async () => {
+    api(() => listOf([makeOrder()], 45));
+    const { router } = renderApp('/orders?page=3');
+
+    await screen.findByRole('link', { name: /ORD-000123/ });
+    await userEvent.type(
+      screen.getByRole('searchbox', { name: 'Search orders' }),
+      ' maria {Enter}',
+    );
+
+    expect(router.state.location.search).toBe('?search=maria');
+    expect(lastListQuery()).toMatchObject({ page: 1, search: 'maria' });
+
+    const tabs = within(screen.getByRole('navigation', { name: 'Order views' }));
+    await userEvent.click(tabs.getByRole('link', { name: 'To ship' }));
+    expect(router.state.location.search).toBe('?search=maria&status=confirmed');
+    expect(lastListQuery()).toMatchObject({ search: 'maria', status: 'confirmed' });
+
+    await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
+    expect(router.state.location.search).toBe('');
+    expect(screen.getByRole('searchbox', { name: 'Search orders' })).toHaveValue('');
+  });
+});
+
 describe('tabs', () => {
   const needsAttention = { paymentsToConfirm: 3, ordersToConfirm: 0, ordersToShip: 2 };
 

@@ -112,6 +112,18 @@ describe('the order page', () => {
     expect(within(section('Payment')).getByText('Reference GC12345678')).toBeInTheDocument();
   });
 
+  it('strikes through the list price of an item sold on sale', async () => {
+    const order = makeOrder();
+    serve({
+      ...order,
+      items: [{ ...order.items[0], unitPriceCents: 45000, listPriceCents: 50000 }],
+    });
+    renderApp('/orders/order-1');
+
+    const items = within(await screen.findByRole('region', { name: 'Items' }));
+    expect(items.getByText(/2 × ₱450\.00/)).toHaveTextContent('2 × ₱450.00 was ₱500.00');
+  });
+
   it('shows the payment and status as badges beside the number', async () => {
     serve(makeOrder({ status: 'confirmed', paymentStatus: 'paid' }));
     renderApp('/orders/order-1');
