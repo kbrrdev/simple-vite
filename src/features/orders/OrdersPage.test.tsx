@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
-import { admin } from '@/test/users';
+import { admin, staff } from '@/test/users';
 import type { Order } from './api';
 import { makeOrder } from './test-data';
 
@@ -110,18 +110,82 @@ describe('filtering', () => {
     expect(lastListQuery()).toMatchObject({ page: 1, status: 'confirmed' });
   });
 
-  it('shows payments to check, then clears the filters', async () => {
+  it('clears the filters', async () => {
     api(() => listOf([]));
-    const { router } = renderApp('/orders');
+    const { router } = renderApp('/orders?status=delivered');
 
-    const toggle = await screen.findByRole('button', { name: 'Payments to check' });
-    await userEvent.click(toggle);
-
-    expect(router.state.location.search).toBe('?paymentStatus=submitted');
-    expect(toggle).toHaveAttribute('aria-pressed', 'true');
     expect(await screen.findByText('No orders match these filters.')).toBeInTheDocument();
-
     await userEvent.click(screen.getByRole('button', { name: 'Clear filters' }));
     expect(router.state.location.search).toBe('');
+  });
+});
+
+describe('tabs', () => {
+  const needsAttention = { paymentsToConfirm: 3, ordersToConfirm: 0, ordersToShip: 2 };
+
+  function tabs() {
+    return within(screen.getByRole('navigation', { name: 'Order views' }));
+  }
+
+  it('opens a view, keeps it in the URL, and goes back to the first page', async () => {
+    api(() => listOf([]));
+    const { router } = renderApp('/orders?status=delivered&page=2');
+
+    await screen.findByText('No orders match these filters.');
+    await userEvent.click(tabs().getByRole('link', { name: 'Payments to check' }));
+
+    expect(router.state.location.search).toBe('?paymentStatus=submitted');
+    expect(lastListQuery()).toMatchObject({ page: 1, paymentStatus: 'submitted' });
+    expect(lastListQuery()?.status).toBeUndefined();
+    expect(tabs().getByRole('link', { name: 'Payments to check' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    );
+
+    await userEvent.click(tabs().getByRole('link', { name: 'All' }));
+    expect(router.state.location.search).toBe('');
+    expect(tabs().getByRole('link', { name: 'All' })).toHaveAttribute('aria-current', 'page');
+  });
+
+  it('selects the tab that matches the filters, and none for other filters', async () => {
+    api(() => listOf([]));
+    renderApp('/orders?status=confirmed');
+
+    await screen.findByText('No orders match these filters.');
+    expect(tabs().getByRole('link', { name: 'To ship' })).toHaveAttribute('aria-current', 'page');
+    expect(screen.getByLabelText('Status')).toHaveValue('confirmed');
+
+    await userEvent.selectOptions(screen.getByLabelText('Payment'), 'Paid');
+    expect(
+      tabs()
+        .getAllByRole('link')
+        .filter((link) => link.hasAttribute('aria-current')),
+    ).toEqual([]);
+  });
+
+  it('counts the work waiting in each view, from the backend', async () => {
+    api((path) =>
+      path === '/api/reports/order-status' ? { data: { counts: [], needsAttention } } : listOf([]),
+    );
+    renderApp('/orders');
+
+    await screen.findByText('No orders yet.');
+    expect(await tabs().findByRole('link', { name: 'Payments to check 3' })).toBeInTheDocument();
+    expect(tabs().getByRole('link', { name: 'To ship 2' })).toBeInTheDocument();
+    // Nothing waiting, so no count.
+    expect(tabs().getByRole('link', { name: 'To confirm' })).toBeInTheDocument();
+  });
+
+  it('leaves out the counts for roles that cannot read the report', async () => {
+    requestMock.mockImplementation(async (path) => {
+      if (path === '/api/auth/me') return { data: { ...staff, permissions: ['orders.view'] } };
+      if (path === '/api/reports/order-status') return { data: { counts: [], needsAttention } };
+      return listOf([]);
+    });
+    renderApp('/orders');
+
+    await screen.findByText('No orders yet.');
+    expect(tabs().getByRole('link', { name: 'Payments to check' })).toBeInTheDocument();
+    expect(requestMock).not.toHaveBeenCalledWith('/api/reports/order-status');
   });
 });

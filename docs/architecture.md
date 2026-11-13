@@ -77,6 +77,8 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 ## Orders
 
 - The list filters by `status` and `paymentStatus`, kept in the URL with the page. **Payments to check** is `paymentStatus=submitted`, and the Dashboard links to it with a count.
+- Tabs above the list, in `OrderTabs.tsx`, are saved views that set the same filters: All, Payments to check, To confirm (`pending`), To ship (`confirmed`), and Shipped. A tab is selected only when the filters match it exactly, and the dropdowns cover everything else.
+- The tabs show how many orders wait in each view, from the Needs attention counts in `GET /api/reports/order-status`. That report needs `reports.operations`, so other roles see the tabs without counts. Order changes refresh the reports.
 - The order page shows only the status moves the backend allows. `nextStatuses` in `features/orders/labels.ts` mirrors `adminTransitions` as a hint, and the backend's `409` is shown when it refuses.
 - `useOrderActions` in `features/orders/use-order-actions.tsx` splits those actions by role: checking a submitted payment or the move forward goes in the **Next step** card, and Cancel order, Mark returned, and Record refund go in the **More** menu, with History.
 - The order page's **Activity** lists the order's entries from `GET /api/audit-logs`, then when it was placed. Orders do not record when each status was reached, so this is all the history there is. It needs `audit_logs.view`, and is left out without it. Order changes refresh it.

@@ -221,6 +221,13 @@ Calm and decisive.
 - **Links:** 44px tall on phones and 32px from `md` up, with 8px corners. Inactive links are Slate Text and darken on hover. The active link has a Hairline background, Charcoal text, and medium weight.
 - **Phone:** a sheet from the left with the store name, the links, the signed-in email, and Log out. Choosing a link closes it.
 
+### Tabs
+
+- **Use:** saved views of a list, such as the Orders list's All, Payments to check, To confirm, To ship, and Shipped. Each is a link that sets the list's URL filters, so it works with Back and can be shared. Dropdown filters stay below for anything else.
+- **Style:** a row of text links on a Hairline bottom border, 44px tall on phones and 36px from `md` up. Inactive tabs are Slate Text and darken on hover. The selected one is Ink, medium weight, with a 2px Ink underline and `aria-current="page"`.
+- **Counts:** a view with work waiting shows its count in an amber badge after the label, from the backend. No count when nothing waits.
+- **Phone:** the row scrolls sideways in one line instead of wrapping.
+
 ### Status
 
 - **Loading:** Mist skeleton blocks in the layout of what is coming, from `src/components/Loading.tsx`. Lists get bordered rows, record pages a title and two cards, Files a grid of tiles, Dashboard cards their own shape, and the first load the sidebar and page frame. Each is a `role="status"` with a hidden "Loading…", and pulses only when the system allows motion. Buttons still say "Saving…" or "Uploading…", as those are actions, not content.

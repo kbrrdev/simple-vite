@@ -9,6 +9,7 @@ import { usePageParam } from '@/lib/use-page-param';
 import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useOrders, type Order } from './api';
 import { PaymentBadge, StatusBadge } from './OrderBadges';
+import { OrderTabs } from './OrderTabs';
 import {
   dateTimeFormat,
   isOrderStatus,
@@ -60,7 +61,6 @@ export function OrdersPage() {
 
   const totalPages = Math.max(1, Math.ceil((orders.data?.meta.total ?? 0) / pageSize));
   const filtered = Boolean(status || paymentStatus);
-  const checkingPayments = paymentStatus === 'submitted';
 
   // A change can empty the last page, so step back to the new last page.
   if (orders.data && !orders.isPlaceholderData && page > totalPages) {
@@ -81,16 +81,9 @@ export function OrdersPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-2xl font-semibold">Orders</h1>
-        <Button
-          variant={checkingPayments ? 'default' : 'outline'}
-          aria-pressed={checkingPayments}
-          onClick={() => setFilter('paymentStatus', checkingPayments ? '' : 'submitted')}
-        >
-          Payments to check
-        </Button>
-      </div>
+      <h1 className="text-2xl font-semibold">Orders</h1>
+
+      <OrderTabs status={status} paymentStatus={paymentStatus} />
 
       <div className="grid gap-4 sm:grid-cols-2 md:flex md:items-end">
         <div className="space-y-2 md:w-48">

@@ -38,11 +38,13 @@ function useOrderMutation<T>(send: (variables: T) => Promise<unknown>) {
   return useMutation({
     mutationFn: send,
     meta: { toast: false },
-    // The order page shows its audit entries, so a change refreshes them too.
+    // The order page shows its audit entries, and the list tabs and Dashboard count orders by
+    // status, so a change refreshes those too.
     onSuccess: () =>
       Promise.all([
         queryClient.invalidateQueries({ queryKey: ['orders'] }),
         queryClient.invalidateQueries({ queryKey: ['audit-log'] }),
+        queryClient.invalidateQueries({ queryKey: ['reports'] }),
       ]),
   });
 }
