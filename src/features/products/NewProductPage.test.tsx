@@ -54,7 +54,7 @@ describe('creating a product', () => {
     await fillDetails();
     await userEvent.type(screen.getByLabelText('Price for Price and stock'), '199.99');
     await userEvent.type(screen.getByLabelText('Stock for Price and stock'), '12');
-    await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText(/Product created/)).toBeInTheDocument();
     // The product page's code loads before the navigation finishes.
@@ -92,7 +92,7 @@ describe('creating a product', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Apply to all' }));
     await userEvent.clear(screen.getByLabelText('Price for M · Red'));
     await userEvent.type(screen.getByLabelText('Price for M · Red'), '500.50');
-    await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     await waitFor(() => expect(createBody()).toBeDefined());
     expect(createBody()).toMatchObject({
@@ -126,7 +126,7 @@ describe('creating a product', () => {
 
     await screen.findByLabelText('Option 1 name');
     await userEvent.type(screen.getByLabelText('Option 1 name'), 'Size');
-    await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(screen.getByText('Enter a name.')).toBeInTheDocument();
     expect(screen.getByText('Choose a category.')).toBeInTheDocument();
@@ -142,7 +142,7 @@ describe('creating a product', () => {
     await fillDetails();
     await userEvent.type(screen.getByLabelText('Price for Price and stock'), '1.999');
     await userEvent.type(screen.getByLabelText('Stock for Price and stock'), '1');
-    await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(screen.getByText('Enter a price, such as 199.99.')).toBeInTheDocument();
     expect(createBody()).toBeUndefined();
@@ -162,9 +162,54 @@ describe('creating a product', () => {
     await fillDetails();
     await userEvent.type(screen.getByLabelText('Price for Price and stock'), '10');
     await userEvent.type(screen.getByLabelText('Stock for Price and stock'), '1');
-    await userEvent.click(screen.getByRole('button', { name: 'Create product' }));
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('"name" is too long')).toBeInTheDocument();
     expect(screen.getByLabelText('Name')).toHaveAttribute('aria-invalid', 'true');
+  });
+});
+
+describe('the new product layout', () => {
+  it('creates an inactive product from the Status panel', async () => {
+    serve();
+    renderApp('/products/new');
+
+    await fillDetails();
+    await userEvent.click(screen.getByRole('radio', { name: /Inactive/ }));
+    await userEvent.type(screen.getByLabelText('Price for Price and stock'), '10');
+    await userEvent.type(screen.getByLabelText('Stock for Price and stock'), '1');
+    await userEvent.click(screen.getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(createBody()).toMatchObject({ active: false }));
+  });
+
+  it('shows the save bar only once something is entered, and Discard empties the form', async () => {
+    serve();
+    renderApp('/products/new');
+
+    await screen.findByLabelText('Option 1 name');
+    expect(screen.queryByRole('region', { name: 'Unsaved changes' })).not.toBeInTheDocument();
+
+    await userEvent.type(screen.getByLabelText('Name'), 'Trail Runner');
+    await userEvent.type(screen.getByLabelText('Option 1 name'), 'Size');
+    await addValues('Size', ['S']);
+    await userEvent.click(screen.getByRole('button', { name: 'Discard' }));
+
+    expect(await screen.findByLabelText('Name')).toHaveValue('');
+    expect(screen.getByLabelText('Option 1 name')).toHaveValue('');
+    expect(screen.queryByRole('region', { name: 'Unsaved changes' })).not.toBeInTheDocument();
+  });
+
+  it('asks before leaving with something entered', async () => {
+    serve();
+    const { router } = renderApp('/products/new');
+
+    await userEvent.type(await screen.findByLabelText('Name'), 'Half done');
+    await userEvent.click(screen.getByRole('link', { name: 'Back to products' }));
+
+    expect(
+      await screen.findByRole('dialog', { name: 'Leave without saving?' }),
+    ).toBeInTheDocument();
+    expect(router.state.location.pathname).toBe('/products/new');
   });
 });

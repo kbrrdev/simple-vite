@@ -82,7 +82,7 @@ describe('the role editor', () => {
     await user.type(await screen.findByLabelText('Name'), ' Packer ');
     await user.click(await screen.findByLabelText('List and view any order'));
     await user.click(screen.getByLabelText('Change variant stock only'));
-    await user.click(screen.getByRole('button', { name: 'Create role' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(requestMock).toHaveBeenCalledWith('/api/roles', {
       method: 'POST',
@@ -103,13 +103,40 @@ describe('the role editor', () => {
     ).toBeInTheDocument();
   });
 
+  it('counts the permissions as they are checked, and discards the changes', async () => {
+    serve();
+    renderApp(`/roles/${editorRole.id}`);
+    const user = userEvent.setup();
+
+    const summary = within(await screen.findByRole('region', { name: 'Summary' }));
+    expect(summary.getByText('1 permission selected')).toBeInTheDocument();
+    await user.click(await screen.findByLabelText('Read the audit log'));
+    expect(summary.getByText('2 permissions selected')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Discard' }));
+    expect(screen.getByLabelText('Read the audit log')).not.toBeChecked();
+    expect(screen.queryByRole('region', { name: 'Unsaved changes' })).not.toBeInTheDocument();
+  });
+
+  it('links to the people who have the role', async () => {
+    serve();
+    renderApp(`/roles/${staffRole.id}`);
+
+    const panel = within(await screen.findByRole('region', { name: 'People' }));
+    expect(panel.getByText('2 people have this role.')).toBeInTheDocument();
+    expect(panel.getByRole('link', { name: 'View people' })).toHaveAttribute(
+      'href',
+      `/people?roleId=${staffRole.id}`,
+    );
+  });
+
   it('sends only what changed', async () => {
     serve();
     renderApp(`/roles/${editorRole.id}`);
     const user = userEvent.setup();
 
     await user.click(await screen.findByLabelText('Read the audit log'));
-    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(requestMock).toHaveBeenCalledWith(`/api/roles/${editorRole.id}`, {
       method: 'PATCH',
@@ -127,7 +154,7 @@ describe('the role editor', () => {
     const name = await screen.findByLabelText('Name');
     await user.clear(name);
     await user.type(name, 'Staff');
-    await user.click(screen.getByRole('button', { name: 'Save changes' }));
+    await user.click(screen.getByRole('button', { name: 'Save' }));
 
     expect(await screen.findByText('A role with this name already exists')).toBeInTheDocument();
     expect(name).toHaveAttribute('aria-invalid', 'true');
