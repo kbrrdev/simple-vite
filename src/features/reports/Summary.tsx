@@ -47,6 +47,7 @@ export function Summary({ range }: { range: DateRange }) {
   const more = [
     { label: 'Items sold', value: counts.format(data.itemsSold) },
     { label: 'Refunded', value: formatCents(data.refundedCents) },
+    { label: 'Sale discounts', value: formatCents(data.discountCents) },
     { label: 'Cancelled orders', value: counts.format(data.cancelledOrders) },
     { label: 'New customers', value: counts.format(data.newCustomers) },
     ...tax,

@@ -1,7 +1,9 @@
+import type { FormEvent } from 'react';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
@@ -57,10 +59,11 @@ export function OrdersPage() {
   const paymentParam = searchParams.get('paymentStatus');
   const status = isOrderStatus(statusParam) ? statusParam : undefined;
   const paymentStatus = isPaymentStatus(paymentParam) ? paymentParam : undefined;
-  const orders = useOrders({ page, status, paymentStatus });
+  const search = searchParams.get('search')?.trim() || undefined;
+  const orders = useOrders({ page, status, paymentStatus, search });
 
   const totalPages = Math.max(1, Math.ceil((orders.data?.meta.total ?? 0) / pageSize));
-  const filtered = Boolean(status || paymentStatus);
+  const filtered = Boolean(status || paymentStatus || search);
 
   // A change can empty the last page, so step back to the new last page.
   if (orders.data && !orders.isPlaceholderData && page > totalPages) {
@@ -70,7 +73,7 @@ export function OrdersPage() {
   }
 
   /** Sets one filter and goes back to the first page. */
-  function setFilter(name: 'status' | 'paymentStatus', value: string) {
+  function setFilter(name: 'status' | 'paymentStatus' | 'search', value: string) {
     setSearchParams((params) => {
       if (value) params.set(name, value);
       else params.delete(name);
@@ -79,11 +82,36 @@ export function OrdersPage() {
     });
   }
 
+  function handleSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const value = new FormData(event.currentTarget).get('search');
+    setFilter('search', typeof value === 'string' ? value.trim() : '');
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-semibold">Orders</h1>
 
-      <OrderTabs status={status} paymentStatus={paymentStatus} />
+      <form role="search" onSubmit={handleSearch} className="flex max-w-xl gap-2">
+        <Label htmlFor="order-search" className="sr-only">
+          Search orders
+        </Label>
+        {/* Keyed by the URL, so that Back and Clear filters reset the box. */}
+        <Input
+          key={search ?? ''}
+          id="order-search"
+          name="search"
+          type="search"
+          enterKeyHint="search"
+          defaultValue={search ?? ''}
+          placeholder="Search by order number, email, name, or reference"
+        />
+        <Button type="submit" variant="outline">
+          Search
+        </Button>
+      </form>
+
+      <OrderTabs status={status} paymentStatus={paymentStatus} search={search} />
 
       <div className="grid gap-4 sm:grid-cols-2 md:flex md:items-end">
         <div className="space-y-2 md:w-48">

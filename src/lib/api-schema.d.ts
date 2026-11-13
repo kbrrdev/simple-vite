@@ -1256,6 +1256,8 @@ export interface paths {
                     /** @description Includes products in its subcategories */
                     categoryId?: string;
                     sort?: "newest" | "name";
+                    /** @description Only active or only inactive products, by the product's own flag. Leave out for both. */
+                    active?: boolean;
                 };
                 header?: never;
                 path?: never;
@@ -1983,6 +1985,194 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/sales": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every sale (needs promotions.manage)
+         * @description Shoppers see sales through the prices on products, the cart, and orders, so these routes are for admins only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description All sales, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Sale"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /**
+         * Add a sale (needs promotions.manage)
+         * @description A flash sale is a sale with short dates, and optionally a stockCap. When a product is in more than one sale, shoppers get the lowest price.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateSale"];
+                };
+            };
+            responses: {
+                /** @description The created sale */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Sale"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/sales/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a sale (needs promotions.manage) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["SaleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The sale */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Sale"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a sale (needs promotions.manage)
+         * @description Orders already placed keep their prices.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["SaleId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The sale was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update a sale (needs promotions.manage)
+         * @description productIds and categoryIds replace the whole list when sent. Orders already placed keep their prices.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["SaleId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateSale"];
+                };
+            };
+            responses: {
+                /** @description The updated sale */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Sale"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
     "/api/payment-methods": {
         parameters: {
             query?: never;
@@ -2491,6 +2681,8 @@ export interface paths {
                     limit?: number;
                     status?: "awaiting_payment" | "pending" | "confirmed" | "shipped" | "delivered" | "returned" | "cancelled";
                     paymentStatus?: "unpaid" | "submitted" | "paid" | "refunded";
+                    /** @description An order number, such as ORD-000123 or 123, or part of the customer's email, the recipient's name, or the payment reference. Ignores case. */
+                    search?: string;
                 };
                 header?: never;
                 path?: never;
@@ -3529,7 +3721,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     actorUserId?: string;
-                    entityType?: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+                    entityType?: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "sale" | "user" | "variant";
                     entityId?: string;
                     action?: string;
                     /** @description First day, in Manila time */
@@ -3595,7 +3787,7 @@ export interface paths {
                         "application/json": {
                             data: {
                                 /** @enum {string} */
-                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
+                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
                                 description: string;
                             }[];
                         };
@@ -3938,7 +4130,7 @@ export interface components {
             /** @description Only super admins manage roles and users. Admin can hold every permission too, so check this rather than the permissions. */
             superAdmin: boolean;
             /** @description What the user can do, for hiding what they cannot. Empty for customers. */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             /** Format: date-time */
             createdAt: string;
         };
@@ -4285,10 +4477,20 @@ export interface components {
              */
             assetId: string | null;
             /**
-             * @description Price in cents
+             * @description Price in cents. Public routes return the sale price, and admin routes the list price.
              * @example 1999
              */
             priceCents: number;
+            /**
+             * @description The price before a sale, for showing it struck through. Null when nothing is on sale.
+             * @example 2499
+             */
+            compareAtPriceCents?: number | null;
+            /**
+             * Format: date-time
+             * @description Public routes only. When the sale price ends, for a countdown, or null.
+             */
+            saleEndsAt?: string | null;
             /** @example 12 */
             stock: number;
             active: boolean;
@@ -4421,8 +4623,21 @@ export interface components {
             option2Name: string | null;
             /** @example Red */
             option2Value: string | null;
-            /** @example 1999 */
+            /**
+             * @description Includes any sale
+             * @example 1999
+             */
             unitPriceCents: number;
+            /**
+             * @description The price before a sale, for showing it struck through. Null when nothing is on sale.
+             * @example 2499
+             */
+            compareAtPriceCents: number | null;
+            /**
+             * Format: date-time
+             * @description When the sale price ends, for a countdown. Null when it has no end.
+             */
+            saleEndsAt: string | null;
             /** @example 2 */
             quantity: number;
             /** @example 3998 */
@@ -4485,6 +4700,113 @@ export interface components {
                 quantity: number;
             }[];
         };
+        Sale: {
+            /** Format: uuid */
+            id: string;
+            /** @example Payday Sale */
+            name: string;
+            /**
+             * @description percent takes discountValue percent off, and fixed takes discountValue cents off
+             * @enum {string}
+             */
+            discountType: "percent" | "fixed";
+            /**
+             * @description From 1 to 90 for percent, or an amount in cents for fixed
+             * @example 20
+             */
+            discountValue: number;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt: string | null;
+            isActive: boolean;
+            /**
+             * @description Units that can sell at the sale price, across all its products. Prices go back to normal once they are sold.
+             * @example 50
+             */
+            stockCap: number | null;
+            /** @description Units sold at the sale price. Only counted when there is a stockCap. */
+            soldCount: number;
+            productIds: string[];
+            /** @description Each category covers its subcategories */
+            categoryIds: string[];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        /** @description Needs at least one product or category. */
+        CreateSale: {
+            /** @example Payday Sale */
+            name: string;
+            /**
+             * @description percent takes discountValue percent off, and fixed takes discountValue cents off
+             * @enum {string}
+             */
+            discountType: "percent" | "fixed";
+            /**
+             * @description From 1 to 90 for percent, or an amount in cents for fixed
+             * @example 20
+             */
+            discountValue: number;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Must be after startsAt. Null means no limit.
+             */
+            endsAt?: string | null;
+            /** @default true */
+            isActive: boolean;
+            /**
+             * @description Units that can sell at the sale price, across all its products. Prices go back to normal once they are sold.
+             * @example 50
+             */
+            stockCap?: number | null;
+            productIds?: string[];
+            categoryIds?: string[];
+        };
+        UpdateSale: {
+            /** @example Payday Sale */
+            name?: string;
+            /**
+             * @description percent takes discountValue percent off, and fixed takes discountValue cents off
+             * @enum {string}
+             */
+            discountType?: "percent" | "fixed";
+            /**
+             * @description From 1 to 90 for percent, or an amount in cents for fixed
+             * @example 20
+             */
+            discountValue?: number;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
+            isActive?: boolean;
+            /**
+             * @description Units that can sell at the sale price, across all its products. Prices go back to normal once they are sold.
+             * @example 50
+             */
+            stockCap?: number | null;
+            productIds?: string[];
+            categoryIds?: string[];
+        };
         OrderPreview: {
             items: components["schemas"]["CartItem"][];
             /** @example 112000 */
@@ -4515,8 +4837,16 @@ export interface components {
             option1Value: string | null;
             option2Name: string | null;
             option2Value: string | null;
-            /** @example 56000 */
+            /**
+             * @description The price paid
+             * @example 56000
+             */
             unitPriceCents: number;
+            /**
+             * @description The price before any sale. Equal to unitPriceCents when nothing was on sale.
+             * @example 70000
+             */
+            listPriceCents: number;
             /** @example 2 */
             quantity: number;
             /** @example 12000 */
@@ -4971,6 +5301,8 @@ export interface components {
             taxCents: number;
             /** @description Shipping on gross sales */
             shippingCents: number;
+            /** @description Taken off list prices by sales, on gross sales */
+            discountCents: number;
             /** @description Customer accounts created in the range */
             newCustomers: number;
             /** @description Gross sales split by the tax setting each order was placed with */
@@ -5072,7 +5404,7 @@ export interface components {
             actorUserId: string | null;
             actorEmail: string | null;
             /** @enum {string} */
-            entityType: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "user" | "variant";
+            entityType: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "sale" | "user" | "variant";
             /** Format: uuid */
             entityId: string;
             /** @example update */
@@ -5111,7 +5443,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             userCount: number;
             /** Format: date-time */
             createdAt: string;
@@ -5129,7 +5461,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         UpdateRoleBody: {
             name?: string;
@@ -5140,7 +5472,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         PageMeta: {
             /** @example 1 */
@@ -5245,6 +5577,7 @@ export interface components {
         ImageId: string;
         VariantId: string;
         CartVariantId: string;
+        SaleId: string;
         GuestToken: string;
         OrderId: string;
         PaymentMethodId: string;

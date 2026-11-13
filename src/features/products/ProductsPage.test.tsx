@@ -109,6 +109,23 @@ describe('searching and filtering', () => {
     expect(lastListQuery()).toMatchObject({ page: 1, search: 'boots' });
   });
 
+  it('opens the Active and Inactive views, keeping the search and going back to page 1', async () => {
+    serve(() => ({ data: [makeProduct()], total: 45 }));
+    const { router } = renderApp('/products?search=trail&page=2');
+
+    await screen.findByRole('link', { name: /Trail Runner/ });
+    const tabs = within(screen.getByRole('navigation', { name: 'Product views' }));
+    expect(tabs.getByRole('link', { name: 'All' })).toHaveAttribute('aria-current', 'page');
+
+    await userEvent.click(tabs.getByRole('link', { name: 'Inactive' }));
+    expect(router.state.location.search).toBe('?search=trail&active=false');
+    expect(lastListQuery()).toMatchObject({ page: 1, search: 'trail', active: false });
+    expect(tabs.getByRole('link', { name: 'Inactive' })).toHaveAttribute('aria-current', 'page');
+
+    await userEvent.click(tabs.getByRole('link', { name: 'Active' }));
+    expect(lastListQuery()).toMatchObject({ active: true });
+  });
+
   it('filters by category and clears the filters', async () => {
     serve(() => ({ data: [] }));
     const { router } = renderApp('/products');

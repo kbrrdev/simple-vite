@@ -1,6 +1,4 @@
-import { Link } from 'react-router';
-import { cn } from 'cn';
-import { Badge } from '@/components/ui/badge';
+import { ViewTabs } from '@/components/ViewTabs';
 import { useCan } from '@/lib/auth';
 import { useOrderStatus } from '@/features/reports/api';
 import type { OrderStatus, PaymentStatus } from './api';
@@ -24,61 +22,39 @@ const views: View[] = [
   { label: 'Shipped', status: 'shipped' },
 ];
 
-function viewHref({ status, paymentStatus }: View) {
+/** A view's filters, keeping the search, so "To ship" while searching shows that person's. */
+function viewHref({ status, paymentStatus }: View, search?: string) {
   const params = new URLSearchParams();
+  if (search) params.set('search', search);
   if (status) params.set('status', status);
   if (paymentStatus) params.set('paymentStatus', paymentStatus);
-  const search = params.toString();
-  return search ? `?${search}` : '?';
+  return `?${params}`;
 }
 
 interface Props {
   status?: OrderStatus;
   paymentStatus?: PaymentStatus;
+  search?: string;
 }
 
 /**
- * Saved views of the list as tabs. Each sets the same URL filters as the dropdowns, and is
- * selected when the filters match it exactly. Counts come from the backend's order report, for
- * roles that can read it.
+ * The order views. Each is selected when the filters match it exactly. Counts come from the
+ * backend's order report, for roles that can read it.
  */
-export function OrderTabs({ status, paymentStatus }: Props) {
+export function OrderTabs({ status, paymentStatus, search }: Props) {
   const canCount = useCan('reports.operations');
   const report = useOrderStatus(canCount);
   const counts = report.data?.data.needsAttention;
 
   return (
-    // Phones scroll the row sideways rather than wrapping it.
-    <nav aria-label="Order views" className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-      <ul className="flex min-w-max border-b">
-        {views.map((view) => {
-          const selected = view.status === status && view.paymentStatus === paymentStatus;
-          const count = view.count && counts ? counts[view.count] : 0;
-
-          return (
-            <li key={view.label}>
-              <Link
-                to={viewHref(view)}
-                aria-current={selected ? 'page' : undefined}
-                className={cn(
-                  '-mb-px flex min-h-11 items-center gap-2 border-b-2 px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:min-h-9',
-                  selected
-                    ? 'border-foreground font-medium text-foreground'
-                    : 'border-transparent text-muted-foreground hover:text-foreground',
-                )}
-              >
-                {view.label}
-                {/* Keeps the count apart from the label when read aloud, as "To ship 2". */}{' '}
-                {count > 0 && (
-                  <Badge variant="warning" className="tabular-nums">
-                    {count}
-                  </Badge>
-                )}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
-    </nav>
+    <ViewTabs
+      label="Order views"
+      tabs={views.map((view) => ({
+        label: view.label,
+        to: viewHref(view, search),
+        selected: view.status === status && view.paymentStatus === paymentStatus,
+        count: view.count && counts ? counts[view.count] : undefined,
+      }))}
+    />
   );
 }

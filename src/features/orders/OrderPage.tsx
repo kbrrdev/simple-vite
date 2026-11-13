@@ -70,6 +70,16 @@ function Items({ order }: { order: Order }) {
                 )}
                 <p className="text-sm text-muted-foreground tabular-nums">
                   {item.quantity} × {formatCents(item.unitPriceCents)}
+                  {/* Sold on sale: the list price, struck through, as the backend sends it. */}
+                  {item.listPriceCents !== item.unitPriceCents && (
+                    <>
+                      {' '}
+                      <s>
+                        <span className="sr-only">was </span>
+                        {formatCents(item.listPriceCents)}
+                      </s>
+                    </>
+                  )}
                 </p>
               </div>
               <p className="font-medium tabular-nums">{formatCents(item.lineTotalCents)}</p>

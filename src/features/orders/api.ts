@@ -9,16 +9,18 @@ export interface OrderFilters {
   page: number;
   status?: OrderStatus;
   paymentStatus?: PaymentStatus;
+  /** Order number, customer email, recipient name, or payment reference. */
+  search?: string;
 }
 
 export const pageSize = 20;
 
-export function useOrders({ page, status, paymentStatus }: OrderFilters) {
+export function useOrders({ page, status, paymentStatus, search }: OrderFilters) {
   return useQuery({
-    queryKey: ['orders', 'list', { page, status, paymentStatus }],
+    queryKey: ['orders', 'list', { page, status, paymentStatus, search }],
     queryFn: () =>
       request<{ data: Order[]; meta: Schemas['PageMeta'] }>('/api/orders/admin', {
-        query: { page, limit: pageSize, status, paymentStatus },
+        query: { page, limit: pageSize, status, paymentStatus, search },
       }),
     placeholderData: keepPreviousData,
   });

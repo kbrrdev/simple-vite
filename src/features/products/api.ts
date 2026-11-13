@@ -13,16 +13,18 @@ export interface ProductFilters {
   search?: string;
   categoryId?: string;
   sort: ProductSort;
+  /** True for products on sale, false for inactive ones, and left out for both. */
+  active?: boolean;
 }
 
 export const pageSize = 20;
 
-export function useProducts({ page, search, categoryId, sort }: ProductFilters) {
+export function useProducts({ page, search, categoryId, sort, active }: ProductFilters) {
   return useQuery({
-    queryKey: ['products', 'list', { page, search, categoryId, sort }],
+    queryKey: ['products', 'list', { page, search, categoryId, sort, active }],
     queryFn: () =>
       request<{ data: Product[]; meta: Schemas['PageMeta'] }>('/api/products/admin', {
-        query: { page, limit: pageSize, search, categoryId, sort },
+        query: { page, limit: pageSize, search, categoryId, sort, active },
       }),
     placeholderData: keepPreviousData,
   });
