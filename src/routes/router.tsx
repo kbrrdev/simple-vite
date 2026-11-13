@@ -143,6 +143,20 @@ export const routes: RouteObject[] = [
                             .DiscountsPage,
                         }),
                       },
+                      {
+                        path: '/discounts/sales/new',
+                        lazy: async () => ({
+                          Component: (await import('@/features/discounts/SaleEditorPage'))
+                            .NewSalePage,
+                        }),
+                      },
+                      {
+                        path: '/discounts/sales/:id',
+                        lazy: async () => ({
+                          Component: (await import('@/features/discounts/SaleEditorPage'))
+                            .SaleEditorPage,
+                        }),
+                      },
                     ],
                   },
                   {

@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
-import { parsePesos } from '@/lib/money';
+import { centsToText, parsePesos } from '@/lib/money';
 import {
   useAddVariant,
   useUpdateVariant,
@@ -22,7 +22,7 @@ import {
   type ProductVariant,
   type VariantChanges,
 } from './api';
-import { centsToText, parseStock, variantLabel } from './variants';
+import { parseStock, variantLabel } from './variants';
 
 interface Props {
   product: Product;

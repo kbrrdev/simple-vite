@@ -150,7 +150,9 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Each row says what the discount does, worked out in `features/discounts/rows.ts` from the backend's fields, and its use so far, from the backend's `soldCount`, `usedCount`, and `discountGivenCents`.
 - The status badge comes from `scheduleStatus` in `src/lib/schedule.ts`, which banners share: Active, Scheduled, Expired, or Off. The tabs filter by it, and Off shows under All only.
 - Turn off and Delete ask first. A coupon that orders used cannot be deleted, and the backend's `409` says so.
-- Each kind gets its own editor page in a later change, with the Create discount menu.
+- **Create discount** opens a menu of the kinds there are editors for, and a row's name opens its editor. Coupons and promotions get theirs in later changes.
+- The sale editor, `/discounts/sales/:id`, follows the record page layout: name, discount, and what it applies to on the left, and status, schedule, and stock cap on the right, saved through the save bar. Percent is a whole number from 1 to 90, and a fixed amount is typed in pesos and sent as cents. It needs at least one product or category, and a stock cap cannot go below the units already sold. These are hints, and the backend decides.
+- `ProductPicker` searches products by name and shows the chosen ones as chips, and `CategoryPicker` lists the whole tree as checkboxes. Promotions use them too. The picker reads each chosen product for its name, as the list cannot filter by ids.
 
 ## Blog
 

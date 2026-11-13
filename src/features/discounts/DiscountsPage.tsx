@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { MoreHorizontalIcon, PercentIcon, SearchIcon } from 'lucide-react';
-import { useSearchParams } from 'react-router';
+import { ChevronDownIcon, MoreHorizontalIcon, PercentIcon, SearchIcon } from 'lucide-react';
+import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EmptyState } from '@/components/EmptyState';
@@ -24,17 +24,16 @@ import {
   useSales,
   useSetDiscountActive,
 } from './api';
-import { couponRow, promotionRow, saleRow, type DiscountRow } from './rows';
+import { couponRow, promotionRow, saleRow, statusBadges, type DiscountRow } from './rows';
 
-const statusBadges: Record<
-  ScheduleStatus,
-  { label: string; variant: 'success' | 'info' | 'secondary' }
-> = {
-  live: { label: 'Active', variant: 'success' },
-  scheduled: { label: 'Scheduled', variant: 'info' },
-  ended: { label: 'Expired', variant: 'secondary' },
-  off: { label: 'Off', variant: 'secondary' },
-};
+// The kinds of discount there are editors for. Coupons and promotions are added with theirs.
+const createOptions = [
+  {
+    label: 'Sale',
+    hint: 'Lower prices on products or categories, for a while or a number of units',
+    to: '/discounts/sales/new',
+  },
+];
 
 // Each tab shows one status. Off discounts show under All only, as in Shopify.
 const views: { label: string; status?: ScheduleStatus; param?: string }[] = [
@@ -91,6 +90,30 @@ export function DiscountsPage() {
       <PageHeader
         title="Discounts"
         description="Sales, coupons, and promotions. When more than one applies, shoppers get the lowest total."
+        actions={
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                Create discount
+                <ChevronDownIcon />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="min-w-56">
+              {createOptions.map((option) => (
+                <DropdownMenuItem
+                  key={option.to}
+                  asChild
+                  className="min-h-11 flex-col items-start gap-0 md:min-h-8"
+                >
+                  <Link to={option.to}>
+                    {option.label}
+                    <span className="text-xs text-muted-foreground">{option.hint}</span>
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        }
       />
 
       <ViewTabs
@@ -141,7 +164,16 @@ export function DiscountsPage() {
               >
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="flex flex-wrap items-center gap-2">
-                    <span className="truncate font-medium">{row.title}</span>
+                    {row.href ? (
+                      <Link
+                        to={row.href}
+                        className="truncate font-medium underline-offset-3 hover:underline focus-visible:underline"
+                      >
+                        {row.title}
+                      </Link>
+                    ) : (
+                      <span className="truncate font-medium">{row.title}</span>
+                    )}
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </p>
                   <p className="text-sm text-muted-foreground">

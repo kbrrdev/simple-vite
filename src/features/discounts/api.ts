@@ -4,6 +4,8 @@ import { request, type Schemas } from '@/lib/api';
 export type Sale = Schemas['Sale'];
 export type Coupon = Schemas['Coupon'];
 export type Promotion = Schemas['Promotion'];
+export type CreateSaleBody = Schemas['CreateSale'];
+export type SaleChanges = Schemas['UpdateSale'];
 
 /** The three kinds the backend keeps apart, and the route each lives under. */
 export type DiscountKind = 'sales' | 'coupons' | 'promotions';
@@ -21,7 +23,7 @@ export const useCoupons = () => useList<Coupon>('coupons');
 export const usePromotions = () => useList<Promotion>('promotions');
 
 /** A change to any discount. Callers show errors themselves, next to the action. */
-function useDiscountMutation<T>(send: (variables: T) => Promise<unknown>) {
+function useDiscountMutation<T, R>(send: (variables: T) => Promise<R>) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: send,
@@ -41,5 +43,24 @@ export function useSetDiscountActive() {
 export function useDeleteDiscount() {
   return useDiscountMutation(({ kind, id }: { kind: DiscountKind; id: string }) =>
     request(`/api/${kind}/${id}`, { method: 'DELETE' }),
+  );
+}
+
+export function useSale(id: string) {
+  return useQuery({
+    queryKey: ['discounts', 'sales', id],
+    queryFn: () => request<{ data: Sale }>(`/api/sales/${id}`),
+  });
+}
+
+export function useCreateSale() {
+  return useDiscountMutation((body: CreateSaleBody) =>
+    request<{ data: Sale }>('/api/sales', { method: 'POST', body }),
+  );
+}
+
+export function useUpdateSale() {
+  return useDiscountMutation(({ id, body }: { id: string; body: SaleChanges }) =>
+    request(`/api/sales/${id}`, { method: 'PATCH', body }),
   );
 }
