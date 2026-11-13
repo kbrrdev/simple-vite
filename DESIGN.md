@@ -124,7 +124,7 @@ A grey palette from ink to paper, a single red for danger, and three soft tints 
 ### Neutral
 
 - **Ink** (oklch(0.145 0 0)): body text, headings, and nav links.
-- **Slate Text** (oklch(0.556 0 0)): secondary text, nav group headings, captions, empty messages, and the focus ring. It meets 4.5:1 on Paper.
+- **Slate Text** (oklch(0.556 0 0)): secondary text, nav pages, captions, empty messages, and the focus ring. It meets 4.5:1 on Paper.
 - **Hairline** (oklch(0.922 0 0)): borders, dividers between rows, input strokes, and the active nav background.
 - **Mist** (oklch(0.97 0 0)): image placeholders, loading skeletons, hovered rows, and the dialog footer band.
 - **Paper Shade** (oklch(0.985 0 0)): the sidebar, the phone top bar, and the menu sheet.
@@ -171,7 +171,7 @@ Each is a pale fill with dark text of the same hue, at least 6.4:1. Dark mode us
 
 ## Layout
 
-On phones, a sticky top bar holds the menu button on the left and the store name; navigation opens in a sheet from the left. From `md` (768px), a fixed 224px sidebar replaces the bar. The nav is grouped by how often each area is used: Dashboard and Orders first, then Catalog, Content, Settings, and Team, each under an 11px uppercase Slate Text heading with wide letter spacing and 16px above it. Links are Ink, so headings read as labels and links as places to go. Links a role cannot use are left out, and so is a group with none left. Log out sits at the bottom of the sidebar, which stays in view as the page scrolls. Content padding is 16px on phones and 32px from `md` up, and content is never wider than the space left by the sidebar.
+On phones, a sticky top bar holds the menu button on the left and the store name; navigation opens in a sheet from the left. From `md` (768px), a fixed 224px sidebar replaces the bar. The nav follows Shopify Admin: four areas with icons, Home, Orders, Products, and Content, then Settings at the bottom, and the account below it. An area's own pages (Categories under Products; Blog, Banners, and Files under Content; Payment methods, People, Roles, and Audit log under Settings) show indented under it only while one of them is open, so the nav stays short. Pages a role cannot use are left out, and so is an area with none left. The sidebar stays in view as the page scrolls. Content padding is 16px on phones and 32px from `md` up, and content is never wider than the space left by the sidebar.
 
 Screens stack vertically with 24px between blocks: the page title row (title on the left, the main action on the right), then the list, grid, or form. Form fields are 8px from their labels and 16px from each other. Lists and grids stay single-purpose: one row or tile per item, with its actions on the same line.
 
@@ -222,8 +222,11 @@ Calm and decisive.
 
 ### Navigation
 
-- **Links:** 44px tall on phones and 32px from `md` up, with 8px corners. Inactive links are Slate Text and darken on hover. The active link has a Hairline background, Charcoal text, and medium weight.
-- **Phone:** a sheet from the left with the store name, the links, the signed-in email, and Log out. Choosing a link closes it.
+- **Areas:** a 20px lucide icon and the label, 44px tall on phones and 36px from `md` up, with 8px corners. The area you are in has a Hairline background, semibold text, and a heavier icon stroke. Areas without a page of their own, such as Content and Settings, open their first page the role can use.
+- **Pages:** indented under their area, Slate Text, darkening on hover. The open one is Ink and medium weight.
+- **Orders count:** an amber badge with the number of payments to check, from the order report, for roles with `reports.operations`. It is one backend number, never a sum.
+- **Account:** at the bottom, your initials in a Charcoal circle, your email, and your role. It opens a menu with Log out, so that a stray tap cannot sign you out.
+- **Phone:** a sheet from the left with the store name and the same nav. Choosing a link closes it.
 
 ### Tabs
 
