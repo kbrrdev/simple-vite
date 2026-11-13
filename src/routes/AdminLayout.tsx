@@ -5,6 +5,7 @@ import {
   HouseIcon,
   InboxIcon,
   MenuIcon,
+  PercentIcon,
   SettingsIcon,
   TagIcon,
   type LucideIcon,
@@ -67,6 +68,11 @@ const areas: Area[] = [
       { to: '/banners', label: 'Banners', permission: 'banners.manage' },
       { to: '/files', label: 'Files', permission: 'assets.manage' },
     ],
+  },
+  {
+    label: 'Discounts',
+    icon: PercentIcon,
+    page: { to: '/discounts', label: 'Discounts', permission: 'promotions.manage' },
   },
 ];
 

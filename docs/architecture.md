@@ -48,20 +48,21 @@ src/
 
 ## Screens and Backend Modules
 
-| Screen          | Status | Backend routes                                                                                                                                         |
-| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Login           | Built  | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Dashboard       | Built  | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
-| Products        | Built  | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
-| Categories      | Built  | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
-| Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
-| Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
-| Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
-| Banners         | Built  | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
-| Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
-| Audit log       | Built  | `GET /api/audit-logs`                                                                                                                                  |
-| Roles           | Built  | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
-| People          | Built  | `GET /api/users`, `PATCH /api/users/:id/role`, both super admin only                                                                                   |
+| Screen          | Status      | Backend routes                                                                                                                                         |
+| --------------- | ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Login           | Built       | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
+| Dashboard       | Built       | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
+| Products        | Built       | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
+| Categories      | Built       | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
+| Orders          | Built       | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
+| Payment methods | Built       | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Blogs           | Built       | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Banners         | Built       | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
+| Discounts       | In progress | `GET /api/sales`, `/api/coupons`, `/api/promotions`, with `PATCH` and `DELETE` on each `/:id`, all needing `promotions.manage`                         |
+| Files           | Built       | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
+| Audit log       | Built       | `GET /api/audit-logs`                                                                                                                                  |
+| Roles           | Built       | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
+| People          | Built       | `GET /api/users`, `PATCH /api/users/:id/role`, both super admin only                                                                                   |
 
 Use the admin routes for reading. Public routes hide inactive products, inactive variants, and draft blogs.
 
@@ -141,6 +142,15 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Times are typed in the browser's time zone and sent as ISO. Editing sends only the fields that changed.
 - A new banner goes after the last one. Move up and Move down renumber the positions 0, 1, 2, and so on, with one `PATCH` for each banner that changes, as positions can tie after a delete.
 - Delete removes a banner for good, so Turn off is offered for hiding it.
+
+## Discounts
+
+- Sales, coupons, and promotions are three resources in the backend, under `/api/sales`, `/api/coupons`, and `/api/promotions`, all needing `promotions.manage`. The Discounts screen reads all three, which return everything, and merges them into one list, newest first, after Shopify's Discounts.
+- Automatic discounts and free shipping are coupons, with `isAutomatic` and the `free_shipping` type. Free shipping over an amount is a backend setting, not a discount, so the app cannot change it.
+- Each row says what the discount does, worked out in `features/discounts/rows.ts` from the backend's fields, and its use so far, from the backend's `soldCount`, `usedCount`, and `discountGivenCents`.
+- The status badge comes from `scheduleStatus` in `src/lib/schedule.ts`, which banners share: Active, Scheduled, Expired, or Off. The tabs filter by it, and Off shows under All only.
+- Turn off and Delete ask first. A coupon that orders used cannot be deleted, and the backend's `409` says so.
+- Each kind gets its own editor page in a later change, with the Create discount menu.
 
 ## Blog
 

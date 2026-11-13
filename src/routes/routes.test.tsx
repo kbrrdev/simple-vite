@@ -100,7 +100,14 @@ describe('permissions', () => {
     const { router } = renderApp('/');
 
     const nav = await screen.findByRole('navigation', { name: 'Main' });
-    expect(navLinks(nav)).toEqual(['Home', 'Orders', 'Products', 'Content', 'Settings']);
+    expect(navLinks(nav)).toEqual([
+      'Home',
+      'Orders',
+      'Products',
+      'Content',
+      'Discounts',
+      'Settings',
+    ]);
 
     await userEvent.click(within(nav).getByRole('link', { name: 'Products' }));
     // The page's code loads before the navigation finishes.
@@ -111,6 +118,7 @@ describe('permissions', () => {
       'Products',
       'Categories',
       'Content',
+      'Discounts',
       'Settings',
     ]);
 
@@ -121,6 +129,7 @@ describe('permissions', () => {
       'Orders',
       'Products',
       'Content',
+      'Discounts',
       'Settings',
       'Payment methods',
       'People',
