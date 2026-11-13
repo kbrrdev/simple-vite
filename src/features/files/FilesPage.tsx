@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent } from 'react';
+import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
 import { Navigate } from 'react-router';
 import { toast } from 'sonner';
 import { PageHeader } from '@/components/PageHeader';
@@ -16,10 +16,20 @@ import { allowedTypes, formatSize, formatType, uploadProblem } from './file-info
 
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
+/** Whether a drag carries files, rather than text or a link from the page. */
+function carriesFiles(event: DragEvent) {
+  return event.dataTransfer.types.includes('Files');
+}
+
 export function FilesPage() {
   const [page, setPage] = usePageParam();
   const [deleting, setDeleting] = useState<Asset | null>(null);
-  const [fileProblem, setFileProblem] = useState<string | null>(null);
+  // Files that could not be uploaded, each with its name and why.
+  const [problems, setProblems] = useState<string[]>([]);
+  const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
+  const [dragging, setDragging] = useState(false);
+  // Entering a child fires dragleave on the parent, so drags are counted rather than flagged.
+  const dragDepth = useRef(0);
   const fileInput = useRef<HTMLInputElement>(null);
   const assets = useAssets(page);
   const upload = useUploadAsset();
@@ -31,52 +41,126 @@ export function FilesPage() {
     return <Navigate to={`?page=${totalPages}`} replace />;
   }
 
-  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
-    const file = event.target.files?.[0];
-    // Cleared, so that choosing the same file again still triggers a change.
-    event.target.value = '';
-    if (!file) return;
+  /**
+   * Checks each file, then uploads the good ones one at a time, as the backend takes one file
+   * per request. A bad or refused file is listed and the rest still go.
+   */
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0 || progress) return;
 
-    upload.reset();
-    const problem = uploadProblem(file);
-    setFileProblem(problem);
-    if (problem) return;
-
-    // New uploads are listed first, so show the first page.
-    upload.mutate(file, {
-      onSuccess: () => {
-        toast.success('Image uploaded');
-        setPage(1);
-      },
+    const found: string[] = [];
+    const valid = files.filter((file) => {
+      const problem = uploadProblem(file);
+      if (problem) found.push(`${file.name}: ${problem}`);
+      return !problem;
     });
+    setProblems(found);
+    if (valid.length === 0) return;
+
+    let uploaded = 0;
+    setProgress({ done: 0, total: valid.length });
+    for (const [index, file] of valid.entries()) {
+      try {
+        await upload.mutateAsync(file);
+        uploaded += 1;
+      } catch (error) {
+        found.push(`${file.name}: ${errorMessage(error)}`);
+        setProblems([...found]);
+      }
+      setProgress({ done: index + 1, total: valid.length });
+    }
+    setProgress(null);
+
+    if (uploaded > 0) {
+      toast.success(uploaded === 1 ? 'Image uploaded' : `${uploaded} images uploaded`);
+      // New uploads are listed first, so show the first page.
+      setPage(1);
+    }
   }
 
-  const uploadError = fileProblem ?? (upload.error ? errorMessage(upload.error) : null);
+  function handleFileChange(event: ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(event.target.files ?? []);
+    // Cleared, so that choosing the same files again still triggers a change.
+    event.target.value = '';
+    void uploadFiles(files);
+  }
 
   return (
-    <div className="space-y-6">
+    <div
+      className="relative space-y-6"
+      onDragEnter={(event) => {
+        if (!carriesFiles(event)) return;
+        dragDepth.current += 1;
+        setDragging(true);
+      }}
+      onDragLeave={(event) => {
+        if (!carriesFiles(event)) return;
+        dragDepth.current -= 1;
+        if (dragDepth.current === 0) setDragging(false);
+      }}
+      onDragOver={(event) => {
+        // Allows the drop. Without it the browser opens the image instead.
+        if (carriesFiles(event)) event.preventDefault();
+      }}
+      onDrop={(event) => {
+        if (!carriesFiles(event)) return;
+        event.preventDefault();
+        dragDepth.current = 0;
+        setDragging(false);
+        void uploadFiles(Array.from(event.dataTransfer.files));
+      }}
+    >
+      {dragging && (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-2 z-20 flex items-start justify-center rounded-xl border-2 border-dashed border-foreground/40 bg-background/80 pt-32"
+        >
+          <p className="rounded-lg bg-background px-4 py-2 font-medium shadow-lg">
+            Drop images to upload them
+          </p>
+        </div>
+      )}
+
       <input
         ref={fileInput}
         type="file"
+        multiple
         accept={allowedTypes.join(',')}
-        aria-label="Image file"
+        aria-label="Image files"
         className="sr-only"
         onChange={handleFileChange}
       />
       <PageHeader
         title="Files"
-        description="Images for products, categories, blog posts, banners, and payment QR codes."
+        description="Images for products, categories, blog posts, banners, and payment QR codes. Drop images anywhere on this page to upload them."
         actions={
-          <Button onClick={() => fileInput.current?.click()} disabled={upload.isPending}>
-            {upload.isPending ? 'Uploading…' : 'Upload image'}
+          <Button onClick={() => fileInput.current?.click()} disabled={Boolean(progress)}>
+            {progress ? 'Uploading…' : 'Upload images'}
           </Button>
         }
       />
 
-      {uploadError && (
-        <p role="alert" className="text-sm text-destructive">
-          {uploadError}
+      {progress && (
+        <p role="status" className="text-sm text-muted-foreground tabular-nums">
+          Uploading {Math.min(progress.done + 1, progress.total)} of {progress.total}…
         </p>
+      )}
+
+      {problems.length > 0 && (
+        <div role="alert" className="space-y-1 text-sm text-destructive">
+          {problems.length === 1 ? (
+            <p>{problems[0]}</p>
+          ) : (
+            <>
+              <p>These images were not uploaded:</p>
+              <ul className="list-disc pl-5">
+                {problems.map((problem) => (
+                  <li key={problem}>{problem}</li>
+                ))}
+              </ul>
+            </>
+          )}
+        </div>
       )}
 
       {assets.isPending && (
@@ -102,7 +186,7 @@ export function FilesPage() {
 
       {assets.data?.meta.total === 0 && (
         <EmptyState icon={ImagesIcon} title="No images yet">
-          Upload JPEG, PNG, or WebP images of up to 5 MB.
+          Drop images here, or upload JPEG, PNG, or WebP images of up to 5 MB.
         </EmptyState>
       )}
 

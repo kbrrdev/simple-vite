@@ -312,6 +312,8 @@ Every page for one record, such as an order, product, blog post, or role, starts
 - **Main image:** the first tile carries a filled "Main image" badge, as lists and the store use it.
 - **Actions:** a "More actions" menu per tile, with Move earlier, Move later, Edit alt text, and Remove. Adding an image always asks for alt text in a dialog that shows the photo.
 
+- **Uploading on Files:** Upload images takes several files, and dropping images anywhere on the page does the same. While dragging, a dashed Ink outline covers the page with "Drop images to upload them". Uploads go one at a time with "Uploading 2 of 5…" as a status, and files that were skipped are listed by name with the reason.
+
 ### Forms
 
 - **Short forms**, with one to three fields, such as a category, open in a dialog.

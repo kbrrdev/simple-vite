@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
@@ -99,7 +99,7 @@ describe('uploading', () => {
 
     await screen.findAllByRole('img');
     const file = image('shirt.jpg', 'image/jpeg', 1024);
-    await userEvent.upload(screen.getByLabelText('Image file'), file);
+    await userEvent.upload(screen.getByLabelText('Image files'), file);
 
     expect(await screen.findAllByRole('img')).toHaveLength(2);
     expect(await screen.findByText('Image uploaded')).toBeInTheDocument();
@@ -114,7 +114,7 @@ describe('uploading', () => {
 
     await screen.findByText(/No images yet/);
     await userEvent.upload(
-      screen.getByLabelText('Image file'),
+      screen.getByLabelText('Image files'),
       image('photo.gif', 'image/gif', 1024),
       { applyAccept: false },
     );
@@ -132,7 +132,7 @@ describe('uploading', () => {
 
     await screen.findByText(/No images yet/);
     await userEvent.upload(
-      screen.getByLabelText('Image file'),
+      screen.getByLabelText('Image files'),
       image('big.png', 'image/png', 6 * 1024 * 1024),
     );
 
@@ -154,7 +154,7 @@ describe('uploading', () => {
 
     await screen.findByText(/No images yet/);
     await userEvent.upload(
-      screen.getByLabelText('Image file'),
+      screen.getByLabelText('Image files'),
       image('photo.webp', 'image/webp', 1024),
     );
 
@@ -197,5 +197,71 @@ describe('deleting', () => {
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));
 
     expect(await within(dialog).findByRole('alert')).toHaveTextContent('Asset is in use');
+  });
+});
+
+describe('uploading several images', () => {
+  /** Answers uploads with a new asset each, and counts them. */
+  function serveUploads() {
+    const posted: File[] = [];
+    api((_path, options) => {
+      if (options?.method === 'POST') {
+        posted.push((options.body as FormData).get('file') as File);
+        return { data: asset(`new-${posted.length}`) };
+      }
+      return listOf([asset('a')]);
+    });
+    return posted;
+  }
+
+  it('uploads each chosen image, one at a time', async () => {
+    const posted = serveUploads();
+    renderApp('/files');
+
+    await screen.findAllByRole('img');
+    await userEvent.upload(screen.getByLabelText('Image files'), [
+      image('one.jpg', 'image/jpeg', 1024),
+      image('two.png', 'image/png', 1024),
+    ]);
+
+    expect(await screen.findByText('2 images uploaded')).toBeInTheDocument();
+    expect(posted.map((file) => file.name)).toEqual(['one.jpg', 'two.png']);
+  });
+
+  it('lists the files it skipped, and still uploads the rest', async () => {
+    const posted = serveUploads();
+    renderApp('/files');
+
+    await screen.findAllByRole('img');
+    await userEvent.upload(
+      screen.getByLabelText('Image files'),
+      [
+        image('good.jpg', 'image/jpeg', 1024),
+        image('anim.gif', 'image/gif', 1024),
+        image('huge.png', 'image/png', 6 * 1024 * 1024),
+      ],
+      { applyAccept: false },
+    );
+
+    const alert = await screen.findByRole('alert');
+    expect(alert).toHaveTextContent('These images were not uploaded');
+    expect(alert).toHaveTextContent('anim.gif: Choose a JPEG, PNG, or WebP image.');
+    expect(alert).toHaveTextContent('huge.png: This file is 6 MB');
+    // Checks the request rather than the toast, as an earlier test's toast can still show.
+    await waitFor(() => expect(posted.map((file) => file.name)).toEqual(['good.jpg']));
+  });
+
+  it('uploads images dropped on the page', async () => {
+    const posted = serveUploads();
+    renderApp('/files');
+
+    const heading = await screen.findByRole('heading', { name: 'Files' });
+    const dataTransfer = { files: [image('dropped.webp', 'image/webp', 1024)], types: ['Files'] };
+    fireEvent.dragEnter(heading, { dataTransfer });
+    expect(screen.getByText('Drop images to upload them')).toBeInTheDocument();
+    fireEvent.drop(heading, { dataTransfer });
+
+    await waitFor(() => expect(posted.map((file) => file.name)).toEqual(['dropped.webp']));
+    expect(screen.queryByText('Drop images to upload them')).not.toBeInTheDocument();
   });
 });

@@ -202,6 +202,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Lists take `page` and `limit`, with `limit` up to 100, and return `meta: { page, limit, total }`.
 - Errors look like `{ error: { message, details?, requestId? } }`. `details` lists `{ field, message }` pairs, and `requestId` appears on `500` errors.
 - Uploading takes two steps. Send the image to `POST /api/assets` in a `file` form field, then attach the returned `id` to a product or blog. Files must be JPEG, PNG, or WebP, and 5 MB or smaller.
+- The Files page takes several images at once, from Upload images or dropped anywhere on the page. It checks each, then uploads the good ones one at a time, as the backend takes one file per request, and lists any it skipped with the reason.
 - Money is in integer cents, such as `priceCents` and `totalCents`. Format it for display only, for example with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 
 ## API Types
