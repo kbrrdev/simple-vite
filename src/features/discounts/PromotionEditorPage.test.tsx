@@ -124,7 +124,18 @@ describe('buy X get Y', () => {
     ]);
   });
 
-  it('sends the whole offer when part of it changes, and only the name otherwise', async () => {
+  it('sends only the name when only the name changes', async () => {
+    serve();
+    renderApp('/discounts/promotions/promo-1');
+
+    await userEvent.type(await screen.findByLabelText('Name'), ' 2');
+    await userEvent.click(saveBar().getByRole('button', { name: 'Save' }));
+
+    await waitFor(() => expect(sent('PATCH')).toHaveLength(1));
+    expect(sent('PATCH')[0][1]?.body).toEqual({ name: 'Socks deal 2' });
+  });
+
+  it('sends the whole offer when part of it changes', async () => {
     serve();
     renderApp('/discounts/promotions/promo-1');
 

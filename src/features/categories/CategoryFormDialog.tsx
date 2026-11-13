@@ -13,7 +13,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
-import { useSaveCategory, type CategoryNode } from './api';
+import { useSaveCategory, type CategoryInput, type CategoryNode } from './api';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
 import { IconPicker } from './IconPicker';
 import { parentOptions } from './tree';
@@ -45,21 +45,34 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
     setEmptyName(!trimmed);
     if (!trimmed) return;
 
-    save.mutate(
-      {
-        id: category?.id,
-        name: trimmed,
-        parentId: parentId || null,
-        imageAssetId: image?.id ?? null,
-        icon,
+    const values = {
+      name: trimmed,
+      parentId: parentId || null,
+      imageAssetId: image?.id ?? null,
+      icon,
+    };
+    const done = {
+      onSuccess: () => {
+        toast.success(category ? 'Category saved' : 'Category created');
+        onClose();
       },
-      {
-        onSuccess: () => {
-          toast.success(category ? 'Category saved' : 'Category created');
-          onClose();
-        },
-      },
-    );
+    };
+    if (!category) {
+      save.mutate(values, done);
+      return;
+    }
+
+    // Only what changed is sent, so a save cannot undo a change someone else made meanwhile.
+    const changes: Partial<CategoryInput> = {};
+    if (values.name !== category.name) changes.name = values.name;
+    if (values.parentId !== category.parentId) changes.parentId = values.parentId;
+    if (values.imageAssetId !== category.imageAssetId) changes.imageAssetId = values.imageAssetId;
+    if (values.icon !== category.icon) changes.icon = values.icon;
+    if (Object.keys(changes).length === 0) {
+      onClose();
+      return;
+    }
+    save.mutate({ id: category.id, ...changes }, done);
   }
 
   const apiError = save.error instanceof ApiError ? save.error : undefined;

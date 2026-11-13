@@ -13,5 +13,7 @@ export default defineConfig({
     globals: true,
     setupFiles: ['./src/test/setup.ts'],
     env: { VITE_API_URL: 'http://api.test' },
+    // Room for the longer waits in the test setup when the machine is busy.
+    testTimeout: 15_000,
   },
 });

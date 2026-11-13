@@ -247,8 +247,8 @@ describe('uploading several images', () => {
     expect(alert).toHaveTextContent('These images were not uploaded');
     expect(alert).toHaveTextContent('anim.gif: Choose a JPEG, PNG, or WebP image.');
     expect(alert).toHaveTextContent('huge.png: This file is 6 MB');
-    // Checks the request rather than the toast, as an earlier test's toast can still show.
-    await waitFor(() => expect(posted.map((file) => file.name)).toEqual(['good.jpg']));
+    expect(await screen.findByText('Image uploaded')).toBeInTheDocument();
+    expect(posted.map((file) => file.name)).toEqual(['good.jpg']);
   });
 
   it('uploads images dropped on the page', async () => {

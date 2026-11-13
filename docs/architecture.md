@@ -72,6 +72,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 - Categories nest up to three levels, such as Men › Shoes › Running. The screen reads the whole tree from `/api/categories/tree`, without pages.
 - Names are unique among categories with the same parent.
+- Editing a category sends only the fields that changed, so a save cannot undo a change someone else made meanwhile.
 - Changing the parent moves the category with everything below it. The form only offers parents that keep it within three levels, but the backend decides.
 - A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`, and an icon.
 - Icons are lucide names from `categoryIcons` in `features/categories/icons.ts`, picked in the category dialog with a search. The backend only checks a name's format, so the storefront must use the same names. A name this app does not have is kept until someone picks another, and the dialog says so.
@@ -256,6 +257,7 @@ Configuration comes from `VITE_` environment variables, documented in `.env.exam
 Tests run with Vitest and React Testing Library. They render components as a user sees them, and mock the API client rather than the network.
 
 - Render screens with `renderApp(path)` from `src/test/render.tsx`.
+- `src/test/setup.ts` clears toasts after each test, as their list is shared across a file, and waits up to 3 seconds for things to appear, as files run side by side. Tests can check a toast's text without seeing a leftover from the test before.
 - Mock `request` and `refreshSession` with `vi.mock('@/lib/api', ...)`, and answer `/api/auth/me` with a user from `src/test/users.ts`: `admin` has every permission, `staff` has the seeded Staff role, and `customer` has none. See `src/routes/routes.test.tsx`.
 
 ## Build and Deployment
