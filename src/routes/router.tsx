@@ -123,6 +123,17 @@ export const routes: RouteObject[] = [
                     ],
                   },
                   {
+                    element: <RequirePermission permission="banners.manage" />,
+                    children: [
+                      {
+                        path: '/banners',
+                        lazy: async () => ({
+                          Component: (await import('@/features/banners/BannersPage')).BannersPage,
+                        }),
+                      },
+                    ],
+                  },
+                  {
                     element: <RequirePermission permission="assets.manage" />,
                     children: [
                       {

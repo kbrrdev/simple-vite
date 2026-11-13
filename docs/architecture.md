@@ -57,6 +57,7 @@ src/
 | Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
 | Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Banners         | Built  | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
 | Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
 | Audit log       | Built  | `GET /api/audit-logs`                                                                                                                                  |
 | Roles           | Built  | `GET`, `POST`, `PATCH` and `DELETE /api/roles`, `GET /api/roles/permissions`, all super admin only                                                     |
@@ -124,6 +125,17 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Orders copy a method's provider, account, and QR when they are placed, so edits only change new orders.
 - A method that orders have used cannot be deleted, only turned off. The backend's `409` explains this.
 - The QR code is an image from Files, picked with the shared `ImageField` from `features/files`.
+
+## Banners
+
+- Banners are the storefront's promotional images, managed with `banners.manage`. The screen lists every banner, on, off, or scheduled, from `GET /api/banners/admin`, in position order.
+- Each has an image, an optional phone image, alt text, and an optional title, subtitle, link, and start and end time. Images come from `ImageField`, uploaded or chosen from Files, and an image a banner uses cannot be deleted from Files.
+- Links must start with `/` or `https://`, and an end must come after its start. The form checks both as a hint, and the backend decides.
+- A store has at most `meta.maxBanners` banners, counting ones that are off. New banner is disabled at the limit, and the backend's `409` stays the authority.
+- The badge says whether the store shows a banner now: Live, Scheduled, Ended, or Off. `bannerStatus` mirrors the backend's public list as a hint.
+- Times are typed in the browser's time zone and sent as ISO. Editing sends only the fields that changed.
+- A new banner goes after the last one. Move up and Move down renumber the positions 0, 1, 2, and so on, with one `PATCH` for each banner that changes, as positions can tie after a delete.
+- Delete removes a banner for good, so Turn off is offered for hiding it.
 
 ## Blog
 

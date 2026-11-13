@@ -37,6 +37,7 @@ const groups: { label?: string; items: NavItem[] }[] = [
     label: 'Content',
     items: [
       { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
+      { to: '/banners', label: 'Banners', permission: 'banners.manage' },
       { to: '/files', label: 'Files', permission: 'assets.manage' },
     ],
   },

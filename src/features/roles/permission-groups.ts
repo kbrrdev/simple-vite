@@ -4,7 +4,7 @@ import type { PermissionInfo } from './api';
 const groups = [
   { label: 'Orders', prefixes: ['orders.'] },
   { label: 'Products', prefixes: ['products.', 'inventory.'] },
-  { label: 'Content', prefixes: ['categories.', 'blogs.', 'assets.'] },
+  { label: 'Content', prefixes: ['categories.', 'blogs.', 'banners.', 'assets.'] },
   { label: 'Settings', prefixes: ['payment_methods.'] },
   { label: 'Reports', prefixes: ['reports.'] },
   { label: 'Audit log', prefixes: ['audit_logs.'] },

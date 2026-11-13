@@ -8,6 +8,7 @@ export const entityLabels: Record<AuditEntityType, string> = {
   product_image: 'Product image',
   category: 'Category',
   blog: 'Blog post',
+  banner: 'Banner',
   payment_method: 'Payment method',
   asset: 'File',
   role: 'Role',
@@ -24,6 +25,8 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   product: (id) => `/products/${id}`,
   blog: (id) => `/blogs/${id}`,
   role: (id) => `/roles/${id}`,
+  // Banners have no page each, so their entries open the list.
+  banner: () => '/banners',
 };
 
 const actionLabels: Record<string, string> = {
