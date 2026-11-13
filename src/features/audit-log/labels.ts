@@ -32,6 +32,7 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   banner: () => '/banners',
   sale: (id) => `/discounts/sales/${id}`,
   coupon: (id) => `/discounts/coupons/${id}`,
+  promotion: (id) => `/discounts/promotions/${id}`,
 };
 
 const actionLabels: Record<string, string> = {

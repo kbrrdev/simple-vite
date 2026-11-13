@@ -26,7 +26,7 @@ import {
 } from './api';
 import { couponRow, promotionRow, saleRow, statusBadges, type DiscountRow } from './rows';
 
-// The kinds of discount there are editors for. Promotions are added with theirs.
+// Every kind of discount, each opening its editor.
 const createOptions = [
   {
     label: 'Sale',
@@ -47,6 +47,16 @@ const createOptions = [
     label: 'Free shipping',
     hint: 'Waives shipping, with a code or automatically',
     to: '/discounts/coupons/new?type=free_shipping',
+  },
+  {
+    label: 'Buy X get Y',
+    hint: 'Units free or cheaper when shoppers buy enough',
+    to: '/discounts/promotions/new',
+  },
+  {
+    label: 'Bundle',
+    hint: 'Money or percent off when products are bought together',
+    to: '/discounts/promotions/new?type=bundle',
   },
 ];
 
@@ -179,16 +189,12 @@ export function DiscountsPage() {
               >
                 <div className="min-w-0 flex-1 space-y-0.5">
                   <p className="flex flex-wrap items-center gap-2">
-                    {row.href ? (
-                      <Link
-                        to={row.href}
-                        className="truncate font-medium underline-offset-3 hover:underline focus-visible:underline"
-                      >
-                        {row.title}
-                      </Link>
-                    ) : (
-                      <span className="truncate font-medium">{row.title}</span>
-                    )}
+                    <Link
+                      to={row.href}
+                      className="truncate font-medium underline-offset-3 hover:underline focus-visible:underline"
+                    >
+                      {row.title}
+                    </Link>
                     <Badge variant={status.variant}>{status.label}</Badge>
                   </p>
                   <p className="text-sm text-muted-foreground">

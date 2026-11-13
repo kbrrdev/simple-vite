@@ -112,30 +112,35 @@ describe('permissions', () => {
     await userEvent.click(within(nav).getByRole('link', { name: 'Products' }));
     // The page's code loads before the navigation finishes.
     await waitFor(() => expect(router.state.location.pathname).toBe('/products'));
-    expect(navLinks(nav)).toEqual([
-      'Home',
-      'Orders',
-      'Products',
-      'Categories',
-      'Content',
-      'Discounts',
-      'Settings',
-    ]);
+    // The nav redraws a moment after the address changes, so wait for it under load.
+    await waitFor(() =>
+      expect(navLinks(nav)).toEqual([
+        'Home',
+        'Orders',
+        'Products',
+        'Categories',
+        'Content',
+        'Discounts',
+        'Settings',
+      ]),
+    );
 
     await userEvent.click(within(nav).getByRole('link', { name: 'Settings' }));
     await waitFor(() => expect(router.state.location.pathname).toBe('/payment-methods'));
-    expect(navLinks(nav)).toEqual([
-      'Home',
-      'Orders',
-      'Products',
-      'Content',
-      'Discounts',
-      'Settings',
-      'Payment methods',
-      'People',
-      'Roles',
-      'Audit log',
-    ]);
+    await waitFor(() =>
+      expect(navLinks(nav)).toEqual([
+        'Home',
+        'Orders',
+        'Products',
+        'Content',
+        'Discounts',
+        'Settings',
+        'Payment methods',
+        'People',
+        'Roles',
+        'Audit log',
+      ]),
+    );
   });
 
   it('counts the payments to check beside Orders, for roles that can read the report', async () => {
