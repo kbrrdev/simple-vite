@@ -113,7 +113,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Type, person, item, the From and To days, and the page are kept in the URL. The days are calendar days in Manila time, both included, and no days means all of them.
 - Clicking someone's email shows only their changes. Scripts such as `db:set-role` have no person, and show as System.
 - Each entry shows the fields it changed, before and after. Fields ending in `Cents` are shown in pesos, and redacted values as `[redacted]`. Everything is shown as text.
-- Order, product, and blog pages have a History link to their own entries. Variants and product images are logged under their own ids, so a product's History leaves them out.
+- Order, product, blog, and role pages have History in their header's More menu, from `useHistoryItem` in `features/audit-log/history.ts`, for roles with `audit_logs.view`. Variants and product images are logged under their own ids, so a product's History leaves them out.
 - Action names the app does not know yet are turned into words, so new backend actions still read well.
 
 ## Payment methods

@@ -1,18 +1,11 @@
 import { useId, type ReactNode } from 'react';
-import { ChevronDownIcon } from 'lucide-react';
 import { Link, useLocation, useParams } from 'react-router';
 import { DetailSkeleton } from '@/components/Loading';
+import { RecordHeader } from '@/components/RecordHeader';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { ApiError, errorMessage } from '@/lib/api';
-import { useCan } from '@/lib/auth';
 import { formatCents } from '@/lib/money';
+import { useHistoryItem } from '@/features/audit-log/history';
 import { useOrder, type Order } from './api';
 import { dateTimeFormat } from './labels';
 import { NextStep } from './NextStep';
@@ -20,7 +13,7 @@ import { OrderActivity } from './OrderActivity';
 import { PaymentBadge, StatusBadge } from './OrderBadges';
 import { paymentSteps, statusSteps } from './order-steps';
 import { Steps } from './Steps';
-import { useOrderActions, type OrderAction } from './use-order-actions';
+import { useOrderActions } from './use-order-actions';
 
 /** Returns to the list with the filters it had, when the user came from it. */
 function useBackLink() {
@@ -172,64 +165,34 @@ function SidePanel({ order }: { order: Order }) {
   );
 }
 
-/** Rarer actions and History, out of the way of the next step. */
-function MoreMenu({ order, actions }: { order: Order; actions: OrderAction[] }) {
-  const canViewLog = useCan('audit_logs.view');
-  if (actions.length === 0 && !canViewLog) return null;
-
-  const params = new URLSearchParams({ entityType: 'order', entityId: order.id });
-
-  return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
-          More
-          <ChevronDownIcon />
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-48">
-        {canViewLog && (
-          <DropdownMenuItem asChild>
-            <Link to={`/audit-log?${params}`}>History</Link>
-          </DropdownMenuItem>
-        )}
-        {canViewLog && actions.length > 0 && <DropdownMenuSeparator />}
-        {actions.map((action) => (
-          <DropdownMenuItem
-            key={action.key}
-            variant={action.destructive ? 'destructive' : 'default'}
-            disabled={action.disabled}
-            onSelect={action.run}
-          >
-            {action.label}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
-  );
-}
-
 function OrderDetails({ order, backLink }: { order: Order; backLink: string }) {
   const { next, more, dialog } = useOrderActions(order);
+  const history = useHistoryItem('order', order.id);
+  const menu = [
+    ...history,
+    ...more.map((action) => ({
+      key: action.key,
+      label: action.label,
+      onSelect: action.run,
+      destructive: action.destructive,
+      disabled: action.disabled,
+    })),
+  ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
-      <div className="space-y-2">
-        <Button variant="ghost" asChild className="-ml-2">
-          <Link to={backLink}>Back to orders</Link>
-        </Button>
-        <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
-          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-            <h1 className="text-2xl font-semibold tabular-nums">{order.orderNumber}</h1>
+      <RecordHeader
+        back={{ to: backLink, label: 'Back to orders' }}
+        title={<span className="tabular-nums">{order.orderNumber}</span>}
+        badges={
+          <>
             <PaymentBadge status={order.paymentStatus} />
             <StatusBadge status={order.status} />
-          </div>
-          <MoreMenu order={order} actions={more} />
-        </div>
-        <p className="text-sm break-words text-muted-foreground tabular-nums">
-          Placed {dateTimeFormat.format(new Date(order.createdAt))} · {order.customerEmail}
-        </p>
-      </div>
+          </>
+        }
+        menu={menu}
+        facts={`Placed ${dateTimeFormat.format(new Date(order.createdAt))} · ${order.customerEmail}`}
+      />
 
       {/* One column on phones, in the order staff need it. From lg the panel moves to the
           right, and the last row takes any extra height so the main cards stay together. */}

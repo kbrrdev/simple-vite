@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
 import type { AuditEntry } from '@/features/audit-log/api';
+import { openMoreMenu } from '@/test/menu';
 import { renderApp } from '@/test/render';
 import { admin, staff } from '@/test/users';
 import type { Order } from './api';
@@ -79,11 +80,6 @@ function stepLabels(list: string) {
   return within(screen.getByRole('list', { name: list }))
     .getAllByRole('listitem')
     .map((step) => step.querySelector('p')?.firstChild?.textContent);
-}
-
-async function openMore() {
-  await userEvent.click(await screen.findByRole('button', { name: 'More' }));
-  return screen.findByRole('menu');
 }
 
 beforeEach(() => {
@@ -225,7 +221,7 @@ describe('the next step', () => {
     expect(step.getAllByRole('button').map((button) => button.textContent)).toEqual([
       'Mark delivered',
     ]);
-    const menu = within(await openMore());
+    const menu = await openMoreMenu();
     expect(menu.getByRole('menuitem', { name: 'Mark returned' })).toBeInTheDocument();
   });
 
@@ -279,7 +275,7 @@ describe('payments', () => {
     serve(makeOrder({ status: 'shipped', paymentStatus: 'paid' }));
     renderApp('/orders/order-1');
 
-    const menu = within(await openMore());
+    const menu = await openMoreMenu();
     expect(menu.queryByRole('menuitem', { name: 'Record refund' })).not.toBeInTheDocument();
   });
 
@@ -289,9 +285,7 @@ describe('payments', () => {
     });
     renderApp('/orders/order-1');
 
-    await userEvent.click(
-      within(await openMore()).getByRole('menuitem', { name: 'Record refund' }),
-    );
+    await userEvent.click((await openMoreMenu()).getByRole('menuitem', { name: 'Record refund' }));
     await userEvent.click(
       within(screen.getByRole('dialog')).getByRole('button', { name: 'Record refund' }),
     );
@@ -342,7 +336,7 @@ describe('status changes', () => {
     });
     renderApp('/orders/order-1');
 
-    await userEvent.click(within(await openMore()).getByRole('menuitem', { name: 'Cancel order' }));
+    await userEvent.click((await openMoreMenu()).getByRole('menuitem', { name: 'Cancel order' }));
     const dialog = screen.getByRole('dialog', { name: 'Cancel order' });
     expect(dialog).toHaveTextContent('stock goes back on sale');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Cancel order' }));
@@ -352,7 +346,7 @@ describe('status changes', () => {
     await waitFor(() =>
       expect(screen.getByText('Cancelled', { selector: '[data-slot=badge]' })).toBeInTheDocument(),
     );
-    const menu = within(await openMore());
+    const menu = await openMoreMenu();
     expect(menu.getByRole('menuitem', { name: 'Record refund' })).toBeInTheDocument();
   });
 
@@ -414,7 +408,7 @@ describe('permissions', () => {
     serve(makeOrder());
     renderApp('/orders/order-1');
 
-    const menu = within(await openMore());
+    const menu = await openMoreMenu();
     expect(menu.getByRole('menuitem', { name: 'History' })).toHaveAttribute(
       'href',
       '/audit-log?entityType=order&entityId=order-1',
@@ -425,7 +419,7 @@ describe('permissions', () => {
     serve(makeOrder({ status: 'pending', paymentStatus: 'paid' }), { user: staff });
     renderApp('/orders/order-1');
 
-    const menu = within(await openMore());
+    const menu = await openMoreMenu();
     expect(menu.queryByRole('menuitem', { name: 'History' })).not.toBeInTheDocument();
     expect(screen.queryByRole('list', { name: 'Activity' })).not.toBeInTheDocument();
     expect(requestMock).not.toHaveBeenCalledWith('/api/audit-logs', expect.anything());

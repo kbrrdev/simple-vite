@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
 import { useAuditLogs, type AuditEntry } from '@/features/audit-log/api';
+import { historyHref } from '@/features/audit-log/history';
 import { actionLabel, fieldLabel, formatValue } from '@/features/audit-log/labels';
 import type { Order } from './api';
 import {
@@ -81,7 +82,6 @@ export function OrderActivity({ order }: { order: Order }) {
 
   const entries = log.data?.data ?? [];
   const more = (log.data?.meta.total ?? 0) > entries.length;
-  const params = new URLSearchParams({ entityType: 'order', entityId: order.id });
 
   return (
     <section aria-labelledby={headingId} className="space-y-4 rounded-lg border p-4">
@@ -125,7 +125,7 @@ export function OrderActivity({ order }: { order: Order }) {
 
       {more && (
         <Link
-          to={`/audit-log?${params}`}
+          to={historyHref('order', order.id)}
           className="inline-block text-sm underline underline-offset-3"
         >
           See all in Audit log
