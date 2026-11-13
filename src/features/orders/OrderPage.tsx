@@ -1,7 +1,7 @@
-import { useId, type ReactNode } from 'react';
 import { Link, useLocation, useParams } from 'react-router';
 import { DetailSkeleton } from '@/components/Loading';
 import { RecordHeader } from '@/components/RecordHeader';
+import { PanelSection, SidePanel } from '@/components/SidePanel';
 import { Button } from '@/components/ui/button';
 import { ApiError, errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
@@ -94,24 +94,12 @@ function Items({ order }: { order: Order }) {
   );
 }
 
-function PanelSection({ title, children }: { title: string; children: ReactNode }) {
-  const headingId = useId();
-  return (
-    <section aria-labelledby={headingId} className="space-y-3 border-t p-4 first:border-t-0">
-      <h2 id={headingId} className="font-medium">
-        {title}
-      </h2>
-      {children}
-    </section>
-  );
-}
-
 /** Where the order is, who it is for, where it goes, and how it was paid. */
-function SidePanel({ order }: { order: Order }) {
+function OrderPanel({ order }: { order: Order }) {
   const address = order.shippingAddress;
 
   return (
-    <div className="rounded-lg border">
+    <SidePanel>
       <PanelSection title="Progress">
         <Steps label="Status steps" steps={statusSteps(order)} />
       </PanelSection>
@@ -161,7 +149,7 @@ function SidePanel({ order }: { order: Order }) {
           </div>
         )}
       </PanelSection>
-    </div>
+    </SidePanel>
   );
 }
 
@@ -204,7 +192,7 @@ function OrderDetails({ order, backLink }: { order: Order; backLink: string }) {
           <Items order={order} />
         </div>
         <div className="min-w-0 lg:col-start-2 lg:row-span-4 lg:row-start-1">
-          <SidePanel order={order} />
+          <OrderPanel order={order} />
         </div>
         <div className="min-w-0 lg:col-start-1 [&:empty]:hidden">
           <OrderActivity order={order} />

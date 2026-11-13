@@ -138,6 +138,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - The list searches by name and filters by category, which includes subcategories. Search, category, sort, and page are kept in the URL.
 - New products are created with all their variants at once. The form builds a variant for each combination of option values, and prices are typed in pesos and sent as cents.
 - Images can only be added after a product exists, so creating one opens its page.
+- The product page follows Shopify's: details, images, and variants on the left, and status and category in a side panel. The details and category save together through the save bar, which sends only the fields that changed, so a save cannot undo a change made meanwhile. Unsaved edits survive a status or variant change, as the form is keyed by the product's id.
 - The first image is the main one. Moving an image renumbers the positions 0, 1, 2, and so on, with one `PATCH` for each image that changes, as positions can tie after a removal.
 - A new variant cannot have an image, as the backend's create body has none. Staff give it one with Edit, from the product's own images.
 - Editing a variant sends only the fields that changed, so that a price change cannot overwrite a stock change made meanwhile.

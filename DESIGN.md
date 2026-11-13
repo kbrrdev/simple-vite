@@ -273,6 +273,20 @@ Every page for one record, such as an order, product, blog post, or role, starts
 - **Phone order:** Next step, the main content, the side panel, then Activity.
 - **Activity:** a timeline of the record's audit entries, newest first, each with who made it and its changes as "Field: before → after", ending with when the record was created.
 
+**The Product page** uses the same two columns, after Shopify's product page.
+
+- **Main column:** Details (name, description, option names), then Images, then Variants.
+- **Side panel** (`SidePanel` and `PanelSection` from `src/components/`): Status, with an "On sale" (green) or "Inactive" (grey) badge, one sentence, and Deactivate or Turn on; then Organization, with the category.
+- **Phone order:** Details, the side panel, Images, then Variants.
+- **Saving:** no Save button in a card. Fields in both columns save together through the save bar.
+
+### Save bar
+
+- **Use:** a record page whose fields are spread across cards or columns, such as the Product page. `SaveBar` from `src/components/`.
+- **Behavior:** it appears once anything differs from the saved record, and says "Unsaved changes" with Discard and Save. Discard puts back the saved values. Save sends only the fields that changed, and the bar goes away once the saved record matches. Leaving with unsaved changes asks first, through `useLeaveGuard` from `src/lib/`.
+- **Style:** fixed to the bottom of the window, beside the sidebar, with a Hairline top border and a large shadow, as it floats above the page. The page leaves room at its end while it shows. It sits at the bottom rather than the top, as Shopify's does, so it never covers the phone's top bar or Back.
+- **Roles that cannot edit** never see it.
+
 ### Figures and charts
 
 - **Needs attention:** waiting work is a to-do list, one row per task with something waiting: a dark Charcoal count badge, a verb title such as "Confirm payments", a Slate Text caption, and Review on the right. The whole row is one link, at least 64px tall. Once the section is 672px or wider (a container query, as the sidebar takes part of the window), the rows become cards a third of the width, side by side, with Review at the bottom right, so that it stays beside its task on a wide screen. Tasks with nothing waiting are left out, and when none wait the section is one quiet line, "All caught up." The dark badge is used for waiting work only.

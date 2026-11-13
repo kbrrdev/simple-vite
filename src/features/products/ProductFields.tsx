@@ -16,6 +16,8 @@ interface Props {
   errors: Record<string, string | undefined>;
   /** New products choose here. Existing ones use Deactivate and Turn on instead. */
   showActive?: boolean;
+  /** The product page shows the category in its side panel instead. */
+  withCategory?: boolean;
 }
 
 function FieldError({ id, message }: { id: string; message?: string }) {
@@ -27,8 +29,40 @@ function FieldError({ id, message }: { id: string; message?: string }) {
   );
 }
 
+/** The category picker, with its label and error. */
+export function CategoryField({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (categoryId: string) => void;
+  error?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label htmlFor="product-categoryId">Category</Label>
+      <CategorySelect
+        id="product-categoryId"
+        emptyLabel="Choose a category"
+        aria-invalid={Boolean(error)}
+        aria-describedby={error ? 'product-categoryId-error' : undefined}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+      />
+      <FieldError id="product-categoryId-error" message={error} />
+    </div>
+  );
+}
+
 /** Name, category, description, and, for new products, whether it is on sale. */
-export function ProductFields({ values, onChange, errors, showActive = false }: Props) {
+export function ProductFields({
+  values,
+  onChange,
+  errors,
+  showActive = false,
+  withCategory = true,
+}: Props) {
   const describedBy = (field: string) => (errors[field] ? `product-${field}-error` : undefined);
 
   return (
@@ -46,18 +80,13 @@ export function ProductFields({ values, onChange, errors, showActive = false }: 
         <FieldError id="product-name-error" message={errors.name} />
       </div>
 
-      <div className="space-y-2">
-        <Label htmlFor="product-categoryId">Category</Label>
-        <CategorySelect
-          id="product-categoryId"
-          emptyLabel="Choose a category"
-          aria-invalid={Boolean(errors.categoryId)}
-          aria-describedby={describedBy('categoryId')}
+      {withCategory && (
+        <CategoryField
           value={values.categoryId}
-          onChange={(event) => onChange({ categoryId: event.target.value })}
+          onChange={(categoryId) => onChange({ categoryId })}
+          error={errors.categoryId}
         />
-        <FieldError id="product-categoryId-error" message={errors.categoryId} />
-      </div>
+      )}
 
       <div className="space-y-2">
         <Label htmlFor="product-description">Description</Label>
