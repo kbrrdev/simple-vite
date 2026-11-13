@@ -1,8 +1,9 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { chooseFromMore, openMoreMenu } from '@/test/menu';
 import { admin, staff } from '@/test/users';
 import type { Product } from './api';
 import { categoryTree, makeProduct, makeVariant } from './test-data';
@@ -78,7 +79,11 @@ describe('the product page', () => {
 
 describe('editing the details', () => {
   it('saves the details and renames an option', async () => {
-    serve(sized, () => ({ ...sized, name: 'Trail Runner 2', updatedAt: 'later' }));
+    serve(sized, () => ({
+      ...sized,
+      name: 'Trail Runner 2',
+      updatedAt: '2026-11-14T00:00:00.000Z',
+    }));
     renderApp('/products/product-1');
 
     const name = await screen.findByLabelText('Name');
@@ -130,25 +135,28 @@ describe('editing the details', () => {
 
 describe('deactivating', () => {
   it('asks before deactivating, then shows the product as inactive', async () => {
-    serve(sized, () => ({ ...sized, active: false, updatedAt: 'later' }));
+    serve(sized, () => ({ ...sized, active: false, updatedAt: '2026-11-14T00:00:00.000Z' }));
     renderApp('/products/product-1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Deactivate' }));
+    await chooseFromMore('Deactivate');
     const dialog = screen.getByRole('dialog', { name: 'Deactivate product' });
     expect(dialog).toHaveTextContent('Past orders keep it');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Deactivate' }));
 
     expect(await screen.findByText('Product deactivated')).toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/products/product-1', { method: 'DELETE' });
-    expect(await screen.findByRole('button', { name: 'Turn on' })).toBeInTheDocument();
+    // The badge beside the title, as variants can show Inactive too.
+    const title = screen.getByRole('heading', { level: 1 });
+    await waitFor(() => expect(title.parentElement).toHaveTextContent('Inactive'));
+    expect((await openMoreMenu()).getByRole('menuitem', { name: 'Turn on' })).toBeInTheDocument();
   });
 
   it('turns an inactive product back on', async () => {
     const inactive = { ...sized, active: false };
-    serve(inactive, () => ({ ...sized, updatedAt: 'later' }));
+    serve(inactive, () => ({ ...sized, updatedAt: '2026-11-14T00:00:00.000Z' }));
     renderApp('/products/product-1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Turn on' }));
+    await chooseFromMore('Turn on');
 
     expect(await screen.findByText('Product is on sale again')).toBeInTheDocument();
     expect(requestMock).toHaveBeenCalledWith('/api/products/product-1', {
@@ -165,7 +173,8 @@ describe('roles without products.manage', () => {
 
     expect(await screen.findByLabelText('Name')).toBeDisabled();
     expect(screen.queryByRole('button', { name: 'Save changes' })).not.toBeInTheDocument();
-    expect(screen.queryByRole('button', { name: 'Deactivate' })).not.toBeInTheDocument();
+    // Without products.manage or the audit log, nothing is left for the More menu.
+    expect(screen.queryByRole('button', { name: 'More' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Add variant' })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /More actions/ })).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Upload image' })).not.toBeInTheDocument();

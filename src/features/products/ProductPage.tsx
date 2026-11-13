@@ -3,14 +3,16 @@ import { Link, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ActionCard } from '@/components/ActionCard';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { DetailSkeleton } from '@/components/Loading';
+import type { MoreMenuItem } from '@/components/MoreMenu';
+import { RecordHeader } from '@/components/RecordHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
-import { HistoryLink } from '@/features/audit-log/HistoryLink';
-import { DetailSkeleton } from '@/components/Loading';
+import { useHistoryItem } from '@/features/audit-log/history';
 import {
   useProduct,
   useSetProductActive,
@@ -23,6 +25,7 @@ import { ProductFields, type ProductFieldValues } from './ProductFields';
 import { VariantsCard } from './VariantsCard';
 
 const detailsFormId = 'product-details';
+const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
 
 function DetailsCard({ product }: { product: Product }) {
   const [fields, setFields] = useState<ProductFieldValues>({
@@ -36,9 +39,7 @@ function DetailsCard({ product }: { product: Product }) {
     product.option2Name ?? '',
   ]);
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
   const update = useUpdateProduct();
-  const setActive = useSetProductActive();
   const canManage = useCan('products.manage');
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -63,16 +64,6 @@ function DetailsCard({ product }: { product: Product }) {
     update.mutate({ id: product.id, body }, { onSuccess: () => toast.success('Product saved') });
   }
 
-  function turnOn() {
-    setActive.mutate(
-      { id: product.id, active: true },
-      {
-        onSuccess: () => toast.success('Product is on sale again'),
-        onError: (error) => toast.error(errorMessage(error)),
-      },
-    );
-  }
-
   const apiError = update.error instanceof ApiError ? update.error : undefined;
   const detail = (field: string) => apiError?.details.find((item) => item.field === field)?.message;
   const shown = ['name', 'categoryId', 'description', 'option1Name', 'option2Name'];
@@ -92,20 +83,9 @@ function DetailsCard({ product }: { product: Product }) {
       title="Details"
       actions={
         canManage && (
-          <>
-            {product.active ? (
-              <Button variant="outline" onClick={() => setConfirmingDeactivate(true)}>
-                Deactivate
-              </Button>
-            ) : (
-              <Button variant="outline" disabled={setActive.isPending} onClick={turnOn}>
-                Turn on
-              </Button>
-            )}
-            <Button type="submit" form={detailsFormId} disabled={update.isPending}>
-              {update.isPending ? 'Saving…' : 'Save changes'}
-            </Button>
-          </>
+          <Button type="submit" form={detailsFormId} disabled={update.isPending}>
+            {update.isPending ? 'Saving…' : 'Save changes'}
+          </Button>
         )
       }
     >
@@ -159,6 +139,56 @@ function DetailsCard({ product }: { product: Product }) {
           )}
         </fieldset>
       </form>
+    </ActionCard>
+  );
+}
+
+/** The header, with Deactivate or Turn on and History in its More menu, then the cards. */
+function ProductDetails({ product }: { product: Product }) {
+  const [confirmingDeactivate, setConfirmingDeactivate] = useState(false);
+  const setActive = useSetProductActive();
+  const canManage = useCan('products.manage');
+  const history = useHistoryItem('product', product.id);
+
+  function turnOn() {
+    setActive.mutate(
+      { id: product.id, active: true },
+      {
+        onSuccess: () => toast.success('Product is on sale again'),
+        onError: (error) => toast.error(errorMessage(error)),
+      },
+    );
+  }
+
+  const menu: MoreMenuItem[] = [...history];
+  if (canManage) {
+    menu.push(
+      product.active
+        ? {
+            key: 'deactivate',
+            label: 'Deactivate',
+            destructive: true,
+            onSelect: () => setConfirmingDeactivate(true),
+          }
+        : { key: 'turn-on', label: 'Turn on', disabled: setActive.isPending, onSelect: turnOn },
+    );
+  }
+  const variants = product.variants.length;
+
+  return (
+    <div className="mx-auto max-w-3xl space-y-6">
+      <RecordHeader
+        back={{ to: '/products', label: 'Back to products' }}
+        title={product.name}
+        badges={!product.active && <Badge variant="secondary">Inactive</Badge>}
+        menu={menu}
+        facts={`${variants} ${variants === 1 ? 'variant' : 'variants'} · Updated ${dateFormat.format(new Date(product.updatedAt))}`}
+      />
+
+      {/* Keyed by updatedAt, so that the form shows the saved values after each change. */}
+      <DetailsCard key={product.updatedAt} product={product} />
+      <VariantsCard product={product} />
+      <ImagesCard product={product} />
 
       {confirmingDeactivate && (
         <ConfirmDialog
@@ -185,7 +215,7 @@ function DetailsCard({ product }: { product: Product }) {
           }}
         />
       )}
-    </ActionCard>
+    </div>
   );
 }
 
@@ -225,25 +255,5 @@ export function ProductPage() {
     );
   }
 
-  const data = product.data.data;
-
-  return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          {back}
-          <HistoryLink entityType="product" entityId={data.id} />
-        </div>
-        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
-          {data.name}
-          {!data.active && <Badge variant="secondary">Inactive</Badge>}
-        </h1>
-      </div>
-
-      {/* Keyed by updatedAt, so that the form shows the saved values after each change. */}
-      <DetailsCard key={data.updatedAt} product={data} />
-      <VariantsCard product={data} />
-      <ImagesCard product={data} />
-    </div>
-  );
+  return <ProductDetails product={product.data.data} />;
 }

@@ -2,6 +2,7 @@ import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
+import { chooseFromMore } from '@/test/menu';
 import { admin } from '@/test/users';
 import type { Blog } from './api';
 import { makeBlog } from './test-data';
@@ -170,7 +171,9 @@ describe('writing a new post', () => {
 describe('editing a post', () => {
   it('sends only what changed', async () => {
     const blog = makeBlog();
-    serve(blog, () => ({ data: { ...blog, title: 'New season trail shoes', updatedAt: 'later' } }));
+    serve(blog, () => ({
+      data: { ...blog, title: 'New season trail shoes', updatedAt: '2026-11-14T00:00:00.000Z' },
+    }));
     renderApp('/blogs/b1');
 
     const title = await screen.findByLabelText('Title');
@@ -187,10 +190,17 @@ describe('editing a post', () => {
 
   it('asks before unpublishing', async () => {
     const blog = makeBlog();
-    serve(blog, () => ({ data: { ...blog, published: false, updatedAt: 'later' } }));
+    serve(blog, () => ({
+      data: { ...blog, published: false, updatedAt: '2026-11-14T00:00:00.000Z' },
+    }));
     renderApp('/blogs/b1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Unpublish' }));
+    // The header names the post and its state.
+    expect(await screen.findByRole('heading', { name: 'New season shoes' })).toBeInTheDocument();
+    expect(screen.getByText('Published')).toBeInTheDocument();
+    expect(screen.getByText(/By Juan · Last saved/)).toBeInTheDocument();
+
+    await chooseFromMore('Unpublish');
     const dialog = screen.getByRole('dialog', { name: 'Unpublish post' });
     expect(dialog).toHaveTextContent('Shoppers can no longer read it');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Unpublish' }));
@@ -204,7 +214,9 @@ describe('editing a post', () => {
 
   it('publishes a draft', async () => {
     const draft = makeBlog({ published: false });
-    serve(draft, () => ({ data: { ...draft, published: true, updatedAt: 'later' } }));
+    serve(draft, () => ({
+      data: { ...draft, published: true, updatedAt: '2026-11-14T00:00:00.000Z' },
+    }));
     renderApp('/blogs/b1');
 
     expect(await screen.findByText('Draft')).toBeInTheDocument();
@@ -222,7 +234,7 @@ describe('editing a post', () => {
     serve(makeBlog(), () => undefined);
     const { router } = renderApp('/blogs/b1');
 
-    await userEvent.click(await screen.findByRole('button', { name: 'Delete' }));
+    await chooseFromMore('Delete');
     const dialog = screen.getByRole('dialog', { name: 'Delete post' });
     expect(dialog).toHaveTextContent('cannot be undone');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Delete' }));

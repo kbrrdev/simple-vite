@@ -2,14 +2,16 @@ import { useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { DetailSkeleton, LinesSkeleton } from '@/components/Loading';
+import type { MoreMenuItem } from '@/components/MoreMenu';
+import { RecordHeader } from '@/components/RecordHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import type { Permission } from '@/lib/auth';
-import { HistoryLink } from '@/features/audit-log/HistoryLink';
-import { DetailSkeleton, LinesSkeleton } from '@/components/Loading';
+import { useHistoryItem } from '@/features/audit-log/history';
 import {
   useCreateRole,
   useDeleteRole,
@@ -21,6 +23,16 @@ import {
   type RoleChanges,
 } from './api';
 import { groupPermissions } from './permission-groups';
+
+const back = { to: '/roles', label: 'Back to roles' };
+
+function count(n: number, noun: string) {
+  return `${n} ${n === 1 ? noun : `${noun}s`}`;
+}
+
+function people(n: number) {
+  return n === 1 ? '1 person' : `${n} people`;
+}
 
 function BackLink() {
   return (
@@ -67,17 +79,16 @@ function PermissionList({ children }: { children: (permissions: PermissionInfo[]
 function BuiltInRole({ role }: { role: Role }) {
   return (
     <div className="mx-auto max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <BackLink />
-        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
-          {role.name}
-          <Badge variant="secondary">Built in</Badge>
-        </h1>
-        <p className="text-muted-foreground">
-          Has every permission, including ones added later, and is the only role that manages roles
-          and people. It cannot be changed or deleted.
-        </p>
-      </div>
+      <RecordHeader
+        back={back}
+        title={role.name}
+        badges={<Badge variant="secondary">Built in</Badge>}
+        facts={people(role.userCount)}
+      />
+      <p className="text-muted-foreground">
+        Has every permission, including ones added later, and is the only role that manages roles
+        and people. It cannot be changed or deleted.
+      </p>
 
       <section aria-labelledby="built-in-permissions" className="rounded-lg border p-4">
         <h2 id="built-in-permissions" className="mb-3 font-medium">
@@ -112,6 +123,7 @@ function RoleEditor({ role }: { role?: Role }) {
   const remove = useDeleteRole();
   const save = role ? update : create;
   const navigate = useNavigate();
+  const history = useHistoryItem('role', role?.id);
 
   function toggle(permission: Permission, checked: boolean) {
     setGranted((current) =>
@@ -167,15 +179,32 @@ function RoleEditor({ role }: { role?: Role }) {
     !apiError?.details.some((item) => shown.includes(item.field));
   const peopleWithRole = role?.userCount ?? 0;
 
+  // The backend refuses to delete a role people have, so Delete says why it is off.
+  const menu: MoreMenuItem[] = [...history];
+  if (role) {
+    menu.push({
+      key: 'delete',
+      label: 'Delete role',
+      destructive: true,
+      disabled: peopleWithRole > 0,
+      reason:
+        peopleWithRole > 0
+          ? `Give its ${peopleWithRole === 1 ? 'person' : `${peopleWithRole} people`} another role first`
+          : undefined,
+      onSelect: () => setConfirmingDelete(true),
+    });
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <BackLink />
-          {role && <HistoryLink entityType="role" entityId={role.id} />}
-        </div>
-        <h1 className="text-2xl font-semibold">{role ? role.name : 'New role'}</h1>
-      </div>
+      <RecordHeader
+        back={back}
+        title={role ? role.name : 'New role'}
+        menu={menu}
+        facts={
+          role && `${people(peopleWithRole)} · ${count(role.permissions.length, 'permission')}`
+        }
+      />
 
       <section className="grid gap-4 rounded-lg border p-4">
         <div className="space-y-2">
@@ -256,27 +285,7 @@ function RoleEditor({ role }: { role?: Role }) {
         </p>
       )}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
-        {role ? (
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <Button
-              type="button"
-              variant="outline"
-              disabled={peopleWithRole > 0}
-              onClick={() => setConfirmingDelete(true)}
-            >
-              Delete role
-            </Button>
-            {peopleWithRole > 0 && (
-              <p className="text-sm text-muted-foreground">
-                Give its {peopleWithRole === 1 ? 'person' : `${peopleWithRole} people`} another role
-                first.
-              </p>
-            )}
-          </div>
-        ) : (
-          <span />
-        )}
+      <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <Button type="submit" disabled={save.isPending}>
           {save.isPending ? 'Saving…' : role ? 'Save changes' : 'Create role'}
         </Button>

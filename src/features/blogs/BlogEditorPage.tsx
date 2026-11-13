@@ -2,14 +2,16 @@ import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Link, useBlocker, useNavigate, useParams } from 'react-router';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
+import { DetailSkeleton } from '@/components/Loading';
+import type { MoreMenuItem } from '@/components/MoreMenu';
+import { RecordHeader } from '@/components/RecordHeader';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
-import { HistoryLink } from '@/features/audit-log/HistoryLink';
+import { useHistoryItem } from '@/features/audit-log/history';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
-import { DetailSkeleton } from '@/components/Loading';
 import {
   useBlog,
   useCreateBlog,
@@ -51,6 +53,8 @@ function changesFrom(values: Values, blog?: Blog): BlogChanges {
 
 type Confirming = 'unpublish' | 'delete';
 
+const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
+
 function Editor({ blog }: { blog?: Blog }) {
   const [values, setValues] = useState(() => valuesOf(blog));
   const [missing, setMissing] = useState<string[]>([]);
@@ -61,6 +65,7 @@ function Editor({ blog }: { blog?: Blog }) {
   const remove = useDeleteBlog();
   const save = blog ? update : create;
   const navigate = useNavigate();
+  const history = useHistoryItem('blog', blog?.id);
   // Set just before leaving on purpose, after a save or a delete.
   const leaving = useRef(false);
 
@@ -145,20 +150,38 @@ function Editor({ blog }: { blog?: Blog }) {
   const otherError = save.error && !apiError?.details.some((item) => fields.includes(item.field));
   const busy = save.isPending || uploading;
 
+  const menu: MoreMenuItem[] = [...history];
+  if (blog?.published) {
+    menu.push({ key: 'unpublish', label: 'Unpublish', onSelect: () => setConfirming('unpublish') });
+  }
+  if (blog) {
+    menu.push({
+      key: 'delete',
+      label: 'Delete',
+      destructive: true,
+      onSelect: () => setConfirming('delete'),
+    });
+  }
+
   return (
     <form onSubmit={handleSubmit} noValidate className="mx-auto max-w-3xl space-y-6">
-      <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <Button variant="ghost" asChild className="-ml-2">
-            <Link to="/blogs">Back to blog</Link>
-          </Button>
-          {blog && <HistoryLink entityType="blog" entityId={blog.id} />}
-        </div>
-        <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold">
-          {blog ? 'Edit post' : 'New post'}
-          {blog && !blog.published && <Badge variant="secondary">Draft</Badge>}
-        </h1>
-      </div>
+      {/* The saved title, so the header names the post while its field is being edited. */}
+      <RecordHeader
+        back={{ to: '/blogs', label: 'Back to blog' }}
+        title={blog ? blog.title : 'New post'}
+        badges={
+          blog &&
+          (blog.published ? (
+            <Badge variant="success">Published</Badge>
+          ) : (
+            <Badge variant="secondary">Draft</Badge>
+          ))
+        }
+        menu={menu}
+        facts={
+          blog && `By ${blog.author} · Last saved ${dateFormat.format(new Date(blog.updatedAt))}`
+        }
+      />
 
       <section className="grid gap-4 rounded-lg border p-4">
         {(['title', 'author'] as const).map((field) => {
@@ -204,26 +227,11 @@ function Editor({ blog }: { blog?: Blog }) {
         </p>
       )}
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center">
-        {blog && (
-          <Button
-            type="button"
-            variant="ghost"
-            className="text-destructive sm:mr-auto"
-            onClick={() => setConfirming('delete')}
-          >
-            Delete
-          </Button>
-        )}
+      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
         {blog?.published ? (
-          <>
-            <Button type="button" variant="outline" onClick={() => setConfirming('unpublish')}>
-              Unpublish
-            </Button>
-            <Button type="submit" disabled={busy}>
-              {save.isPending ? 'Saving…' : 'Save'}
-            </Button>
-          </>
+          <Button type="submit" disabled={busy}>
+            {save.isPending ? 'Saving…' : 'Save'}
+          </Button>
         ) : (
           <>
             <Button type="submit" variant="outline" disabled={busy}>

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
+import { chooseFromMore, openMoreMenu } from '@/test/menu';
 import { admin } from '@/test/users';
 import { editorRole, permissionList, roleList, staffRole, superAdminRole } from './test-data';
 
@@ -146,8 +147,10 @@ describe('the role editor', () => {
     serve();
     renderApp(`/roles/${staffRole.id}`);
 
-    expect(await screen.findByRole('button', { name: 'Delete role' })).toBeDisabled();
-    expect(screen.getByText(/Give its 2 people another role first/)).toBeInTheDocument();
+    expect(await screen.findByText('2 people · 2 permissions')).toBeInTheDocument();
+    const item = (await openMoreMenu()).getByRole('menuitem', { name: /Delete role/ });
+    expect(item).toHaveAttribute('aria-disabled', 'true');
+    expect(item).toHaveTextContent('Give its 2 people another role first');
   });
 
   it('deletes an unused role after confirming', async () => {
@@ -155,7 +158,7 @@ describe('the role editor', () => {
     const { router } = renderApp(`/roles/${editorRole.id}`);
     const user = userEvent.setup();
 
-    await user.click(await screen.findByRole('button', { name: 'Delete role' }));
+    await chooseFromMore(/Delete role/);
     const dialog = screen.getByRole('dialog', { name: 'Delete role' });
     expect(requestMock).not.toHaveBeenCalledWith(`/api/roles/${editorRole.id}`, {
       method: 'DELETE',

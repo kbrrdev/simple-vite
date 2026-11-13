@@ -254,12 +254,17 @@ Calm and decisive.
 - **Footer order:** secondary actions first and the main action last, so it sits on the right on desktop and on top, full width, on phones. Cards side by side stretch to the same height, so their footers line up.
 - **No actions:** no footer.
 
-### Record pages with a side panel
+### Record pages
 
-- **Use:** the Order page. A main column and a 320px side panel from `lg` up; one column below it.
-- **Header:** Back, the title with its badges, a More menu on the right, then one Slate Text line of facts.
+Every page for one record, such as an order, product, blog post, or role, starts with the same header, `RecordHeader` from `src/components/`.
+
+- **Header:** Back, the title with its badges, a More menu on the right, then one Slate Text line of facts, such as "2 variants · Updated 12 Nov 2026" or "By Juan · Last saved 2 Nov 2026". The title is the record's saved name, so it stays put while its field is edited.
+- **More menu:** `MoreMenu`, an outline "More" button that opens the record's rarer actions: History first, then actions such as Deactivate, Unpublish, Delete, or Cancel order. Destructive items are red and still ask first. An item the backend would refuse is disabled with a one-line reason under it. The menu is left out when a role has nothing in it.
+- **Footer:** the form's own save actions only, with the main action last.
+
+**The Order page** adds a side panel: a main column and a 320px panel from `lg` up, one column below it.
+
 - **Next step:** the first card, with a darker border (Ink at 25%), a small uppercase "Next step" label, a verb title such as "Check the payment", one sentence, and its buttons in a footer. It is left out when nothing is left to do, and has no footer for roles that cannot act.
-- **More menu:** rarer actions, such as Cancel order, Mark returned, Record refund, and History. Destructive items are red and still ask first.
 - **Side panel:** one bordered card with sections divided by Hairlines: Progress, Customer, Ship to, and Payment.
 - **Phone order:** Next step, the main content, the side panel, then Activity.
 - **Activity:** a timeline of the record's audit entries, newest first, each with who made it and its changes as "Field: before → after", ending with when the record was created.
@@ -284,7 +289,7 @@ Calm and decisive.
 
 - **Short forms**, with one to three fields, such as a category, open in a dialog.
 - **Long forms**, such as a new product, get their own page, with sections in bordered cards, Cancel and the main action at the end, and Back at the top.
-- **Editors** for long text, such as a blog post, put Delete on the far left in red ghost text, apart from the save actions, and the main action last. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, a toolbar of icon buttons (each with a label for screen readers) that wraps the selection or starts the selected lines, and a "Formatting help" panel that shows each example through the same renderer as the preview, so the guide can never drift from the real result.
+- **Editors** for long text, such as a blog post, keep only the save actions at the end, with the main action last. Unpublish and Delete are in the header's More menu. They ask before leaving with unsaved changes. Markdown fields have Write and Preview, a toolbar of icon buttons (each with a label for screen readers) that wraps the selection or starts the selected lines, and a "Formatting help" panel that shows each example through the same renderer as the preview, so the guide can never drift from the real result.
 - **Repeated values**, such as option values, are typed and added as removable chips, so a phone keyboard never needs commas.
 - **Money** is typed in pesos in a field with a ₱ prefix and a decimal keyboard, and checked for at most two decimals before sending.
 
