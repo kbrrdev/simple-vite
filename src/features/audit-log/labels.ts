@@ -10,6 +10,8 @@ export const entityLabels: Record<AuditEntityType, string> = {
   blog: 'Blog post',
   banner: 'Banner',
   sale: 'Sale',
+  coupon: 'Coupon',
+  promotion: 'Promotion',
   payment_method: 'Payment method',
   asset: 'File',
   role: 'Role',

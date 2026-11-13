@@ -7,6 +7,8 @@ export interface CategoryInput {
   name: string;
   parentId: string | null;
   imageAssetId: string | null;
+  /** A name from `categoryIcons`, or null for none. */
+  icon: string | null;
 }
 
 /** Every category, nested under its parent. Stores have few, so the backend returns them all. */

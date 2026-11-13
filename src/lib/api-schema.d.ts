@@ -2173,6 +2173,380 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/coupons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every coupon with its usage (needs promotions.manage)
+         * @description Shoppers use coupons through couponCode on the order preview and checkout, so these routes are for admins only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description All coupons, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Coupon"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /** Add a coupon (needs promotions.manage) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateCoupon"];
+                };
+            };
+            responses: {
+                /** @description The created coupon */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Coupon"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/coupons/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a coupon (needs promotions.manage) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["CouponId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The coupon */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Coupon"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a coupon (needs promotions.manage)
+         * @description Fails with 409 once orders use it. Set isActive to false instead.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["CouponId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The coupon was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update a coupon (needs promotions.manage)
+         * @description Orders already placed keep their discount.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["CouponId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateCoupon"];
+                };
+            };
+            responses: {
+                /** @description The updated coupon */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Coupon"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
+    "/api/promotions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List every promotion (needs promotions.manage)
+         * @description Buy X get Y and bundle offers. Shoppers see them as badges on products and as discounts in the order preview, so these routes are for admins only.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description All promotions, newest first */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Promotion"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /**
+         * Add a promotion (needs promotions.manage)
+         * @description Items on sale are left out. Each cart line gets at most one promotion, the largest discount first.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreatePromotion"];
+                };
+            };
+            responses: {
+                /** @description The created promotion */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Promotion"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/promotions/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a promotion (needs promotions.manage) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["PromotionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The promotion */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Promotion"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /**
+         * Delete a promotion (needs promotions.manage)
+         * @description Orders already placed keep their discounts.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["PromotionId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The promotion was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Update a promotion (needs promotions.manage)
+         * @description productIds and categoryIds replace the whole list when sent. Orders already placed keep their discounts.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["PromotionId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdatePromotion"];
+                };
+            };
+            responses: {
+                /** @description The updated promotion */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["Promotion"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
     "/api/payment-methods": {
         parameters: {
             query?: never;
@@ -2385,7 +2759,7 @@ export interface paths {
         put?: never;
         /**
          * Price items with shipping and tax
-         * @description Shows the final total before checkout. Send the returned `totalCents` to checkout as `expectedTotalCents`.
+         * @description Shows the final total before checkout. Send the returned `totalCents` to checkout as `expectedTotalCents`. A coupon that cannot be used does not fail the preview: it is left out, and `couponError` says why. Send a bearer token or `email`, so that once-per-customer coupons can be checked.
          */
         post: {
             parameters: {
@@ -2396,7 +2770,7 @@ export interface paths {
             };
             requestBody: {
                 content: {
-                    "application/json": components["schemas"]["CartItems"];
+                    "application/json": components["schemas"]["PreviewOrder"];
                 };
             };
             responses: {
@@ -3721,7 +4095,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     actorUserId?: string;
-                    entityType?: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "sale" | "user" | "variant";
+                    entityType?: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "user" | "variant";
                     entityId?: string;
                     action?: string;
                     /** @description First day, in Manila time */
@@ -4370,6 +4744,11 @@ export interface components {
             imageAssetId: string | null;
             /** Format: uri */
             imageUrl: string | null;
+            /**
+             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @example shirt
+             */
+            icon: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -4386,6 +4765,11 @@ export interface components {
             imageAssetId: string | null;
             /** Format: uri */
             imageUrl: string | null;
+            /**
+             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @example shirt
+             */
+            icon: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -4408,6 +4792,11 @@ export interface components {
             imageAssetId: string | null;
             /** Format: uri */
             imageUrl: string | null;
+            /**
+             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @example shirt
+             */
+            icon: string | null;
             /** Format: date-time */
             createdAt: string;
             /** Format: date-time */
@@ -4427,6 +4816,11 @@ export interface components {
              * @description An uploaded asset, or null for no image
              */
             imageAssetId?: string | null;
+            /**
+             * @description An icon name from the frontend's icon set, such as Lucide's, or null for none
+             * @example shirt
+             */
+            icon?: string | null;
         };
         UpdateCategoryBody: {
             /** @example T-Shirts */
@@ -4441,6 +4835,11 @@ export interface components {
              * @description An uploaded asset, or null for no image
              */
             imageAssetId?: string | null;
+            /**
+             * @description An icon name from the frontend's icon set, such as Lucide's, or null for none
+             * @example shirt
+             */
+            icon?: string | null;
         };
         Product: {
             /** Format: uuid */
@@ -4461,6 +4860,15 @@ export interface components {
             updatedAt: string;
             images: components["schemas"]["ProductImage"][];
             variants: components["schemas"]["ProductVariant"][];
+            /** @description Public routes only. Promotions running on this product, for badges. */
+            promotions?: {
+                /** Format: uuid */
+                id: string;
+                /** @example Buy 2 tees, get 1 free */
+                name: string;
+                /** @enum {string} */
+                type: "buy_x_get_y" | "bundle";
+            }[];
         };
         ProductVariant: {
             /** Format: uuid */
@@ -4807,10 +5215,288 @@ export interface components {
             productIds?: string[];
             categoryIds?: string[];
         };
+        Coupon: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Saved in capitals, and matched in any case
+             * @example WELCOME10
+             */
+            code: string;
+            /**
+             * @description percent and fixed come off eligible items. free_shipping waives shipping.
+             * @enum {string}
+             */
+            discountType: "percent" | "fixed" | "free_shipping";
+            /** @description From 1 to 100 for percent, or cents for fixed. Ignored for free_shipping. */
+            discountValue: number | null;
+            /** @description The most a percentage coupon takes off */
+            maxDiscountCents: number | null;
+            /** @description The least to spend on eligible items */
+            minSubtotalCents: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt: string | null;
+            /** @description Total uses across all shoppers. Null means no limit. */
+            usageLimit: number | null;
+            /** @description Uses per account or guest email. Null means no limit. Defaults to 1, or no limit for automatic coupons. Guests are counted by email, which they can change. */
+            perCustomerLimit: number | null;
+            /** @description Whether items already on sale count towards the coupon */
+            allowSaleItems: boolean;
+            allowGuests: boolean;
+            /** @description Applies without a code whenever the cart qualifies, and its code is shown as the label. Shoppers get whichever discount gives the lowest total. */
+            isAutomatic: boolean;
+            isActive: boolean;
+            /** @description Orders that used it, apart from cancelled ones */
+            usedCount: number;
+            /** @description What shoppers saved with it, including waived shipping */
+            discountGivenCents: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateCoupon: {
+            /**
+             * @description Saved in capitals, and matched in any case
+             * @example WELCOME10
+             */
+            code: string;
+            /**
+             * @description percent and fixed come off eligible items. free_shipping waives shipping.
+             * @enum {string}
+             */
+            discountType: "percent" | "fixed" | "free_shipping";
+            /** @description From 1 to 100 for percent, or cents for fixed. Ignored for free_shipping. */
+            discountValue?: number | null;
+            /** @description The most a percentage coupon takes off */
+            maxDiscountCents?: number | null;
+            /** @description The least to spend on eligible items */
+            minSubtotalCents?: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
+            /** @description Total uses across all shoppers. Null means no limit. */
+            usageLimit?: number | null;
+            /** @description Uses per account or guest email. Null means no limit. Defaults to 1, or no limit for automatic coupons. Guests are counted by email, which they can change. */
+            perCustomerLimit?: number | null;
+            /**
+             * @description Whether items already on sale count towards the coupon
+             * @default false
+             */
+            allowSaleItems: boolean;
+            /** @default true */
+            allowGuests: boolean;
+            /**
+             * @description Applies without a code whenever the cart qualifies, and its code is shown as the label. Shoppers get whichever discount gives the lowest total.
+             * @default false
+             */
+            isAutomatic: boolean;
+            /** @default true */
+            isActive: boolean;
+        };
+        UpdateCoupon: {
+            /**
+             * @description Saved in capitals, and matched in any case
+             * @example WELCOME10
+             */
+            code?: string;
+            /**
+             * @description percent and fixed come off eligible items. free_shipping waives shipping.
+             * @enum {string}
+             */
+            discountType?: "percent" | "fixed" | "free_shipping";
+            /** @description From 1 to 100 for percent, or cents for fixed. Ignored for free_shipping. */
+            discountValue?: number | null;
+            /** @description The most a percentage coupon takes off */
+            maxDiscountCents?: number | null;
+            /** @description The least to spend on eligible items */
+            minSubtotalCents?: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
+            /** @description Total uses across all shoppers. Null means no limit. */
+            usageLimit?: number | null;
+            /** @description Uses per account or guest email. Null means no limit. Defaults to 1, or no limit for automatic coupons. Guests are counted by email, which they can change. */
+            perCustomerLimit?: number | null;
+            /** @description Whether items already on sale count towards the coupon */
+            allowSaleItems?: boolean;
+            allowGuests?: boolean;
+            /** @description Applies without a code whenever the cart qualifies, and its code is shown as the label. Shoppers get whichever discount gives the lowest total. */
+            isAutomatic?: boolean;
+            isActive?: boolean;
+        };
+        Promotion: {
+            /** Format: uuid */
+            id: string;
+            /** @example Buy 2 tees, get 1 free */
+            name: string;
+            /** @enum {string} */
+            type: "buy_x_get_y" | "bundle";
+            /** @description Buy X get Y only. Units to buy in each set. */
+            buyQuantity: number | null;
+            /** @description Buy X get Y only. Units discounted in each set. */
+            getQuantity: number | null;
+            /** @description Buy X get Y only. Taken off the cheapest units in the cart. 100 makes them free. */
+            getPercentOff: number | null;
+            /**
+             * @description Bundles only
+             * @enum {string|null}
+             */
+            discountType: "percent" | "fixed" | null;
+            /** @description Bundles only. 1 to 100 for percent, or cents off each complete set for fixed. */
+            discountValue: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt: string | null;
+            isActive: boolean;
+            /** @description Buy X get Y: any number. Bundles: the 2 to 10 products in each set. */
+            productIds: string[];
+            /** @description Buy X get Y only. Each category covers its subcategories. */
+            categoryIds: string[];
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreatePromotion: {
+            /** @example Buy 2 tees, get 1 free */
+            name: string;
+            /** @enum {string} */
+            type: "buy_x_get_y" | "bundle";
+            /** @description Buy X get Y only. Units to buy in each set. */
+            buyQuantity?: number | null;
+            /** @description Buy X get Y only. Units discounted in each set. */
+            getQuantity?: number | null;
+            /** @description Buy X get Y only. Taken off the cheapest units in the cart. 100 makes them free. */
+            getPercentOff?: number | null;
+            /**
+             * @description Bundles only
+             * @enum {string|null}
+             */
+            discountType?: "percent" | "fixed" | null;
+            /** @description Bundles only. 1 to 100 for percent, or cents off each complete set for fixed. */
+            discountValue?: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
+            /** @default true */
+            isActive: boolean;
+            /** @description Buy X get Y: any number. Bundles: the 2 to 10 products in each set. */
+            productIds?: string[];
+            /** @description Buy X get Y only. Each category covers its subcategories. */
+            categoryIds?: string[];
+        };
+        UpdatePromotion: {
+            /** @example Buy 2 tees, get 1 free */
+            name?: string;
+            /** @enum {string} */
+            type?: "buy_x_get_y" | "bundle";
+            /** @description Buy X get Y only. Units to buy in each set. */
+            buyQuantity?: number | null;
+            /** @description Buy X get Y only. Units discounted in each set. */
+            getQuantity?: number | null;
+            /** @description Buy X get Y only. Taken off the cheapest units in the cart. 100 makes them free. */
+            getPercentOff?: number | null;
+            /**
+             * @description Bundles only
+             * @enum {string|null}
+             */
+            discountType?: "percent" | "fixed" | null;
+            /** @description Bundles only. 1 to 100 for percent, or cents off each complete set for fixed. */
+            discountValue?: number | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            startsAt?: string | null;
+            /**
+             * Format: date-time
+             * @description Null means no limit
+             */
+            endsAt?: string | null;
+            isActive?: boolean;
+            /** @description Buy X get Y: any number. Bundles: the 2 to 10 products in each set. */
+            productIds?: string[];
+            /** @description Buy X get Y only. Each category covers its subcategories. */
+            categoryIds?: string[];
+        };
         OrderPreview: {
             items: components["schemas"]["CartItem"][];
-            /** @example 112000 */
+            /** @description The promotions applied, with what each took off */
+            promotions: {
+                /** Format: uuid */
+                id: string;
+                /** @example Buy 2 tees, get 1 free */
+                name: string;
+                /** @example 1999 */
+                discountCents: number;
+            }[];
+            /** @description The discount applied, or null. Only one applies: the typed coupon or an automatic one, whichever gives the lower total. */
+            coupon: {
+                /** @example WELCOME10 */
+                code: string;
+                /** @example 20000 */
+                discountCents: number;
+                freeShipping: boolean;
+                /** @description True when the discount applied itself, without a code */
+                automatic: boolean;
+            } | null;
+            /**
+             * @description Why the coupon sent could not be used, to show the shopper
+             * @example This coupon has expired
+             */
+            couponError: string | null;
+            /**
+             * @description Items at the prices paid, before any coupon
+             * @example 112000
+             */
             subtotalCents: number;
+            /**
+             * @description Taken off by buy X get Y and bundle promotions
+             * @example 0
+             */
+            promotionDiscountCents: number;
+            /**
+             * @description Taken off by a coupon
+             * @example 0
+             */
+            discountCents: number;
             /** @example 10000 */
             shippingCents: number;
             /**
@@ -4825,6 +5511,21 @@ export interface components {
             /** @example 12 */
             taxRatePercent: number;
             pricesIncludeTax: boolean;
+        };
+        PreviewOrder: {
+            items: {
+                /** Format: uuid */
+                variantId: string;
+                /** @example 2 */
+                quantity: number;
+            }[];
+            /** @example WELCOME10 */
+            couponCode?: string;
+            /**
+             * Format: email
+             * @description A guest's email, to check once-per-customer coupons
+             */
+            email?: string;
         };
         OrderItem: {
             /** Format: uuid */
@@ -4847,11 +5548,20 @@ export interface components {
              * @example 70000
              */
             listPriceCents: number;
+            /** @description The promotion's share of this line */
+            promotionDiscountCents: number;
+            /** @example Buy 2 tees, get 1 free */
+            promotionName: string | null;
+            /** @description The coupon's share of this line */
+            discountCents: number;
             /** @example 2 */
             quantity: number;
             /** @example 12000 */
             taxCents: number;
-            /** @example 112000 */
+            /**
+             * @description unitPriceCents times quantity, less promotionDiscountCents and discountCents
+             * @example 112000
+             */
             lineTotalCents: number;
             /** Format: uri */
             imageUrl: string | null;
@@ -4885,8 +5595,23 @@ export interface components {
                 /** Format: uri */
                 qrUrl: string | null;
             } | null;
-            /** @example 112000 */
+            /** @example WELCOME10 */
+            couponCode: string | null;
+            /**
+             * @description Items at the prices paid, before any coupon
+             * @example 112000
+             */
             subtotalCents: number;
+            /**
+             * @description Taken off by buy X get Y and bundle promotions
+             * @example 0
+             */
+            promotionDiscountCents: number;
+            /**
+             * @description Taken off by a coupon
+             * @example 0
+             */
+            discountCents: number;
             /** @example 10000 */
             shippingCents: number;
             /**
@@ -4946,8 +5671,23 @@ export interface components {
                 /** Format: uri */
                 qrUrl: string | null;
             } | null;
-            /** @example 112000 */
+            /** @example WELCOME10 */
+            couponCode: string | null;
+            /**
+             * @description Items at the prices paid, before any coupon
+             * @example 112000
+             */
             subtotalCents: number;
+            /**
+             * @description Taken off by buy X get Y and bundle promotions
+             * @example 0
+             */
+            promotionDiscountCents: number;
+            /**
+             * @description Taken off by a coupon
+             * @example 0
+             */
+            discountCents: number;
             /** @example 10000 */
             shippingCents: number;
             /**
@@ -5013,8 +5753,23 @@ export interface components {
                 /** Format: uri */
                 qrUrl: string | null;
             } | null;
-            /** @example 112000 */
+            /** @example WELCOME10 */
+            couponCode: string | null;
+            /**
+             * @description Items at the prices paid, before any coupon
+             * @example 112000
+             */
             subtotalCents: number;
+            /**
+             * @description Taken off by buy X get Y and bundle promotions
+             * @example 0
+             */
+            promotionDiscountCents: number;
+            /**
+             * @description Taken off by a coupon
+             * @example 0
+             */
+            discountCents: number;
             /** @example 10000 */
             shippingCents: number;
             /**
@@ -5069,6 +5824,11 @@ export interface components {
             expectedTotalCents: number;
             /** Format: uuid */
             idempotencyKey: string;
+            /**
+             * @description Optional. Fails with 409 and the reason when it cannot be used.
+             * @example WELCOME10
+             */
+            couponCode?: string;
         };
         SubmitPayment: {
             /** @example GC-1234567890 */
@@ -5089,6 +5849,11 @@ export interface components {
              * @description A new value per checkout, reused when retrying it
              */
             idempotencyKey: string;
+            /**
+             * @description Optional. Fails with 409 and the reason when it cannot be used.
+             * @example WELCOME10
+             */
+            couponCode?: string;
         };
         UpdateOrderStatus: {
             /** @enum {string} */
@@ -5301,8 +6066,14 @@ export interface components {
             taxCents: number;
             /** @description Shipping on gross sales */
             shippingCents: number;
-            /** @description Taken off list prices by sales, on gross sales */
+            /** @description Sale, promotion, and coupon discounts together */
             discountCents: number;
+            /** @description Taken off by buy X get Y and bundle promotions, on gross sales */
+            promotionDiscountCents: number;
+            /** @description Taken off list prices by sales, on gross sales */
+            saleDiscountCents: number;
+            /** @description Taken off by coupons, on gross sales. Waived shipping is not included. */
+            couponDiscountCents: number;
             /** @description Customer accounts created in the range */
             newCustomers: number;
             /** @description Gross sales split by the tax setting each order was placed with */
@@ -5404,7 +6175,7 @@ export interface components {
             actorUserId: string | null;
             actorEmail: string | null;
             /** @enum {string} */
-            entityType: "asset" | "banner" | "blog" | "category" | "order" | "payment_method" | "product" | "product_image" | "role" | "sale" | "user" | "variant";
+            entityType: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "user" | "variant";
             /** Format: uuid */
             entityId: string;
             /** @example update */
@@ -5578,6 +6349,8 @@ export interface components {
         VariantId: string;
         CartVariantId: string;
         SaleId: string;
+        CouponId: string;
+        PromotionId: string;
         GuestToken: string;
         OrderId: string;
         PaymentMethodId: string;

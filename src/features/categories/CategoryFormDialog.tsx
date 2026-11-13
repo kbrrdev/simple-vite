@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useSaveCategory, type CategoryNode } from './api';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { IconPicker } from './IconPicker';
 import { parentOptions } from './tree';
 
 interface Props {
@@ -32,6 +33,7 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
   const [image, setImage] = useState<ChosenImage | null>(
     category?.imageAssetId ? { id: category.imageAssetId, url: category.imageUrl } : null,
   );
+  const [icon, setIcon] = useState<string | null>(category?.icon ?? null);
   const [uploading, setUploading] = useState(false);
   const [emptyName, setEmptyName] = useState(false);
   const save = useSaveCategory();
@@ -49,6 +51,7 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
         name: trimmed,
         parentId: parentId || null,
         imageAssetId: image?.id ?? null,
+        icon,
       },
       {
         onSuccess: () => {
@@ -67,7 +70,8 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
     : (detail('name') ?? (apiError?.status === 409 ? apiError.message : undefined));
   const parentError = detail('parentId');
   const imageError = detail('imageAssetId');
-  const otherError = save.error && !nameError && !parentError && !imageError;
+  const iconError = detail('icon');
+  const otherError = save.error && !nameError && !parentError && !imageError && !iconError;
 
   let title = 'New category';
   if (category) title = 'Edit category';
@@ -75,11 +79,14 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
 
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
-      <DialogContent>
+      <DialogContent className="max-h-[90svh] overflow-y-auto">
         <form onSubmit={handleSubmit} className="grid gap-4" noValidate>
           <DialogHeader>
             <DialogTitle>{title}</DialogTitle>
-            <DialogDescription>Customers see the name and image in the store.</DialogDescription>
+            <DialogDescription>
+              Customers see the name in the store, with the image, or the icon when there is no
+              image.
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-2">
@@ -130,6 +137,8 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
             error={imageError}
             onUploadingChange={setUploading}
           />
+
+          <IconPicker value={icon} onChange={setIcon} error={iconError} />
 
           {otherError && (
             <p role="alert" className="text-sm text-destructive">
