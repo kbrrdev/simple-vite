@@ -86,6 +86,7 @@ export function couponRow(coupon: Coupon): DiscountRow {
   return {
     kind: 'coupons',
     id: coupon.id,
+    href: `/discounts/coupons/${coupon.id}`,
     title: coupon.code,
     type: coupon.isAutomatic ? 'Automatic' : 'Coupon',
     summary: what,
