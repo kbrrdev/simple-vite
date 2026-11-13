@@ -134,6 +134,18 @@ export const routes: RouteObject[] = [
                     ],
                   },
                   {
+                    element: <RequirePermission permission="promotions.manage" />,
+                    children: [
+                      {
+                        path: '/discounts',
+                        lazy: async () => ({
+                          Component: (await import('@/features/discounts/DiscountsPage'))
+                            .DiscountsPage,
+                        }),
+                      },
+                    ],
+                  },
+                  {
                     element: <RequirePermission permission="assets.manage" />,
                     children: [
                       {

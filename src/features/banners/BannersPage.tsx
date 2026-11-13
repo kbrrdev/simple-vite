@@ -22,10 +22,10 @@ import {
   type Banner,
 } from './api';
 import { BannerDialog } from './BannerDialog';
-import { bannerStatus, type BannerStatus } from './banner-status';
+import { scheduleStatus, type ScheduleStatus } from '@/lib/schedule';
 
 const statusBadges: Record<
-  BannerStatus,
+  ScheduleStatus,
   { label: string; variant: 'success' | 'info' | 'secondary' }
 > = {
   live: { label: 'Live', variant: 'success' },
@@ -127,7 +127,7 @@ export function BannersPage() {
         <ul aria-label="Banners" className="overflow-hidden rounded-lg border">
           {list.map((banner, index) => {
             const name = banner.title ?? banner.altText;
-            const status = statusBadges[bannerStatus(banner)];
+            const status = statusBadges[scheduleStatus(banner)];
             const when = schedule(banner);
             return (
               <li

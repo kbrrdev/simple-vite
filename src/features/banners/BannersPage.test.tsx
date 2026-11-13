@@ -5,7 +5,7 @@ import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
 import { admin, staff } from '@/test/users';
 import type { Banner } from './api';
-import { bannerStatus } from './banner-status';
+import { scheduleStatus } from '@/lib/schedule';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
@@ -256,11 +256,11 @@ describe('permissions', () => {
   });
 });
 
-describe('bannerStatus', () => {
+describe('scheduleStatus', () => {
   const now = new Date('2026-11-15T00:00:00.000Z');
 
   it('is live from the start up to, but not at, the end', () => {
-    expect(bannerStatus(makeBanner({ startsAt: now.toISOString() }), now)).toBe('live');
-    expect(bannerStatus(makeBanner({ endsAt: now.toISOString() }), now)).toBe('ended');
+    expect(scheduleStatus(makeBanner({ startsAt: now.toISOString() }), now)).toBe('live');
+    expect(scheduleStatus(makeBanner({ endsAt: now.toISOString() }), now)).toBe('ended');
   });
 });

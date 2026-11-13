@@ -12,6 +12,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
+import { fromLocalInput, toLocalInput } from '@/lib/schedule';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
 import { useCreateBanner, useUpdateBanner, type Banner, type BannerChanges } from './api';
 
@@ -36,18 +37,6 @@ type TextField = (typeof textFields)[number]['name'];
 
 // The backend's rule, mirrored as a hint: a store path, or an https link.
 const linkPattern = /^(\/(?![/\\])|https:\/\/)\S*$/;
-
-/** An ISO time as the `datetime-local` field shows it, in the browser's time zone. */
-function toLocalInput(iso: string | null) {
-  if (!iso) return '';
-  const date = new Date(iso);
-  return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
-}
-
-/** The field's local time as ISO, or null when empty. */
-function fromLocalInput(value: string) {
-  return value ? new Date(value).toISOString() : null;
-}
 
 interface Props {
   /** The banner to edit. Leave it out to add one. */
