@@ -925,6 +925,347 @@ export interface paths {
         };
         trace?: never;
     };
+    "/api/store-info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get the store's contact details and social links
+         * @description Empty fields are null, so the storefront can hide them.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The store info */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["StoreInfo"];
+                        };
+                    };
+                };
+                500: components["responses"]["ServerError"];
+            };
+        };
+        /**
+         * Save the store info (needs store.manage)
+         * @description Saves the whole form. Omitted fields are cleared, and socialLinks is saved in the order sent.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["StoreInfoBody"];
+                };
+            };
+            responses: {
+                /** @description The saved store info */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["StoreInfo"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List published pages, without their content
+         * @description For footer links, in title order.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The published pages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPageSummary"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        /** Create a page, such as terms or privacy (needs pages.manage) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["CreateContentPage"];
+                };
+            };
+            responses: {
+                /** @description The created page */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPage"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pages/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List every page, including drafts (needs pages.manage) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description All pages */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPageSummary"][];
+                            meta: components["schemas"]["PageMeta"];
+                        };
+                    };
+                };
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/pages/admin/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get any page by id, including drafts (needs pages.manage) */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["ContentPageId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The page */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPage"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete a page (needs pages.manage) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["ContentPageId"];
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The page was deleted */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a page (needs pages.manage) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: components["parameters"]["ContentPageId"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateContentPage"];
+                };
+            };
+            responses: {
+                /** @description The updated page */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPage"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                404: components["responses"]["NotFound"];
+                409: components["responses"]["Conflict"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        trace?: never;
+    };
+    "/api/pages/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a published page by slug
+         * @description Drafts return 404. Show updatedAt as the last updated date.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The page */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ContentPage"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                404: components["responses"]["NotFound"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/categories": {
         parameters: {
             query?: never;
@@ -4156,7 +4497,7 @@ export interface paths {
                     page?: number;
                     limit?: number;
                     actorUserId?: string;
-                    entityType?: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "user" | "variant";
+                    entityType?: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "page" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "store_info" | "user" | "variant";
                     entityId?: string;
                     action?: string;
                     /** @description First day, in Manila time */
@@ -4222,7 +4563,7 @@ export interface paths {
                         "application/json": {
                             data: {
                                 /** @enum {string} */
-                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
+                                key: "orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "store.manage" | "pages.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view";
                                 description: string;
                             }[];
                         };
@@ -4565,7 +4906,7 @@ export interface components {
             /** @description Only super admins manage roles and users. Admin can hold every permission too, so check this rather than the permissions. */
             superAdmin: boolean;
             /** @description What the user can do, for hiding what they cannot. Empty for customers. */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "store.manage" | "pages.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             /** Format: date-time */
             createdAt: string;
         };
@@ -4580,6 +4921,8 @@ export interface components {
              * @example correct-horse-battery
              */
             password: string;
+            /** @description Send true when the customer ticked the terms box, to record when they agreed */
+            acceptTerms?: boolean;
         };
         ChangePasswordBody: {
             /** @example correct-horse-battery */
@@ -4793,6 +5136,136 @@ export interface components {
              * @description Null means no limit
              */
             endsAt?: string | null;
+        };
+        StoreInfo: {
+            /** @example Simple Store */
+            name: string;
+            /**
+             * Format: email
+             * @example hello@example.com
+             */
+            email: string | null;
+            /** @example (02) 8123 4567 */
+            phone: string | null;
+            /** @example 123 Rizal Street */
+            line1: string | null;
+            /** @example Unit 4B */
+            line2: string | null;
+            /** @example Poblacion */
+            barangay: string | null;
+            /** @example Makati */
+            city: string | null;
+            /** @example Metro Manila */
+            province: string | null;
+            /** @example 1210 */
+            postalCode: string | null;
+            /** @example Mon to Sat, 9am to 6pm */
+            businessHours: string | null;
+            /** @description In display order. The storefront picks each icon from platform. */
+            socialLinks: {
+                /** @enum {string} */
+                platform: "facebook" | "instagram" | "tiktok" | "youtube" | "x" | "messenger" | "viber" | "whatsapp" | "shopee" | "lazada";
+                /** @example https://facebook.com/simplestore */
+                url: string;
+                /** @example Outlet store */
+                label?: string | null;
+            }[];
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        StoreInfoBody: {
+            /** @example Simple Store */
+            name: string;
+            /**
+             * Format: email
+             * @example hello@example.com
+             */
+            email?: string | null;
+            /** @example (02) 8123 4567 */
+            phone?: string | null;
+            /** @example 123 Rizal Street */
+            line1?: string | null;
+            /** @example Unit 4B */
+            line2?: string | null;
+            /** @example Poblacion */
+            barangay?: string | null;
+            /** @example Makati */
+            city?: string | null;
+            /** @example Metro Manila */
+            province?: string | null;
+            /** @example 1210 */
+            postalCode?: string | null;
+            /** @example Mon to Sat, 9am to 6pm */
+            businessHours?: string | null;
+            /** @description In display order. The storefront picks each icon from platform. */
+            socialLinks?: {
+                /** @enum {string} */
+                platform: "facebook" | "instagram" | "tiktok" | "youtube" | "x" | "messenger" | "viber" | "whatsapp" | "shopee" | "lazada";
+                /** @example https://facebook.com/simplestore */
+                url: string;
+                /** @example Outlet store */
+                label?: string | null;
+            }[];
+        };
+        ContentPage: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Used in the storefront URL. Cannot be "admin".
+             * @example terms
+             */
+            slug: string;
+            /** @example Terms and Conditions */
+            title: string;
+            /** @example By using this store, you agree to... */
+            content: string;
+            /** @description Drafts are hidden from the storefront */
+            published: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        ContentPageSummary: {
+            /** Format: uuid */
+            id: string;
+            /**
+             * @description Used in the storefront URL. Cannot be "admin".
+             * @example terms
+             */
+            slug: string;
+            /** @example Terms and Conditions */
+            title: string;
+            /** @description Drafts are hidden from the storefront */
+            published: boolean;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        CreateContentPage: {
+            /**
+             * @description Used in the storefront URL. Cannot be "admin".
+             * @example terms
+             */
+            slug: string;
+            /** @example Terms and Conditions */
+            title: string;
+            /** @example By using this store, you agree to... */
+            content: string;
+            /** @description Drafts are hidden from the storefront */
+            published?: boolean;
+        };
+        UpdateContentPage: {
+            /**
+             * @description Used in the storefront URL. Cannot be "admin".
+             * @example terms
+             */
+            slug?: string;
+            /** @example Terms and Conditions */
+            title?: string;
+            /** @example By using this store, you agree to... */
+            content?: string;
+            /** @description Drafts are hidden from the storefront */
+            published?: boolean;
         };
         Category: {
             /** Format: uuid */
@@ -5794,6 +6267,11 @@ export interface components {
             /** Format: email */
             customerEmail: string | null;
             paymentReference: string | null;
+            /**
+             * Format: date-time
+             * @description When the buyer accepted the terms, if the client sent acceptTerms
+             */
+            termsAcceptedAt: string | null;
         };
         GuestOrder: {
             /** Format: uuid */
@@ -5900,6 +6378,8 @@ export interface components {
              * @example WELCOME10
              */
             couponCode?: string;
+            /** @description Send true when the buyer ticked the terms box, to record when they agreed */
+            acceptTerms?: boolean;
         };
         SubmitPayment: {
             /** @example GC-1234567890 */
@@ -5925,6 +6405,8 @@ export interface components {
              * @example WELCOME10
              */
             couponCode?: string;
+            /** @description Send true when the buyer ticked the terms box, to record when they agreed */
+            acceptTerms?: boolean;
         };
         UpdateOrderStatus: {
             /** @enum {string} */
@@ -6470,7 +6952,7 @@ export interface components {
             actorUserId: string | null;
             actorEmail: string | null;
             /** @enum {string} */
-            entityType: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "user" | "variant";
+            entityType: "asset" | "banner" | "blog" | "category" | "coupon" | "order" | "page" | "payment_method" | "product" | "product_image" | "promotion" | "role" | "sale" | "store_info" | "user" | "variant";
             /** Format: uuid */
             entityId: string;
             /** @example update */
@@ -6509,7 +6991,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "store.manage" | "pages.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
             userCount: number;
             /** Format: date-time */
             createdAt: string;
@@ -6527,7 +7009,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "store.manage" | "pages.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         UpdateRoleBody: {
             name?: string;
@@ -6538,7 +7020,7 @@ export interface components {
              *       "assets.manage"
              *     ]
              */
-            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
+            permissions?: ("orders.view" | "orders.manage" | "orders.refund" | "products.view" | "products.manage" | "inventory.manage" | "categories.manage" | "blogs.manage" | "banners.manage" | "store.manage" | "pages.manage" | "promotions.manage" | "assets.manage" | "payment_methods.manage" | "reports.operations" | "reports.sales" | "audit_logs.view")[];
         };
         PageMeta: {
             /** @example 1 */
@@ -6638,6 +7120,7 @@ export interface components {
     parameters: {
         BlogId: string;
         BannerId: string;
+        ContentPageId: string;
         CategoryId: string;
         ProductId: string;
         ImageId: string;

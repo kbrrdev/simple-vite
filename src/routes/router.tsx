@@ -87,6 +87,18 @@ export const routes: RouteObject[] = [
                     ],
                   },
                   {
+                    element: <RequirePermission permission="store.manage" />,
+                    children: [
+                      {
+                        path: '/store-details',
+                        lazy: async () => ({
+                          Component: (await import('@/features/store-info/StoreDetailsPage'))
+                            .StoreDetailsPage,
+                        }),
+                      },
+                    ],
+                  },
+                  {
                     element: <RequirePermission permission="payment_methods.manage" />,
                     children: [
                       {

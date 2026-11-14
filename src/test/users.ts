@@ -10,6 +10,8 @@ const everything: Permission[] = [
   'categories.manage',
   'blogs.manage',
   'banners.manage',
+  'store.manage',
+  'pages.manage',
   'assets.manage',
   'payment_methods.manage',
   'promotions.manage',
