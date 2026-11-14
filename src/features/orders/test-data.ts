@@ -17,6 +17,7 @@ export function makeOrder(overrides: Partial<Order> = {}): Order {
       qrUrl: null,
     },
     couponCode: null,
+    termsAcceptedAt: null,
     subtotalCents: 100000,
     promotionDiscountCents: 0,
     discountCents: 0,

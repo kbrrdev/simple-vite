@@ -80,6 +80,7 @@ const settings: Area = {
   label: 'Settings',
   icon: SettingsIcon,
   pages: [
+    { to: '/store-details', label: 'Store details', permission: 'store.manage' },
     { to: '/payment-methods', label: 'Payment methods', permission: 'payment_methods.manage' },
     { to: '/people', label: 'People', superAdmin: true },
     { to: '/roles', label: 'Roles', superAdmin: true },

@@ -9,6 +9,8 @@ export const entityLabels: Record<AuditEntityType, string> = {
   category: 'Category',
   blog: 'Blog post',
   banner: 'Banner',
+  page: 'Page',
+  store_info: 'Store details',
   sale: 'Sale',
   coupon: 'Coupon',
   promotion: 'Promotion',
@@ -30,6 +32,7 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   role: (id) => `/roles/${id}`,
   // Banners have no page each, so their entries open the list.
   banner: () => '/banners',
+  store_info: () => '/store-details',
   sale: (id) => `/discounts/sales/${id}`,
   coupon: (id) => `/discounts/coupons/${id}`,
   promotion: (id) => `/discounts/promotions/${id}`,

@@ -56,6 +56,7 @@ src/
 | Categories      | Built  | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
 | Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
+| Store details   | Built  | `GET` and `PUT /api/store-info`, needing `store.manage` to save                                                                                        |
 | Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
 | Banners         | Built  | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
 | Discounts       | Built  | `GET /api/sales`, `/api/coupons`, `/api/promotions`, with `PATCH` and `DELETE` on each `/:id`, all needing `promotions.manage`                         |
@@ -131,6 +132,13 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Each entry shows the fields it changed, before and after. Fields ending in `Cents` are shown in pesos, and redacted values as `[redacted]`. Everything is shown as text.
 - Order, product, blog, and role pages have History in their header's More menu, from `useHistoryItem` in `features/audit-log/history.ts`, for roles with `audit_logs.view`. Variants and product images are logged under their own ids, so a product's History leaves them out.
 - Action names the app does not know yet are turned into words, so new backend actions still read well.
+
+## Store details
+
+- Store details, under Settings, edits what the storefront shows about the store: its name, contact email and phone, address, business hours, and social links. It needs `store.manage`.
+- `PUT /api/store-info` replaces the whole record, and clears any field left out, so the form always sends every field, with empty ones as `null`.
+- Each social link has a platform from the backend's list, an `https://` link, and an optional label, up to 10, shown in their order. The form checks the link, the 4-digit postal code, and the email as hints, and shows the backend's errors, such as `socialLinks.0.url`, beside the matching field.
+- `VITE_STORE_NAME` still names this app, as reading the store's name would hold every screen for one more request.
 
 ## Payment methods
 

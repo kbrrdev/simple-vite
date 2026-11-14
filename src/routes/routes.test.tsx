@@ -126,7 +126,7 @@ describe('permissions', () => {
     );
 
     await userEvent.click(within(nav).getByRole('link', { name: 'Settings' }));
-    await waitFor(() => expect(router.state.location.pathname).toBe('/payment-methods'));
+    await waitFor(() => expect(router.state.location.pathname).toBe('/store-details'));
     await waitFor(() =>
       expect(navLinks(nav)).toEqual([
         'Home',
@@ -135,6 +135,7 @@ describe('permissions', () => {
         'Content',
         'Discounts',
         'Settings',
+        'Store details',
         'Payment methods',
         'People',
         'Roles',
