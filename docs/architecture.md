@@ -51,7 +51,7 @@ src/
 | Screen          | Status | Backend routes                                                                                                                                         |
 | --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Login           | Built  | `POST /api/auth/login`, `/refresh`, `/logout`, `GET /api/auth/me`                                                                                      |
-| Dashboard       | Built  | `GET /api/reports/summary`, `/sales`, `/top-products`, `/order-status`, `/low-stock`                                                                   |
+| Dashboard       | Built  | `GET /api/reports/summary`, `/sales`, `/sales-by`, `/top-products`, `/order-status`, `/low-stock`                                                      |
 | Products        | Built  | `GET /api/products/admin`, `GET /api/products/admin/:id`, `POST /api/products`, `PATCH` and `DELETE /api/products/:id`, `/:id/images`, `/:id/variants` |
 | Categories      | Built  | `GET /api/categories/tree`, `POST /api/categories`, `PATCH` and `DELETE /api/categories/:id`                                                           |
 | Orders          | Built  | `GET /api/orders/admin`, `GET /api/orders/admin/:id`, `PATCH /admin/:id/status`, `POST /admin/:id/payment/confirm`, `/reject`, `/refund`               |
@@ -100,10 +100,16 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 ## Dashboard
 
 - The Dashboard is the reports page. It starts with **Needs attention**, a to-do list of payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
-- The summary, the sales chart, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
+- The metric cards, the chart, the breakdown, Sales by, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
+- After Shopify's Analytics, four **metric cards** show Gross sales, Collected after refunds, Orders placed, and Average order, each with a trend line. Picking one fills the chart, kept in the URL as `metric`. The metrics are listed once, in `features/reports/metrics.ts`.
+- **Compare to previous period** is on unless `compare=off`. It sends `compare=previous_period`, and the backend picks the same number of days just before the range, returns them as `previous`, and works out each card's percent change in `changes`. The browser only shows that change, with an arrow and words for screen readers. A change is null when the previous period had none, and the card says there are no earlier sales to compare.
+- The chart draws the picked figure with the previous period dashed behind it on the same axis, and its table lists each day beside the day it is compared with. The Orders card counts cancelled orders as placed, while the chart's points leave them out, so the chart calls them "Orders, apart from cancelled".
+- **Breakdown** lists the rest of the summary, one figure a row: collected before refunds, refunds, each kind of discount, tax by rate, shipping, items sold, cancelled orders, and customers, new and returning.
+- **Sales by** splits gross sales by payment method or category, from `GET /api/reports/sales-by`, kept in the URL as `by`. Category totals leave out shipping, so they do not add up to gross sales, and the card says so.
+- Best sellers and low stock show each product's first image.
 - Needs attention and low stock show the store as it is now, so the range does not change them.
 - Every figure comes from the backend. The browser formats it and never adds anything up. Sale, promotion, and coupon discounts are shown apart, from `saleDiscountCents`, `promotionDiscountCents`, and `couponDiscountCents`, as `discountCents` is their sum.
-- The sales chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. Its table view lists the same figures for screen readers.
+- The chart uses Recharts, loaded with `React.lazy` so that its code only downloads with the chart. The cards' trend lines are plain SVG, so they need none of it.
 - Each card loads and fails on its own, so a slow report never blocks Needs attention.
 
 ## Roles and People

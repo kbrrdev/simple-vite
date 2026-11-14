@@ -1174,6 +1174,8 @@ export interface paths {
                     /** @description Includes products in its subcategories */
                     categoryId?: string;
                     sort?: "newest" | "name";
+                    /** @description Only products a current sale covers, directly or through their category. Only true is accepted. */
+                    onSale?: true;
                 };
                 header?: never;
                 path?: never;
@@ -1256,6 +1258,8 @@ export interface paths {
                     /** @description Includes products in its subcategories */
                     categoryId?: string;
                     sort?: "newest" | "name";
+                    /** @description Only products a current sale covers, directly or through their category. Only true is accepted. */
+                    onSale?: true;
                     /** @description Only active or only inactive products, by the product's own flag. Leave out for both. */
                     active?: boolean;
                 };
@@ -3848,6 +3852,8 @@ export interface paths {
                     from?: components["parameters"]["ReportFrom"];
                     /** @description Last day, in Manila time. Defaults to today. */
                     to?: components["parameters"]["ReportTo"];
+                    /** @description Adds `previous`, the same figures for the same number of days just before `from`. */
+                    compare?: components["parameters"]["ReportCompare"];
                 };
                 header?: never;
                 path?: never;
@@ -3898,6 +3904,8 @@ export interface paths {
                     from?: components["parameters"]["ReportFrom"];
                     /** @description Last day, in Manila time. Defaults to today. */
                     to?: components["parameters"]["ReportTo"];
+                    /** @description Adds `previous`, the same figures for the same number of days just before `from`. */
+                    compare?: components["parameters"]["ReportCompare"];
                     interval?: "day" | "week" | "month";
                 };
                 header?: never;
@@ -3914,6 +3922,59 @@ export interface paths {
                     content: {
                         "application/json": {
                             data: components["schemas"]["ReportSales"];
+                        };
+                    };
+                };
+                400: components["responses"]["BadRequest"];
+                401: components["responses"]["Unauthorized"];
+                403: components["responses"]["Forbidden"];
+                500: components["responses"]["ServerError"];
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/reports/sales-by": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get gross sales and orders by payment method or category (needs reports.sales)
+         * @description payment_method groups orders by cash on delivery or the payment provider they were placed with. category groups item totals, without shipping, by top-level category, so it does not add up to gross sales.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description First day, in Manila time. Defaults to 29 days before `to`. */
+                    from?: components["parameters"]["ReportFrom"];
+                    /** @description Last day, in Manila time. Defaults to today. */
+                    to?: components["parameters"]["ReportTo"];
+                    /** @description Adds `previous`, the same figures for the same number of days just before `from`. */
+                    compare?: components["parameters"]["ReportCompare"];
+                    dimension: "payment_method" | "category";
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The groups */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["ReportSalesBy"];
                         };
                     };
                 };
@@ -4745,7 +4806,7 @@ export interface components {
             /** Format: uri */
             imageUrl: string | null;
             /**
-             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @description An icon name from the frontend's icon set. Show the image if set, otherwise the icon.
              * @example shirt
              */
             icon: string | null;
@@ -4766,7 +4827,7 @@ export interface components {
             /** Format: uri */
             imageUrl: string | null;
             /**
-             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @description An icon name from the frontend's icon set. Show the image if set, otherwise the icon.
              * @example shirt
              */
             icon: string | null;
@@ -4793,7 +4854,7 @@ export interface components {
             /** Format: uri */
             imageUrl: string | null;
             /**
-             * @description An icon name from the frontend's icon set. Show it if set, otherwise the image.
+             * @description An icon name from the frontend's icon set. Show the image if set, otherwise the icon.
              * @example shirt
              */
             icon: string | null;
@@ -5478,6 +5539,16 @@ export interface components {
                 automatic: boolean;
             } | null;
             /**
+             * @description The subtotal after discounts that ships free, or null when there is none
+             * @example 150000
+             */
+            freeShippingMinCents: number | null;
+            /**
+             * @description How much more to spend for free shipping: 0 once shipping is free, or null when there is none
+             * @example 25000
+             */
+            freeShippingRemainingCents: number | null;
+            /**
              * @description Why the coupon sent could not be used, to show the shopper
              * @example This coupon has expired
              */
@@ -6076,6 +6147,12 @@ export interface components {
             couponDiscountCents: number;
             /** @description Customer accounts created in the range */
             newCustomers: number;
+            /** @description Accounts and guest emails that placed an order in the range */
+            customers: number;
+            /** @description Customers who had also ordered before the range */
+            returningCustomers: number;
+            /** @description Returning customers as a percent of customers, to one decimal place */
+            returningCustomerRatePercent: number;
             /** @description Gross sales split by the tax setting each order was placed with */
             taxByRate: {
                 /** @example 12 */
@@ -6085,6 +6162,120 @@ export interface components {
                 taxableCents: number;
                 taxCents: number;
             }[];
+            /** @description Only with compare=previous_period */
+            previous?: {
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                from: string;
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                to: string;
+                /** @description Every order placed, including cancelled */
+                ordersPlaced: number;
+                cancelledOrders: number;
+                /** @description Totals of orders placed, apart from cancelled ones */
+                grossSalesCents: number;
+                /** @description Gross sales divided by orders that were not cancelled */
+                averageOrderValueCents: number;
+                itemsSold: number;
+                /** @description Payments received in the range, by the day they were received */
+                collectedCents: number;
+                /** @description Payments received in the range that were later refunded */
+                refundedCents: number;
+                /** @description Collected minus refunded */
+                netCollectedCents: number;
+                /** @description Tax on gross sales */
+                taxCents: number;
+                /** @description Shipping on gross sales */
+                shippingCents: number;
+                /** @description Sale, promotion, and coupon discounts together */
+                discountCents: number;
+                /** @description Taken off by buy X get Y and bundle promotions, on gross sales */
+                promotionDiscountCents: number;
+                /** @description Taken off list prices by sales, on gross sales */
+                saleDiscountCents: number;
+                /** @description Taken off by coupons, on gross sales. Waived shipping is not included. */
+                couponDiscountCents: number;
+                /** @description Customer accounts created in the range */
+                newCustomers: number;
+                /** @description Accounts and guest emails that placed an order in the range */
+                customers: number;
+                /** @description Customers who had also ordered before the range */
+                returningCustomers: number;
+                /** @description Returning customers as a percent of customers, to one decimal place */
+                returningCustomerRatePercent: number;
+                /** @description Gross sales split by the tax setting each order was placed with */
+                taxByRate: {
+                    /** @example 12 */
+                    ratePercent: number;
+                    pricesIncludeTax: boolean;
+                    /** @description Order totals without tax, including shipping */
+                    taxableCents: number;
+                    taxCents: number;
+                }[];
+            };
+            /** @description Only with compare=previous_period. Percent change from the previous period. */
+            changes?: {
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                ordersPlaced?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                grossSalesCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                averageOrderValueCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                itemsSold?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                collectedCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                refundedCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                netCollectedCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                discountCents?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                newCustomers?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                customers?: number | null;
+                /**
+                 * @description Percent change. Null when the previous value was 0.
+                 * @example 12.5
+                 */
+                returningCustomers?: number | null;
+            };
         };
         ReportSales: {
             /**
@@ -6109,8 +6300,102 @@ export interface components {
                 /** @description Orders placed, apart from cancelled ones */
                 orders: number;
                 grossSalesCents: number;
+                averageOrderValueCents: number;
+                itemsSold: number;
+                /** @description Sale, promotion, and coupon discounts together */
+                discountCents: number;
+                /** @description Payments received in the period */
                 collectedCents: number;
+                /** @description Payments received in the period that were later refunded */
+                refundedCents: number;
+                /** @description Collected minus refunded */
+                netCollectedCents: number;
             }[];
+            /** @description Only with compare=previous_period. One point for each current point, in the same order, for a comparison line. */
+            previous?: {
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                from: string;
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                to: string;
+                points: {
+                    /**
+                     * Format: date
+                     * @description First day of the period
+                     * @example 2026-03-01
+                     */
+                    date: string;
+                    /** @description Orders placed, apart from cancelled ones */
+                    orders: number;
+                    grossSalesCents: number;
+                    averageOrderValueCents: number;
+                    itemsSold: number;
+                    /** @description Sale, promotion, and coupon discounts together */
+                    discountCents: number;
+                    /** @description Payments received in the period */
+                    collectedCents: number;
+                    /** @description Payments received in the period that were later refunded */
+                    refundedCents: number;
+                    /** @description Collected minus refunded */
+                    netCollectedCents: number;
+                }[];
+            };
+        };
+        ReportSalesBy: {
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            from: string;
+            /**
+             * Format: date
+             * @example 2026-03-01
+             */
+            to: string;
+            /** @enum {string} */
+            dimension: "payment_method" | "category";
+            /** @description Largest gross sales first */
+            rows: {
+                /**
+                 * @description `cod`, a payment provider, or a category id
+                 * @example cod
+                 */
+                key: string;
+                /** @example Cash on delivery */
+                label: string;
+                grossSalesCents: number;
+                orders: number;
+            }[];
+            /** @description Only with compare=previous_period */
+            previous?: {
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                from: string;
+                /**
+                 * Format: date
+                 * @example 2026-03-01
+                 */
+                to: string;
+                /** @description Largest gross sales first */
+                rows: {
+                    /**
+                     * @description `cod`, a payment provider, or a category id
+                     * @example cod
+                     */
+                    key: string;
+                    /** @example Cash on delivery */
+                    label: string;
+                    grossSalesCents: number;
+                    orders: number;
+                }[];
+            };
         };
         ReportTopProducts: {
             /**
@@ -6128,6 +6413,11 @@ export interface components {
             items: {
                 /** Format: uuid */
                 productId: string;
+                /**
+                 * Format: uri
+                 * @description The product's first image
+                 */
+                imageUrl: string | null;
                 /** @description The product's current name */
                 name: string;
                 active: boolean;
@@ -6154,6 +6444,11 @@ export interface components {
             };
         };
         LowStockVariant: {
+            /**
+             * Format: uri
+             * @description The variant's image, or the product's first image
+             */
+            imageUrl: string | null;
             /** Format: uuid */
             variantId: string;
             /** Format: uuid */
@@ -6359,6 +6654,8 @@ export interface components {
         ReportFrom: string;
         /** @description Last day, in Manila time. Defaults to today. */
         ReportTo: string;
+        /** @description Adds `previous`, the same figures for the same number of days just before `from`. */
+        ReportCompare: "previous_period";
         RoleId: string;
     };
     requestBodies: never;
