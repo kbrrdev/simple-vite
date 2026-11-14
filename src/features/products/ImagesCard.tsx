@@ -26,6 +26,7 @@ import { useCan } from '@/lib/auth';
 import { useUploadAsset } from '@/features/files/api';
 import { AssetPicker } from '@/features/files/AssetPicker';
 import { allowedTypes, uploadProblem } from '@/features/files/file-info';
+import { imageSizes, sizeHint, sizeWarning } from '@/features/files/image-sizes';
 import {
   useAddImage,
   useRemoveImage,
@@ -65,6 +66,8 @@ function AltTextDialog({
   onClose,
 }: AltTextDialogProps) {
   const [altText, setAltText] = useState(initialAltText);
+  // Read when the photo loads, so a small or wide one is flagged before it is added.
+  const [warning, setWarning] = useState<string | null>(null);
 
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -81,7 +84,20 @@ function AltTextDialog({
               Alt text describes the photo for shoppers who cannot see it. It is optional.
             </DialogDescription>
           </DialogHeader>
-          <img src={imageUrl} alt="" className="max-h-48 w-full rounded-md object-contain" />
+          <img
+            src={imageUrl}
+            alt=""
+            className="max-h-48 w-full rounded-md object-contain"
+            onLoad={(event) =>
+              setWarning(
+                sizeWarning(imageSizes.product, {
+                  width: event.currentTarget.naturalWidth,
+                  height: event.currentTarget.naturalHeight,
+                }),
+              )
+            }
+          />
+          {warning && <p className="text-sm text-warning-foreground">{warning}</p>}
           <div className="space-y-2">
             <Label htmlFor="image-alt-text">Alt text</Label>
             <Input
@@ -311,6 +327,9 @@ export function ImagesCard({ product }: { product: Product }) {
         </ul>
       )}
 
+      {canAdd && !full && (
+        <p className="text-xs text-muted-foreground">{sizeHint(imageSizes.product)}</p>
+      )}
       {canAdd && full && (
         <p className="text-sm text-muted-foreground">
           A product can have up to {maxImages} images. Remove one to add another.

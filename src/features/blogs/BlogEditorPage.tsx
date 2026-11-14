@@ -16,6 +16,7 @@ import { ApiError, errorMessage } from '@/lib/api';
 import { useLeaveGuard } from '@/lib/use-leave-guard';
 import { useHistoryItem } from '@/features/audit-log/history';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { imageSizes } from '@/features/files/image-sizes';
 import {
   useBlog,
   useCreateBlog,
@@ -249,6 +250,7 @@ function Editor({ blog }: { blog?: Blog }) {
           <PanelSection title="Cover image">
             <ImageField
               legend="Cover image"
+              size={imageSizes.blogCover}
               image={values.cover}
               onChange={(cover) => set({ cover })}
               error={fieldError('coverAssetId')}

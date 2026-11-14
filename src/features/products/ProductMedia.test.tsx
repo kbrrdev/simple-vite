@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import type { Asset } from '@/features/files/api';
@@ -175,6 +175,30 @@ describe('product images', () => {
 
     expect(await screen.findByText('Choose a JPEG, PNG, or WebP image.')).toBeInTheDocument();
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+  });
+
+  it('recommends a square, and warns before adding a small photo', async () => {
+    serve(makeProduct());
+    renderApp('/products/product-1');
+
+    expect(
+      await screen.findByText(
+        'Recommended: Square, 2048 × 2048 pixels. JPEG, PNG, or WebP, up to 5 MB.',
+      ),
+    ).toBeInTheDocument();
+    await userEvent.click(screen.getByRole('button', { name: 'Choose from Files' }));
+    await userEvent.click(await screen.findByRole('button', { name: /^Choose JPEG image/ }));
+    const dialog = within(screen.getByRole('dialog', { name: 'Add image' }));
+
+    // jsdom loads no images, so the photo is given its real size.
+    const photo = dialog.getByRole('presentation');
+    Object.defineProperty(photo, 'naturalWidth', { value: 600 });
+    Object.defineProperty(photo, 'naturalHeight', { value: 600 });
+    fireEvent.load(photo);
+
+    expect(
+      dialog.getByText(/^This image is 600 × 600 pixels, so it may look soft\./),
+    ).toBeInTheDocument();
   });
 
   it('stops adding at 10 images', async () => {

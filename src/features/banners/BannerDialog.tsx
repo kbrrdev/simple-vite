@@ -14,6 +14,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { fromLocalInput, toLocalInput } from '@/lib/schedule';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { imageSizes } from '@/features/files/image-sizes';
 import { useCreateBanner, useUpdateBanner, type Banner, type BannerChanges } from './api';
 
 const textFields = [
@@ -162,6 +163,7 @@ export function BannerDialog({ banner, nextPosition, onClose }: Props) {
           <div className="-mx-4 grid min-h-0 gap-4 overflow-y-auto px-4 py-1">
             <ImageField
               legend="Image"
+              size={imageSizes.banner}
               image={image}
               onChange={setImage}
               error={fieldError('assetId')}
@@ -169,6 +171,7 @@ export function BannerDialog({ banner, nextPosition, onClose }: Props) {
             />
             <ImageField
               legend="Phone image (optional)"
+              size={imageSizes.bannerPhone}
               image={mobileImage}
               onChange={setMobileImage}
               error={fieldError('mobileAssetId')}

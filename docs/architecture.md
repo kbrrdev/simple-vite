@@ -221,6 +221,18 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Lists take `page` and `limit`, with `limit` up to 100, and return `meta: { page, limit, total }`.
 - Errors look like `{ error: { message, details?, requestId? } }`. `details` lists `{ field, message }` pairs, and `requestId` appears on `500` errors.
 - Uploading takes two steps. Send the image to `POST /api/assets` in a `file` form field, then attach the returned `id` to a product or blog. Files must be JPEG, PNG, or WebP, and 5 MB or smaller.
+- Each image field shows the size the storefront shows it at, from `imageSizes` in `features/files/image-sizes.ts`, and warns once the image loads if it is under half that width or more than a tenth off the shape. The backend accepts any size, so these are hints. Keep them in step with the storefront's layout:
+
+  | Image                  | Recommended                              |
+  | ---------------------- | ---------------------------------------- |
+  | Product                | Square, 2048 × 2048                      |
+  | Banner                 | 2400 × 800 (3:1)                         |
+  | Banner on phones       | 1080 × 1350 (4:5)                        |
+  | Category               | Square, 400 × 400                        |
+  | Blog cover             | 1600 × 900 (16:9), subject in the middle |
+  | Image in a post's text | At least 1600 wide, any height           |
+  | Payment QR code        | Square, at least 800 × 800               |
+
 - The Files page takes several images at once, from Upload images or dropped anywhere on the page. It checks each, then uploads the good ones one at a time, as the backend takes one file per request, and lists any it skipped with the reason.
 - Money is in integer cents, such as `priceCents` and `totalCents`. Format it for display only, for example with `Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP' })`.
 
