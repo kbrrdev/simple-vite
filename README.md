@@ -29,9 +29,24 @@ The app runs at `http://localhost:5173`, which the backend allows by default. Lo
 | `npm run format:check` | Prettier, without writing changes                          |
 | `npm test`             | Vitest                                                     |
 | `npm run test:watch`   | Vitest in watch mode                                       |
+| `npm run e2e`          | Playwright, in a browser against the running API           |
 | `npm run api:types`    | Regenerates `src/lib/api-schema.d.ts` from the running API |
 
 Run `npm run api:types` whenever the backend's API changes, and commit the result.
+
+## Browser tests
+
+`npm run e2e` runs the flows in `e2e/` in Chromium against a real, seeded simple-express API. They create and clean up their own records, so use a development database, never a real store.
+
+```bash
+npx playwright install chromium   # Once
+npm run e2e
+```
+
+- The API must be running on `http://localhost:3000`, or set `E2E_API_URL`, with the seeded `admin@example.com` and `staff@example.com` accounts.
+- If something already serves `http://localhost:5173`, such as `npm run dev`, the tests use it. Otherwise they build the app and serve it with `vite preview`.
+- Each run logs in three times. The API allows 10 logins per 15 minutes, so a fourth run in a row gets `429`. Wait, or restart the API, which resets the count.
+- `npx playwright show-report` opens the last run's report, with a trace of each failure.
 
 ## Notes
 

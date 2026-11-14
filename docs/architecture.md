@@ -260,6 +260,11 @@ Tests run with Vitest and React Testing Library. They render components as a use
 - `src/test/setup.ts` clears toasts after each test, as their list is shared across a file, and waits up to 3 seconds for things to appear, as files run side by side. Tests can check a toast's text without seeing a leftover from the test before.
 - Mock `request` and `refreshSession` with `vi.mock('@/lib/api', ...)`, and answer `/api/auth/me` with a user from `src/test/users.ts`: `admin` has every permission, `staff` has the seeded Staff role, and `customer` has none. See `src/routes/routes.test.tsx`.
 
+Browser tests in `e2e/`, named `*.e2e.ts` so Vitest skips them, run with Playwright against the real seeded API. They cover what mocks cannot: logging in and staying signed in through the refresh cookie, real uploads and drops, saves the backend accepts, and layout at phone and desktop sizes.
+
+- `e2e/fixtures.ts` logs the admin and the staff user in once per run, as the API allows 10 logins per 15 minutes and rotates the refresh token on every use. Tests share those sessions, so they run one at a time.
+- Each test creates its own records, named with `unique()`, and removes or deactivates them at the end.
+
 ## Build and Deployment
 
 - `npm run build` produces static files in `dist/`.
