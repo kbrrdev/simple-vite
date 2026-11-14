@@ -185,6 +185,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - A product has up to two options, such as Size and Color. They can be renamed, but not added or removed after creation.
 - Each variant has its option values, price, stock, and an optional image from the product's images.
 - A product has up to 10 images, each with alt text and a position.
+- An uploaded photo is cropped to a square first, the shape the store shows, in `CropImageDialog` from `features/files`. Staff drag and zoom it, and the browser cuts the square out with a canvas, at most 2048 pixels across, keeping the file's type, so the backend receives an ordinary image. Use whole image uploads the photo as it is, which the store crops around its center. Images chosen from Files are not cropped, as the browser cannot read another origin's pixels without CORS.
 
 ## Authentication
 
@@ -271,7 +272,7 @@ Browser tests in `e2e/`, named `*.e2e.ts` so Vitest skips them, run with Playwri
 
 - `npm run build` produces static files in `dist/`.
 - Each screen's code is a separate file, loaded the first time its route opens with React Router's route `lazy`. Login and the Dashboard come with the main file, as people land on them. While a screen loads, the current page stays up with a thin bar above it, and a failed download shows the route error with Reload.
-- Recharts and `react-markdown` load only with the chart and the Markdown preview. Keep large libraries out of the main file the same way.
+- Recharts, `react-markdown`, and `react-easy-crop` load only with the chart, the Markdown preview, and the crop dialog. Keep large libraries out of the main file the same way.
 - Serve them from a web server such as Caddy, on the same Ubuntu server setup as the backend.
 - Send unknown paths to `index.html`, so that React Router can handle them.
 - Cache files in `dist/assets/` for a long time, as their names change with every build. Do not cache `index.html`.

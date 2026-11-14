@@ -7,6 +7,28 @@ import { admin } from '@/test/users';
 import type { Product } from './api';
 import { categoryTree, makeProduct, makeVariant } from './test-data';
 
+// jsdom has no canvas and never loads images, so the cropper reports an area at once and the
+// crop returns a stand-in file. The Playwright products test crops for real.
+vi.mock('react-easy-crop', async () => {
+  const { useEffect } = await import('react');
+  return {
+    default: function Cropper({
+      onCropComplete,
+    }: {
+      onCropComplete: (area: unknown, pixels: unknown) => void;
+    }) {
+      // Once, as the real cropper reports once the photo loads. The dialog passes a new callback
+      // on every render, so depending on it would report forever.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      useEffect(() => onCropComplete({}, { x: 0, y: 0, width: 1200, height: 1200 }), []);
+      return null;
+    },
+  };
+});
+vi.mock('@/features/files/crop-image', () => ({
+  cropImage: vi.fn(async (file: File) => new File(['cropped'], file.name, { type: file.type })),
+}));
+
 vi.mock('@/lib/api', async (importOriginal) => ({
   ...(await importOriginal<typeof import('@/lib/api')>()),
   request: vi.fn(),
@@ -58,8 +80,16 @@ async function openMenu(name: string) {
   await userEvent.click(await screen.findByRole('button', { name: `More actions for ${name}` }));
 }
 
+/** The file the last upload sent. */
+function uploadedFile() {
+  const body = sentTo('/api/assets').at(-1)?.body;
+  return body instanceof FormData ? body.get('file') : null;
+}
+
 beforeEach(() => {
   requestMock.mockReset();
+  URL.createObjectURL = vi.fn(() => 'blob:photo');
+  URL.revokeObjectURL = vi.fn();
   vi.mocked(refreshSession).mockResolvedValue(true);
 });
 
@@ -81,14 +111,21 @@ describe('product images', () => {
     });
   });
 
-  it('uploads an image, then adds it', async () => {
+  it('crops an uploaded photo to a square, uploads the crop, then adds it', async () => {
     serve(makeProduct());
     renderApp('/products/product-1');
 
     await screen.findByRole('button', { name: 'Upload image' });
-    const file = new File(['x'], 'shoe.jpg', { type: 'image/jpeg' });
+    const file = new File(['original photo'], 'shoe.jpg', { type: 'image/jpeg' });
     await userEvent.upload(screen.getByLabelText('Image file'), file);
+    const crop = await screen.findByRole('dialog', { name: 'Crop image' });
+    expect(sentTo('/api/assets')).toHaveLength(0);
+    await userEvent.click(within(crop).getByRole('button', { name: 'Save' }));
+
     const dialog = await screen.findByRole('dialog', { name: 'Add image' });
+    const uploaded = uploadedFile();
+    expect(uploaded).toBeInstanceOf(File);
+    expect(await (uploaded as File).text()).toBe('cropped');
     await userEvent.click(within(dialog).getByRole('button', { name: 'Add image' }));
 
     await waitFor(() =>
@@ -97,6 +134,47 @@ describe('product images', () => {
         body: { assetId: 'asset-9', altText: '' },
       }),
     );
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:photo');
+  });
+
+  it('uploads the photo as it is with Use whole image', async () => {
+    serve(makeProduct());
+    renderApp('/products/product-1');
+
+    await screen.findByRole('button', { name: 'Upload image' });
+    const file = new File(['original photo'], 'shoe.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(screen.getByLabelText('Image file'), file);
+    const crop = await screen.findByRole('dialog', { name: 'Crop image' });
+    await userEvent.click(within(crop).getByRole('button', { name: 'Use whole image' }));
+
+    await screen.findByRole('dialog', { name: 'Add image' });
+    expect(uploadedFile()).toBe(file);
+  });
+
+  it('uploads nothing when the crop is cancelled', async () => {
+    serve(makeProduct());
+    renderApp('/products/product-1');
+
+    await screen.findByRole('button', { name: 'Upload image' });
+    const file = new File(['original photo'], 'shoe.jpg', { type: 'image/jpeg' });
+    await userEvent.upload(screen.getByLabelText('Image file'), file);
+    const crop = await screen.findByRole('dialog', { name: 'Crop image' });
+    await userEvent.click(within(crop).getByRole('button', { name: 'Cancel' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(sentTo('/api/assets')).toHaveLength(0);
+  });
+
+  it('refuses a file that is not an image before cropping', async () => {
+    serve(makeProduct());
+    renderApp('/products/product-1');
+
+    await screen.findByRole('button', { name: 'Upload image' });
+    const file = new File(['%PDF'], 'specs.pdf', { type: 'application/pdf' });
+    await userEvent.upload(screen.getByLabelText('Image file'), file, { applyAccept: false });
+
+    expect(await screen.findByText('Choose a JPEG, PNG, or WebP image.')).toBeInTheDocument();
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
   });
 
   it('stops adding at 10 images', async () => {

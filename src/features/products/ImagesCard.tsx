@@ -1,4 +1,4 @@
-import { useRef, useState, type ChangeEvent, type FormEvent } from 'react';
+import { lazy, Suspense, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import { MoreHorizontalIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ActionCard } from '@/components/ActionCard';
@@ -33,6 +33,9 @@ import {
   useUpdateImageAltText,
   type Product,
 } from './api';
+
+// The cropper loads only when a photo is picked, so other pages never download it.
+const CropImageDialog = lazy(() => import('@/features/files/CropImageDialog'));
 
 /** The backend allows up to this many images per product. */
 const maxImages = 10;
@@ -201,6 +204,8 @@ export function ImagesCard({ product }: { product: Product }) {
   const [editing, setEditing] = useState<Image | null>(null);
   const [removing, setRemoving] = useState<Image | null>(null);
   const [fileProblem, setFileProblem] = useState<string | null>(null);
+  // The picked photo and its preview URL, released when the crop dialog closes.
+  const [cropping, setCropping] = useState<{ file: File; source: string } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const upload = useUploadAsset();
   const add = useAddImage();
@@ -222,6 +227,23 @@ export function ImagesCard({ product }: { product: Product }) {
     if (!file) return;
 
     upload.reset();
+    // Only the type is checked here, as cropping can bring a large photo under the size limit.
+    if (!(allowedTypes as string[]).includes(file.type)) {
+      setFileProblem(uploadProblem(file));
+      return;
+    }
+    setFileProblem(null);
+    setCropping({ file, source: URL.createObjectURL(file) });
+  }
+
+  function closeCrop() {
+    if (cropping) URL.revokeObjectURL(cropping.source);
+    setCropping(null);
+  }
+
+  /** Uploads the cropped file, or the original, once the crop dialog closes with it. */
+  function uploadImage(file: File) {
+    closeCrop();
     const problem = uploadProblem(file);
     setFileProblem(problem);
     if (problem) return;
@@ -298,6 +320,19 @@ export function ImagesCard({ product }: { product: Product }) {
         <p role="alert" className="text-sm text-destructive">
           {uploadError}
         </p>
+      )}
+
+      {cropping && (
+        <Suspense fallback={null}>
+          <CropImageDialog
+            file={cropping.file}
+            source={cropping.source}
+            aspect={1}
+            description="Drag and zoom to place the product in the square, the shape shoppers see on product pages and in lists."
+            onDone={uploadImage}
+            onCancel={closeCrop}
+          />
+        </Suspense>
       )}
 
       {picking && (
