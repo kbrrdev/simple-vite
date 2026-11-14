@@ -75,7 +75,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Editing a category sends only the fields that changed, so a save cannot undo a change someone else made meanwhile.
 - Changing the parent moves the category with everything below it. The form only offers parents that keep it within three levels, but the backend decides.
 - A category can have an image, uploaded or chosen from Files with `AssetPicker` from `features/files`, and an icon.
-- Icons are lucide names from `categoryIcons` in `features/categories/icons.ts`, picked in the category dialog with a search. The backend only checks a name's format, so the storefront must use the same names. A name this app does not have is kept until someone picks another, and the dialog says so.
+- Icons are lucide names from `categoryIcons` in `features/categories/icons.ts`, picked in the category dialog with a search. There are about 180, chosen for store categories, and the search matches each one's label and words for the areas it suits, such as food or clothes. They load only with the Categories screen. The backend only checks a name's format, so the storefront must use the same names. A name this app does not have is kept until someone picks another, and the dialog says so.
 - **The image comes first:** the list and the store show a category's image when it has one, and its icon otherwise. The backend's docs say the reverse, so that is up to each frontend, and this one follows the store owner's choice.
 - A category cannot be deleted while it has subcategories or products use it. An image a category uses cannot be deleted from Files.
 
