@@ -71,6 +71,16 @@ export function LowStock({ page, threshold, onPageChange, onThresholdChange }: P
                     to={`/products/${variant.productId}`}
                     className="flex min-h-11 items-center gap-3 px-4 py-2 text-sm outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
                   >
+                    {variant.imageUrl ? (
+                      <img
+                        src={variant.imageUrl}
+                        alt=""
+                        loading="lazy"
+                        className="size-10 shrink-0 rounded-md bg-muted object-cover"
+                      />
+                    ) : (
+                      <span aria-hidden className="size-10 shrink-0 rounded-md bg-muted" />
+                    )}
                     <span className="min-w-0 flex-1">
                       <span className="block truncate font-medium">{variant.productName}</span>
                       {options && (

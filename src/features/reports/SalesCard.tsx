@@ -1,10 +1,11 @@
 import { lazy, Suspense, useState } from 'react';
+import type { UseQueryResult } from '@tanstack/react-query';
 import { ActionCard } from '@/components/ActionCard';
 import { BlockSkeleton } from '@/components/Loading';
 import { Button } from '@/components/ui/button';
-import { formatCents } from '@/lib/money';
-import { useSales, type DateRange, type SalesInterval } from './api';
+import type { ReportSales, SalesInterval } from './api';
 import { LoadState } from './LoadState';
+import { formatMetric, type Metric } from './metrics';
 import { pointLabel } from './sales-format';
 
 // The chart library is large, so it loads only when this card is on screen.
@@ -16,24 +17,24 @@ const intervals: { value: SalesInterval; label: string }[] = [
   { value: 'month', label: 'Month' },
 ];
 
-const legend = [
-  { label: 'Gross sales', className: 'bg-primary' },
-  { label: 'Collected', className: 'bg-muted-foreground' },
-];
-
 interface Props {
-  range: DateRange;
+  /** Shared with the metric cards, which draw their trends from the same points. */
+  query: UseQueryResult<{ data: ReportSales }>;
+  metric: Metric;
+  compare: boolean;
   interval: SalesInterval;
   onIntervalChange: (interval: SalesInterval) => void;
 }
 
-export function SalesCard({ range, interval, onIntervalChange }: Props) {
+/** The figure picked in the cards over the range, against the previous period when comparing. */
+export function SalesCard({ query, metric, compare, interval, onIntervalChange }: Props) {
   const [showTable, setShowTable] = useState(false);
-  const sales = useSales(range, interval);
-  const data = sales.data?.data;
+  const data = query.data?.data;
+  const previous = compare ? data?.previous?.points : undefined;
+  const name = metric.pointLabel ?? metric.label;
 
   return (
-    <ActionCard title="Sales">
+    <ActionCard title={name}>
       <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
         <div role="group" aria-label="Group by" className="flex gap-1">
           {intervals.map((item) => (
@@ -48,17 +49,22 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
             </Button>
           ))}
         </div>
-        <ul aria-label="Legend" className="flex gap-4 text-sm text-muted-foreground">
-          {legend.map((item) => (
-            <li key={item.label} className="flex items-center gap-2">
-              <span aria-hidden className={`h-0.5 w-4 rounded-full ${item.className}`} />
-              {item.label}
+        {/* One line needs no legend, as the title names it. Two do. */}
+        {previous && (
+          <ul aria-label="Legend" className="flex gap-4 text-sm text-muted-foreground">
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="h-0.5 w-4 rounded-full bg-primary" />
+              This period
             </li>
-          ))}
-        </ul>
+            <li className="flex items-center gap-2">
+              <span aria-hidden className="w-4 border-t-2 border-dashed border-muted-foreground" />
+              Previous period
+            </li>
+          </ul>
+        )}
       </div>
 
-      {!data && <LoadState query={sales} skeleton={<BlockSkeleton className="h-64 w-full" />} />}
+      {!data && <LoadState query={query} skeleton={<BlockSkeleton className="h-64 w-full" />} />}
 
       {data && data.points.length === 0 && (
         <p className="text-sm text-muted-foreground">No sales in this range.</p>
@@ -67,7 +73,7 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
       {data && data.points.length > 0 && (
         <>
           <Suspense fallback={<BlockSkeleton className="h-64 w-full" label="Loading chart…" />}>
-            <SalesChart sales={data} />
+            <SalesChart sales={data} metric={metric} compare={compare} />
           </Suspense>
 
           <Button
@@ -82,32 +88,48 @@ export function SalesCard({ range, interval, onIntervalChange }: Props) {
           {showTable && (
             <div className="overflow-x-auto">
               <table className="w-full text-sm tabular-nums">
-                <caption className="sr-only">Sales by {interval}</caption>
+                <caption className="sr-only">
+                  {name} by {interval}
+                </caption>
                 <thead className="text-left text-muted-foreground">
                   <tr className="border-b">
                     <th scope="col" className="py-2 pr-4 font-normal">
                       Period
                     </th>
                     <th scope="col" className="py-2 pr-4 text-right font-normal">
-                      Orders
+                      {name}
                     </th>
-                    <th scope="col" className="py-2 pr-4 text-right font-normal">
-                      Gross sales
-                    </th>
-                    <th scope="col" className="py-2 text-right font-normal">
-                      Collected
-                    </th>
+                    {previous && (
+                      <>
+                        <th scope="col" className="py-2 pr-4 font-normal">
+                          Previous period
+                        </th>
+                        <th scope="col" className="py-2 text-right font-normal">
+                          Previous {name.toLowerCase()}
+                        </th>
+                      </>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
-                  {data.points.map((point) => (
+                  {data.points.map((point, index) => (
                     <tr key={point.date} className="border-b last:border-b-0">
                       <th scope="row" className="py-2 pr-4 text-left font-normal">
                         {pointLabel(point.date, data.interval)}
                       </th>
-                      <td className="py-2 pr-4 text-right">{point.orders}</td>
-                      <td className="py-2 pr-4 text-right">{formatCents(point.grossSalesCents)}</td>
-                      <td className="py-2 text-right">{formatCents(point.collectedCents)}</td>
+                      <td className="py-2 pr-4 text-right">
+                        {formatMetric(metric, point[metric.point])}
+                      </td>
+                      {previous && (
+                        <>
+                          <td className="py-2 pr-4">
+                            {previous[index] && pointLabel(previous[index].date, data.interval)}
+                          </td>
+                          <td className="py-2 text-right">
+                            {previous[index] && formatMetric(metric, previous[index][metric.point])}
+                          </td>
+                        </>
+                      )}
                     </tr>
                   ))}
                 </tbody>

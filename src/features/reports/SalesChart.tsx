@@ -7,62 +7,75 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { formatCents } from '@/lib/money';
 import type { ReportSales } from './api';
-import { compactCents, pointLabel } from './sales-format';
+import { axisMetric, formatMetric, type Metric } from './metrics';
+import { pointLabel } from './sales-format';
 
-// The two lines often run close together, so a legend and the tooltip name them rather than
-// labels at the line ends.
-// Emphasis form: gross sales is the series the chart is about, in Charcoal, and collected is
-// context, in Slate Text. They differ in lightness, so they stay apart without color vision.
-const series = [
-  { key: 'grossSalesCents', label: 'Gross sales', color: 'var(--primary)' },
-  { key: 'collectedCents', label: 'Collected', color: 'var(--muted-foreground)' },
-] as const;
-
-type Point = ReportSales['points'][number];
+interface Row {
+  label: string;
+  current: number;
+  previous?: number;
+  previousLabel?: string;
+}
 
 /** The props Recharts passes to a tooltip that this one reads. */
 interface TooltipProps {
   active?: boolean;
-  payload?: ReadonlyArray<{ payload?: Point }>;
-  label?: string | number;
+  payload?: ReadonlyArray<{ payload?: Row }>;
 }
 
-function SalesTooltip({ active, payload, label }: TooltipProps) {
-  const point = payload?.[0]?.payload;
-  if (!active || !point || typeof label !== 'string') return null;
+interface Props {
+  sales: ReportSales;
+  metric: Metric;
+  compare: boolean;
+}
 
-  return (
-    <div className="space-y-1 rounded-lg bg-popover p-3 text-sm shadow-md ring-1 ring-foreground/10">
-      <p className="font-medium">{label}</p>
-      {series.map((item) => (
-        <p key={item.key} className="flex items-center gap-2">
-          <span aria-hidden className="h-0.5 w-3 rounded-full" style={{ background: item.color }} />
-          <span className="text-muted-foreground">{item.label}</span>
+/**
+ * The picked figure over the range, with the previous period dashed behind it on the same axis.
+ * They differ in lightness and dash, so they stay apart without color vision. Loaded only when
+ * shown.
+ */
+export default function SalesChart({ sales, metric, compare }: Props) {
+  const previous = compare ? sales.previous?.points : undefined;
+  // The backend sends one previous point for each current one, in the same order.
+  const data: Row[] = sales.points.map((point, index) => ({
+    label: pointLabel(point.date, sales.interval),
+    current: point[metric.point],
+    previous: previous?.[index]?.[metric.point],
+    previousLabel: previous?.[index] && pointLabel(previous[index].date, sales.interval),
+  }));
+  const name = metric.pointLabel ?? metric.label;
+
+  function ChartTooltip({ active, payload }: TooltipProps) {
+    const row = payload?.[0]?.payload;
+    if (!active || !row) return null;
+    return (
+      <div className="space-y-1 rounded-lg bg-popover p-3 text-sm shadow-md ring-1 ring-foreground/10">
+        <p className="font-medium">{name}</p>
+        <p className="flex items-center gap-2">
+          <span aria-hidden className="h-0.5 w-3 rounded-full bg-primary" />
+          <span className="text-muted-foreground">{row.label}</span>
           <span className="ml-auto pl-3 font-medium tabular-nums">
-            {formatCents(point[item.key])}
+            {formatMetric(metric, row.current)}
           </span>
         </p>
-      ))}
-      <p className="text-muted-foreground tabular-nums">
-        {point.orders} {point.orders === 1 ? 'order' : 'orders'}
-      </p>
-    </div>
-  );
-}
-
-/** Gross sales and collected over the range, on one peso axis. Loaded only when shown. */
-export default function SalesChart({ sales }: { sales: ReportSales }) {
-  const data = sales.points.map((point) => ({
-    ...point,
-    label: pointLabel(point.date, sales.interval),
-  }));
+        {row.previous !== undefined && (
+          <p className="flex items-center gap-2">
+            <span aria-hidden className="w-3 border-t-2 border-dashed border-muted-foreground" />
+            <span className="text-muted-foreground">{row.previousLabel}</span>
+            <span className="ml-auto pl-3 font-medium tabular-nums">
+              {formatMetric(metric, row.previous)}
+            </span>
+          </p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div
       role="img"
-      aria-label={`Line chart of gross sales and collected by ${sales.interval}. Show as table lists the figures.`}
+      aria-label={`Line chart of ${name.toLowerCase()} by ${sales.interval}${previous ? ', with the previous period dashed' : ''}. Show as table lists the figures.`}
       className="h-64 w-full"
     >
       <ResponsiveContainer width="100%" height="100%">
@@ -79,25 +92,36 @@ export default function SalesChart({ sales }: { sales: ReportSales }) {
             width={52}
             tickLine={false}
             axisLine={false}
+            allowDecimals={metric.money}
             tick={{ fill: 'var(--muted-foreground)', fontSize: 12 }}
-            tickFormatter={compactCents}
+            tickFormatter={(value: number) => axisMetric(metric, value)}
           />
-          <Tooltip content={SalesTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
-          {series.map((item) => (
+          <Tooltip content={ChartTooltip} cursor={{ stroke: 'var(--border)', strokeWidth: 1 }} />
+          {previous && (
             <Line
-              key={item.key}
-              dataKey={item.key}
-              name={item.label}
+              dataKey="previous"
+              name="Previous period"
               type="linear"
-              stroke={item.color}
+              stroke="var(--muted-foreground)"
               strokeWidth={2}
-              strokeLinecap="round"
-              strokeLinejoin="round"
+              strokeDasharray="4 4"
               dot={false}
               activeDot={{ r: 4, stroke: 'var(--background)', strokeWidth: 2 }}
               isAnimationActive={false}
             />
-          ))}
+          )}
+          <Line
+            dataKey="current"
+            name="This period"
+            type="linear"
+            stroke="var(--primary)"
+            strokeWidth={2}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            dot={false}
+            activeDot={{ r: 4, stroke: 'var(--background)', strokeWidth: 2 }}
+            isAnimationActive={false}
+          />
         </LineChart>
       </ResponsiveContainer>
     </div>

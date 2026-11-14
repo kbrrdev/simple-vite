@@ -7,6 +7,8 @@ export type SalesInterval = ReportSales['interval'];
 export type ReportTopProducts = Schemas['ReportTopProducts'];
 export type TopProductsSort = ReportTopProducts['sort'];
 export type LowStockVariant = Schemas['LowStockVariant'];
+export type ReportSalesBy = Schemas['ReportSalesBy'];
+export type SalesByDimension = ReportSalesBy['dimension'];
 
 /** Calendar days in Manila time, both included. Left out, the backend uses the last 30 days. */
 export interface DateRange {
@@ -17,22 +19,51 @@ export interface DateRange {
 export const topProductsLimit = 10;
 export const lowStockPageSize = 10;
 
+/**
+ * The range's query, asking the backend for the same figures over the days just before it when
+ * `compare` is on. The backend picks those days and works out each change.
+ */
+function rangeQuery(range: DateRange, compare: boolean) {
+  return compare ? { ...range, compare: 'previous_period' as const } : { ...range };
+}
+
 /** `enabled` is false for roles without sales reports, which the backend would refuse. */
-export function useSummary(range: DateRange, enabled = true) {
+export function useSummary(range: DateRange, compare: boolean, enabled = true) {
   return useQuery({
-    queryKey: ['reports', 'summary', range],
+    queryKey: ['reports', 'summary', { ...range, compare }],
     enabled,
     queryFn: () =>
-      request<{ data: ReportSummary }>('/api/reports/summary', { query: { ...range } }),
+      request<{ data: ReportSummary }>('/api/reports/summary', {
+        query: rangeQuery(range, compare),
+      }),
     placeholderData: keepPreviousData,
   });
 }
 
-export function useSales(range: DateRange, interval: SalesInterval) {
+export function useSales(
+  range: DateRange,
+  interval: SalesInterval,
+  compare: boolean,
+  enabled = true,
+) {
   return useQuery({
-    queryKey: ['reports', 'sales', { ...range, interval }],
+    queryKey: ['reports', 'sales', { ...range, interval, compare }],
+    enabled,
     queryFn: () =>
-      request<{ data: ReportSales }>('/api/reports/sales', { query: { ...range, interval } }),
+      request<{ data: ReportSales }>('/api/reports/sales', {
+        query: { ...rangeQuery(range, compare), interval },
+      }),
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useSalesBy(range: DateRange, dimension: SalesByDimension) {
+  return useQuery({
+    queryKey: ['reports', 'sales-by', { ...range, dimension }],
+    queryFn: () =>
+      request<{ data: ReportSalesBy }>('/api/reports/sales-by', {
+        query: { ...range, dimension },
+      }),
     placeholderData: keepPreviousData,
   });
 }

@@ -4,7 +4,13 @@ import { ApiError, refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
 import { renderApp } from '@/test/render';
 import { admin, staff } from '@/test/users';
-import type { LowStockVariant, ReportSales, ReportSummary, ReportTopProducts } from './api';
+import type {
+  LowStockVariant,
+  ReportSales,
+  ReportSalesBy,
+  ReportSummary,
+  ReportTopProducts,
+} from './api';
 import { manilaToday } from './range';
 
 vi.mock('@/lib/api', async (importOriginal) => ({
@@ -33,16 +39,57 @@ const summary: ReportSummary = {
   taxCents: 517000,
   shippingCents: 435000,
   newCustomers: 9,
+  customers: 30,
+  returningCustomers: 12,
+  returningCustomerRatePercent: 40,
   taxByRate: [{ ratePercent: 12, pricesIncludeTax: true, taxableCents: 4308036, taxCents: 517000 }],
 };
+
+/** What the backend adds with compare=previous_period. */
+const comparison: Pick<ReportSummary, 'previous' | 'changes'> = {
+  previous: { ...summary, from: '2026-09-13', to: '2026-10-12', grossSalesCents: 4289000 },
+  changes: {
+    grossSalesCents: 12.5,
+    netCollectedCents: -3.25,
+    ordersPlaced: 0,
+    averageOrderValueCents: null,
+  },
+};
+
+function point(date: string, orders: number, grossSalesCents: number, collectedCents: number) {
+  return {
+    date,
+    orders,
+    grossSalesCents,
+    collectedCents,
+    netCollectedCents: collectedCents,
+    refundedCents: 0,
+    averageOrderValueCents: Math.round(grossSalesCents / orders),
+    itemsSold: orders * 2,
+    discountCents: 0,
+  };
+}
 
 const sales: ReportSales = {
   from: summary.from,
   to: summary.to,
   interval: 'day',
-  points: [
-    { date: '2026-11-10', orders: 3, grossSalesCents: 450000, collectedCents: 300000 },
-    { date: '2026-11-11', orders: 1, grossSalesCents: 120000, collectedCents: 120000 },
+  points: [point('2026-11-10', 3, 450000, 300000), point('2026-11-11', 1, 120000, 120000)],
+};
+
+const salesPrevious: ReportSales['previous'] = {
+  from: '2026-11-08',
+  to: '2026-11-09',
+  points: [point('2026-11-08', 2, 200000, 200000), point('2026-11-09', 1, 90000, 90000)],
+};
+
+const salesBy: ReportSalesBy = {
+  from: summary.from,
+  to: summary.to,
+  dimension: 'payment_method',
+  rows: [
+    { key: 'gcash', label: 'GCash', grossSalesCents: 3000000, orders: 20 },
+    { key: 'cod', label: 'Cash on delivery', grossSalesCents: 1825000, orders: 17 },
   ],
 };
 
@@ -51,13 +98,28 @@ const top: ReportTopProducts = {
   to: summary.to,
   sort: 'quantity',
   items: [
-    { productId: 'p1', name: 'Trail Runner', active: true, quantity: 42, revenueCents: 1890000 },
-    { productId: 'p2', name: 'Old Boot', active: false, quantity: 5, revenueCents: 250000 },
+    {
+      productId: 'p1',
+      imageUrl: 'https://cdn.example.com/p1.jpg',
+      name: 'Trail Runner',
+      active: true,
+      quantity: 42,
+      revenueCents: 1890000,
+    },
+    {
+      productId: 'p2',
+      imageUrl: null,
+      name: 'Old Boot',
+      active: false,
+      quantity: 5,
+      revenueCents: 250000,
+    },
   ],
 };
 
 const low: LowStockVariant[] = [
   {
+    imageUrl: null,
     variantId: 'v1',
     productId: 'p1',
     productName: 'Trail Runner',
@@ -75,7 +137,8 @@ type Handler = (path: string, query?: Record<string, unknown>) => unknown;
 function serve(override: Handler = () => undefined, user: User = admin) {
   requestMock.mockImplementation(async (path, options) => {
     if (path === '/api/auth/me') return { data: user };
-    const replaced = override(path, options?.query);
+    const query = options?.query;
+    const replaced = override(path, query);
     if (replaced !== undefined) return replaced;
     switch (path) {
       case '/api/reports/order-status':
@@ -86,9 +149,11 @@ function serve(override: Handler = () => undefined, user: User = admin) {
           },
         };
       case '/api/reports/summary':
-        return { data: summary };
+        return { data: query?.compare ? { ...summary, ...comparison } : summary };
       case '/api/reports/sales':
-        return { data: sales };
+        return { data: query?.compare ? { ...sales, previous: salesPrevious } : sales };
+      case '/api/reports/sales-by':
+        return { data: { ...salesBy, dimension: query?.dimension ?? 'payment_method' } };
       case '/api/reports/top-products':
         return { data: top };
       case '/api/reports/low-stock':
@@ -122,6 +187,13 @@ describe('needs attention', () => {
       '/orders?status=confirmed',
     );
     expect(screen.getByText('2 tasks')).toBeInTheDocument();
+    // Each row says the count first, as Shopify's to-do list does.
+    expect(screen.getByRole('link', { name: 'Confirm 3 payments' })).toHaveTextContent(
+      '3 payments to confirmCustomers sent a payment reference',
+    );
+    expect(screen.getByRole('link', { name: 'Ship 2 orders' })).toHaveTextContent(
+      '2 orders to ship',
+    );
     // A task with nothing waiting is left out.
     expect(screen.queryByText('Confirm orders')).not.toBeInTheDocument();
     expect(screen.queryByText(/All caught up/)).not.toBeInTheDocument();
@@ -167,7 +239,7 @@ describe('needs attention', () => {
   });
 });
 
-describe('the summary', () => {
+describe('the metric cards', () => {
   it('shows the figures as the backend counts them, for the range it used', async () => {
     serve();
     renderApp('/');
@@ -180,28 +252,100 @@ describe('the summary', () => {
     expect(
       screen.getByRole('heading', { name: 'Oct 13, 2026 – Nov 11, 2026' }),
     ).toBeInTheDocument();
+    expect(screen.getByText('Compared with Sep 13, 2026 – Oct 12, 2026')).toBeInTheDocument();
   });
 
-  it('keeps each secondary figure paired with its label', async () => {
+  it("shows the backend's change from the previous period, in words for screen readers", async () => {
+    serve();
+    renderApp('/');
+
+    const figures = await screen.findByRole('region', { name: 'Summary' });
+    const card = (name: RegExp) => within(figures).getByRole('button', { name });
+    expect(card(/^Gross sales/)).toHaveTextContent('up 12.5% from the previous period');
+    expect(card(/^Collected, after refunds/)).toHaveTextContent(
+      'down 3.3% from the previous period',
+    );
+    expect(card(/^Orders placed/)).toHaveTextContent('no change from the previous period');
+    // No percent can say how far a figure rose from nothing.
+    expect(card(/^Average order/)).toHaveTextContent('No earlier sales to compare');
+  });
+
+  it('turns the comparison off, keeping it in the URL', async () => {
+    serve();
+    const { router } = renderApp('/');
+
+    await screen.findByText(/^Compared with/);
+    await userEvent.click(screen.getByRole('checkbox', { name: 'Compare to previous period' }));
+
+    expect(router.state.location.search).toBe('?compare=off');
+    await waitFor(() => expect(screen.queryByText(/^Compared with/)).not.toBeInTheDocument());
+    expect(lastQuery('/api/reports/summary')).toEqual({});
+    expect(lastQuery('/api/reports/sales')).toEqual({ interval: 'day' });
+    expect(screen.queryByText(/from the previous period/)).not.toBeInTheDocument();
+    expect(screen.queryByRole('list', { name: 'Legend' })).not.toBeInTheDocument();
+  });
+
+  it('fills the chart with the card picked, keeping it in the URL', async () => {
+    serve();
+    const { router } = renderApp('/');
+
+    const figures = await screen.findByRole('region', { name: 'Summary' });
+    expect(within(figures).getByRole('button', { name: /^Gross sales/ })).toHaveAttribute(
+      'aria-pressed',
+      'true',
+    );
+    await userEvent.click(within(figures).getByRole('button', { name: /^Orders placed/ }));
+
+    expect(router.state.location.search).toBe('?metric=orders');
+    expect(
+      await screen.findByRole('img', {
+        name: /^Line chart of orders, apart from cancelled by day/,
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Orders, apart from cancelled' }),
+    ).toBeInTheDocument();
+  });
+
+  it('keeps the other cards working when the summary fails', async () => {
+    serve((path) => {
+      if (path === '/api/reports/summary') {
+        throw new ApiError(500, { error: { message: 'Internal error', requestId: 'req-3' } });
+      }
+      return undefined;
+    });
+    renderApp('/');
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('Reference: req-3');
+    expect(await screen.findByRole('link', { name: 'Confirm 3 payments' })).toBeInTheDocument();
+    expect(await screen.findByRole('list', { name: 'Best sellers' })).toBeInTheDocument();
+  });
+});
+
+describe('the breakdown', () => {
+  it('lists the other figures, each beside its label', async () => {
     serve();
     renderApp('/');
 
     await screen.findByRole('region', { name: 'Summary' });
     const more = screen.getByLabelText('More figures');
-    const pairs = Array.from(more.children).map((pair) => [
-      pair.querySelector('dt')?.textContent,
-      pair.querySelector('dd')?.textContent,
+    const pairs = Array.from(more.querySelectorAll('dt')).map((term) => [
+      term.textContent,
+      term.nextElementSibling?.textContent,
     ]);
     expect(pairs).toEqual([
-      ['Items sold', '112'],
+      ['Collected, before refunds', '₱43,100.00'],
       ['Refunded', '₱1,200.00'],
       ['Sale discounts', '₱200.00'],
       ['Promotion discounts', '₱100.00'],
       ['Coupon discounts', '₱50.00'],
-      ['Cancelled orders', '2'],
-      ['New customers', '9'],
       ['Tax', '₱5,170.00'],
       ['Shipping', '₱4,350.00'],
+      ['Items sold', '112'],
+      ['Cancelled orders', '2'],
+      ['Customers', '30'],
+      ['New customers', '9'],
+      ['Returning customers', '12 (40%)'],
     ]);
   });
 
@@ -224,20 +368,6 @@ describe('the summary', () => {
     expect(await screen.findByText('VAT 12%')).toBeInTheDocument();
     expect(screen.getByText('VAT 10%')).toBeInTheDocument();
   });
-
-  it('keeps the other cards working when one fails', async () => {
-    serve((path) => {
-      if (path === '/api/reports/summary') {
-        throw new ApiError(500, { error: { message: 'Internal error', requestId: 'req-3' } });
-      }
-      return undefined;
-    });
-    renderApp('/');
-
-    expect(await screen.findByRole('alert')).toHaveTextContent('Reference: req-3');
-    expect(await screen.findByRole('link', { name: 'Confirm 3 payments' })).toBeInTheDocument();
-    expect(await screen.findByRole('list', { name: 'Best sellers' })).toBeInTheDocument();
-  });
 });
 
 describe('the date range', () => {
@@ -247,7 +377,7 @@ describe('the date range', () => {
 
     await screen.findByRole('region', { name: 'Summary' });
     expect(screen.getByLabelText('Range')).toHaveValue('30d');
-    expect(lastQuery('/api/reports/summary')).toEqual({});
+    expect(lastQuery('/api/reports/summary')).toEqual({ compare: 'previous_period' });
   });
 
   it('applies a preset to the URL and to every ranged report', async () => {
@@ -261,13 +391,19 @@ describe('the date range', () => {
     const params = new URLSearchParams(router.state.location.search);
     expect(params.get('to')).toBe(today);
     await waitFor(() =>
-      expect(lastQuery('/api/reports/summary')).toEqual({ from: params.get('from'), to: today }),
+      expect(lastQuery('/api/reports/summary')).toEqual({
+        from: params.get('from'),
+        to: today,
+        compare: 'previous_period',
+      }),
     );
-    expect(lastQuery('/api/reports/sales')).toMatchObject({ from: params.get('from'), to: today });
-    expect(lastQuery('/api/reports/top-products')).toMatchObject({
-      from: params.get('from'),
-      to: today,
-    });
+    for (const path of [
+      '/api/reports/sales',
+      '/api/reports/sales-by',
+      '/api/reports/top-products',
+    ]) {
+      expect(lastQuery(path)).toMatchObject({ from: params.get('from'), to: today });
+    }
   });
 
   it('applies a custom range, and checks its order first', async () => {
@@ -288,20 +424,24 @@ describe('the date range', () => {
   });
 });
 
-describe('the sales card', () => {
-  it('names the chart and lists the figures as a table', async () => {
+describe('the chart', () => {
+  it('names the chart, and lists each day beside the one it is compared with', async () => {
     serve();
     renderApp('/');
 
     expect(
-      await screen.findByRole('img', { name: /Line chart of gross sales and collected by day/ }),
+      await screen.findByRole('img', {
+        name: 'Line chart of gross sales by day, with the previous period dashed. Show as table lists the figures.',
+      }),
     ).toBeInTheDocument();
+    expect(screen.getByRole('list', { name: 'Legend' })).toHaveTextContent(
+      'This periodPrevious period',
+    );
     await userEvent.click(screen.getByRole('button', { name: 'Show as table' }));
 
     const rows = within(screen.getByRole('table')).getAllByRole('row');
-    expect(rows[1]).toHaveTextContent('Nov 10');
-    expect(rows[1]).toHaveTextContent('₱4,500.00');
-    expect(rows[1]).toHaveTextContent('₱3,000.00');
+    expect(rows[0]).toHaveTextContent('PeriodGross salesPrevious periodPrevious gross sales');
+    expect(rows[1]).toHaveTextContent('Nov 10₱4,500.00Nov 8₱2,000.00');
   });
 
   it('groups by week, keeping it in the URL', async () => {
@@ -315,6 +455,25 @@ describe('the sales card', () => {
       expect(lastQuery('/api/reports/sales')).toMatchObject({ interval: 'week' }),
     );
     expect(screen.getByRole('button', { name: 'Week' })).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('sales by', () => {
+  it('splits sales by payment method, then by category on request', async () => {
+    serve();
+    const { router } = renderApp('/');
+
+    const list = await screen.findByRole('list', { name: 'Sales by payment method' });
+    const rows = within(list).getAllByRole('listitem');
+    expect(rows[0]).toHaveTextContent('GCash20 orders ₱30,000.00');
+    expect(rows[1]).toHaveTextContent('Cash on delivery17 orders ₱18,250.00');
+
+    await userEvent.click(screen.getByRole('button', { name: 'Category' }));
+    expect(router.state.location.search).toBe('?by=category');
+    await waitFor(() =>
+      expect(lastQuery('/api/reports/sales-by')).toMatchObject({ dimension: 'category' }),
+    );
+    expect(screen.getByText(/do not add up to gross sales/)).toBeInTheDocument();
   });
 });
 
@@ -367,7 +526,9 @@ describe('permissions', () => {
     expect(screen.getByRole('region', { name: /Low stock/ })).toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Summary' })).not.toBeInTheDocument();
     expect(screen.queryByRole('region', { name: 'Best sellers' })).not.toBeInTheDocument();
-    expect(requestMock).not.toHaveBeenCalledWith('/api/reports/summary', expect.anything());
+    for (const path of ['/api/reports/summary', '/api/reports/sales', '/api/reports/sales-by']) {
+      expect(requestMock).not.toHaveBeenCalledWith(path, expect.anything());
+    }
   });
 
   it('points a role with no reports to the menu', async () => {
