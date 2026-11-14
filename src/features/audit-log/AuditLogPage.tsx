@@ -2,12 +2,12 @@ import { HistoryIcon, SearchIcon, XIcon } from 'lucide-react';
 import { Navigate, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList } from '@/components/IndexCard';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
 import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useAuditLogs } from './api';
@@ -88,103 +88,113 @@ export function AuditLogPage() {
         description="Every change staff made, newest first. Entries cannot be edited or removed."
       />
 
-      <div className="grid gap-4 sm:grid-cols-3 md:flex md:items-end">
-        <div className="space-y-2 md:w-48">
-          <Label htmlFor="audit-type">Type</Label>
-          <NativeSelect
-            id="audit-type"
-            value={entityType ?? ''}
-            // A single item only makes sense within its own type.
-            onChange={(event) => setFilters({ entityType: event.target.value, entityId: '' })}
-          >
-            <option value="">All types</option>
-            {Object.entries(entityLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
-        <div className="space-y-2 md:w-44">
-          <Label htmlFor="audit-from">From</Label>
-          <Input
-            id="audit-from"
-            type="date"
-            value={from ?? ''}
-            max={to}
-            onChange={(event) => setFilters({ from: event.target.value })}
-          />
-        </div>
-        <div className="space-y-2 md:w-44">
-          <Label htmlFor="audit-to">To</Label>
-          <Input
-            id="audit-to"
-            type="date"
-            value={to ?? ''}
-            min={from}
-            aria-invalid={badRange}
-            aria-describedby={badRange ? 'audit-range-error' : undefined}
-            onChange={(event) => setFilters({ to: event.target.value })}
-          />
-        </div>
-        {filtered && (
-          <Button variant="ghost" onClick={() => setSearchParams({})}>
-            Clear filters
-          </Button>
-        )}
-      </div>
-
-      {(actorUserId || entityId) && (
-        <div className="flex flex-wrap gap-2">
-          {actorUserId && (
-            <FilterChip
-              label={`By ${actorEmail ?? 'one person'}`}
-              onClear={() => setFilters({ actorUserId: '' })}
+      <IndexCard
+        filters={
+          <>
+            <Label htmlFor="audit-type" className="sr-only">
+              Type
+            </Label>
+            <NativeSelect
+              id="audit-type"
+              className="md:w-48"
+              value={entityType ?? ''}
+              // A single item only makes sense within its own type.
+              onChange={(event) => setFilters({ entityType: event.target.value, entityId: '' })}
+            >
+              <option value="">All types</option>
+              {Object.entries(entityLabels).map(([value, label]) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </NativeSelect>
+            <div className="grid grid-cols-2 gap-2 md:flex">
+              <div className="flex items-center gap-2">
+                <Label htmlFor="audit-from" className="shrink-0">
+                  From
+                </Label>
+                <Input
+                  id="audit-from"
+                  type="date"
+                  className="md:w-40"
+                  value={from ?? ''}
+                  max={to}
+                  onChange={(event) => setFilters({ from: event.target.value })}
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Label htmlFor="audit-to" className="shrink-0">
+                  To
+                </Label>
+                <Input
+                  id="audit-to"
+                  type="date"
+                  className="md:w-40"
+                  value={to ?? ''}
+                  min={from}
+                  aria-invalid={badRange}
+                  aria-describedby={badRange ? 'audit-range-error' : undefined}
+                  onChange={(event) => setFilters({ to: event.target.value })}
+                />
+              </div>
+            </div>
+            {actorUserId && (
+              <FilterChip
+                label={`By ${actorEmail ?? 'one person'}`}
+                onClear={() => setFilters({ actorUserId: '' })}
+              />
+            )}
+            {entityId && (
+              <FilterChip label={`One ${typeLabel}`} onClear={() => setFilters({ entityId: '' })} />
+            )}
+            {filtered && (
+              <Button variant="ghost" onClick={() => setSearchParams({})}>
+                Clear filters
+              </Button>
+            )}
+            {entityType === 'product' && entityId && (
+              <p className="text-sm text-muted-foreground md:basis-full">
+                Changes to this product's variants and images are listed under their own types.
+              </p>
+            )}
+            {badRange && (
+              <p id="audit-range-error" className="text-sm text-destructive md:basis-full">
+                The first day must come before the last.
+              </p>
+            )}
+          </>
+        }
+        footer={
+          !badRange &&
+          log.data &&
+          log.data.meta.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              loading={log.isPlaceholderData}
             />
-          )}
-          {entityId && (
-            <FilterChip label={`One ${typeLabel}`} onClear={() => setFilters({ entityId: '' })} />
-          )}
-        </div>
-      )}
+          )
+        }
+      >
+        {!badRange && log.isPending && <ListSkeleton bare />}
 
-      {entityType === 'product' && entityId && (
-        <p className="text-sm text-muted-foreground">
-          Changes to this product's variants and images are listed under their own types.
-        </p>
-      )}
+        {log.isError && <IndexError error={log.error} onRetry={() => log.refetch()} />}
 
-      {badRange && (
-        <p id="audit-range-error" className="text-sm text-destructive">
-          The first day must come before the last.
-        </p>
-      )}
+        {!badRange && log.data?.meta.total === 0 && (
+          <EmptyState
+            bare
+            icon={filtered ? SearchIcon : HistoryIcon}
+            title={filtered ? 'No changes match these filters' : 'No changes recorded yet'}
+          >
+            {filtered
+              ? 'Try another type, person, or day, or clear the filters.'
+              : 'Staff changes show here as they happen.'}
+          </EmptyState>
+        )}
 
-      {!badRange && log.isPending && <ListSkeleton />}
-
-      {log.isError && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(log.error)}</p>
-          <Button variant="outline" onClick={() => log.refetch()}>
-            Try again
-          </Button>
-        </div>
-      )}
-
-      {!badRange && log.data?.meta.total === 0 && (
-        <EmptyState
-          icon={filtered ? SearchIcon : HistoryIcon}
-          title={filtered ? 'No changes match these filters' : 'No changes recorded yet'}
-        >
-          {filtered
-            ? 'Try another type, person, or day, or clear the filters.'
-            : 'Staff changes show here as they happen.'}
-        </EmptyState>
-      )}
-
-      {!badRange && log.data && log.data.meta.total > 0 && (
-        <>
-          <ul aria-label="Changes" className="overflow-hidden rounded-lg border">
+        {!badRange && log.data && log.data.meta.total > 0 && (
+          <IndexList label="Changes">
             {entries.map((entry) => (
               <AuditEntryRow
                 key={entry.id}
@@ -192,16 +202,9 @@ export function AuditLogPage() {
                 onActorClick={(id) => setFilters({ actorUserId: id })}
               />
             ))}
-          </ul>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={log.isPlaceholderData}
-          />
-        </>
-      )}
+          </IndexList>
+        )}
+      </IndexCard>
     </div>
   );
 }

@@ -243,6 +243,8 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 - Use Tailwind CSS utility classes. Move repeated markup into shared components rather than creating custom CSS classes.
 - shadcn/ui components are copied into `src/components/ui`, and are this project's own code. Add each one only when a screen needs it.
+- Orders, Products, Discounts, Blog, People, and the Audit log show their list in one `IndexCard`, after Shopify's index pages: the view tabs, then the search and filters, then column headings and rows, with the pages at the foot. Each row is a link in a list, laid out as columns from `md` up and stacked on phones. The headings are only visual, as each row's text says what its values are. The loading, error, and empty states sit inside the card, with `bare` on `ListSkeleton` and `EmptyState`.
+- There are no bulk actions, as the backend changes one record per request.
 
 ## Configuration
 

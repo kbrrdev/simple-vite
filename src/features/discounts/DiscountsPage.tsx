@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router';
 import { toast } from 'sonner';
 import { ConfirmDialog } from '@/components/ConfirmDialog';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList, type IndexColumn } from '@/components/IndexCard';
 import { ListSkeleton } from '@/components/Loading';
 import { PageHeader } from '@/components/PageHeader';
 import { ViewTabs } from '@/components/ViewTabs';
@@ -66,6 +67,14 @@ const views: { label: string; status?: ScheduleStatus; param?: string }[] = [
   { label: 'Active', status: 'live', param: 'active' },
   { label: 'Scheduled', status: 'scheduled', param: 'scheduled' },
   { label: 'Expired', status: 'ended', param: 'expired' },
+];
+
+// The widths match the rows' below, so the headings sit over their values. The last is the menu.
+const columns: IndexColumn[] = [
+  { label: 'Discount', className: 'md:flex-1' },
+  { label: 'Status', className: 'md:w-28' },
+  { label: 'Used', className: 'md:w-48' },
+  { label: '', className: 'md:w-8' },
 ];
 
 type Confirming = { row: DiscountRow; action: 'turn-off' | 'delete' };
@@ -141,109 +150,114 @@ export function DiscountsPage() {
         }
       />
 
-      <ViewTabs
-        label="Discount views"
-        tabs={views.map((item) => ({
-          label: item.label,
-          to: item.param ? `?status=${item.param}` : '?',
-          selected: item === view,
-        }))}
-      />
+      <IndexCard
+        tabs={
+          <ViewTabs
+            label="Discount views"
+            tabs={views.map((item) => ({
+              label: item.label,
+              to: item.param ? `?status=${item.param}` : '?',
+              selected: item === view,
+            }))}
+          />
+        }
+        columns={shown.length > 0 ? columns : undefined}
+      >
+        {!loaded && !failed && <ListSkeleton bare rows={4} />}
 
-      {!loaded && !failed && <ListSkeleton rows={4} />}
-
-      {failed && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(failed.error)}</p>
-          <Button
-            variant="outline"
-            onClick={() =>
+        {failed && (
+          <IndexError
+            error={failed.error}
+            onRetry={() =>
               queries.filter((query) => query.isError).forEach((query) => query.refetch())
             }
-          >
-            Try again
-          </Button>
-        </div>
-      )}
+          />
+        )}
 
-      {loaded &&
-        shown.length === 0 &&
-        (view.status ? (
-          <EmptyState icon={SearchIcon} title={`No ${view.label.toLowerCase()} discounts`}>
-            Discounts show here by their dates and whether they are on.
-          </EmptyState>
-        ) : (
-          <EmptyState icon={PercentIcon} title="No discounts yet">
-            Sales, coupons, and promotions show here once they are made.
-          </EmptyState>
-        ))}
+        {loaded &&
+          shown.length === 0 &&
+          (view.status ? (
+            <EmptyState bare icon={SearchIcon} title={`No ${view.label.toLowerCase()} discounts`}>
+              Discounts show here by their dates and whether they are on.
+            </EmptyState>
+          ) : (
+            <EmptyState bare icon={PercentIcon} title="No discounts yet">
+              Sales, coupons, and promotions show here once they are made.
+            </EmptyState>
+          ))}
 
-      {shown.length > 0 && (
-        <ul aria-label="Discounts" className="overflow-hidden rounded-lg border">
-          {shown.map((row, index) => {
-            const status = statusBadges[row.status];
-            return (
-              <li
-                key={`${row.kind}-${row.id}`}
-                className={`flex items-center gap-3 px-4 py-3 ${index > 0 ? 'border-t' : ''}`}
-              >
-                <div className="min-w-0 flex-1 space-y-0.5">
-                  <p className="flex flex-wrap items-center gap-2">
-                    <Link
-                      to={row.href}
-                      className="truncate font-medium underline-offset-3 hover:underline focus-visible:underline"
-                    >
-                      {row.title}
-                    </Link>
-                    <Badge variant={status.variant}>{status.label}</Badge>
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {row.type} · {row.summary}
-                  </p>
-                  {row.usage && (
-                    <p className="text-xs text-muted-foreground tabular-nums">{row.usage}</p>
-                  )}
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon-sm"
-                      aria-label={`More actions for ${row.title}`}
-                    >
-                      <MoreHorizontalIcon />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="min-w-44">
-                    {row.isActive ? (
-                      <DropdownMenuItem
-                        className="min-h-11 md:min-h-8"
-                        onSelect={() => setConfirming({ row, action: 'turn-off' })}
+        {shown.length > 0 && (
+          <IndexList label="Discounts">
+            {shown.map((row) => {
+              const status = statusBadges[row.status];
+              return (
+                <li
+                  key={`${row.kind}-${row.id}`}
+                  className="flex items-center gap-3 px-4 py-3 md:gap-4"
+                >
+                  <div className="min-w-0 flex-1 space-y-1 md:flex md:items-center md:gap-4 md:space-y-0">
+                    <div className="min-w-0 space-y-0.5 md:flex-1">
+                      <Link
+                        to={row.href}
+                        className="block truncate font-medium underline-offset-3 hover:underline focus-visible:underline"
                       >
-                        Turn off
-                      </DropdownMenuItem>
-                    ) : (
-                      <DropdownMenuItem
-                        className="min-h-11 md:min-h-8"
-                        onSelect={() => turnOn(row)}
+                        {row.title}
+                      </Link>
+                      <p className="text-sm text-muted-foreground">
+                        {row.type} · {row.summary}
+                      </p>
+                    </div>
+                    {/* One line under the summary on phones, and two columns from md up. */}
+                    <div className="flex flex-wrap items-center gap-2 md:contents">
+                      <span className="md:w-28">
+                        <Badge variant={status.variant}>{status.label}</Badge>
+                      </span>
+                      <span className="text-xs text-muted-foreground tabular-nums md:w-48 md:text-sm">
+                        {row.usage}
+                      </span>
+                    </div>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        aria-label={`More actions for ${row.title}`}
                       >
-                        Turn on
+                        <MoreHorizontalIcon />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="min-w-44">
+                      {row.isActive ? (
+                        <DropdownMenuItem
+                          className="min-h-11 md:min-h-8"
+                          onSelect={() => setConfirming({ row, action: 'turn-off' })}
+                        >
+                          Turn off
+                        </DropdownMenuItem>
+                      ) : (
+                        <DropdownMenuItem
+                          className="min-h-11 md:min-h-8"
+                          onSelect={() => turnOn(row)}
+                        >
+                          Turn on
+                        </DropdownMenuItem>
+                      )}
+                      <DropdownMenuItem
+                        variant="destructive"
+                        className="min-h-11 md:min-h-8"
+                        onSelect={() => setConfirming({ row, action: 'delete' })}
+                      >
+                        Delete
                       </DropdownMenuItem>
-                    )}
-                    <DropdownMenuItem
-                      variant="destructive"
-                      className="min-h-11 md:min-h-8"
-                      onSelect={() => setConfirming({ row, action: 'delete' })}
-                    >
-                      Delete
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </li>
+              );
+            })}
+          </IndexList>
+        )}
+      </IndexCard>
 
       {confirming && (
         <ConfirmDialog

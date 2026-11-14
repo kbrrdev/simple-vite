@@ -79,7 +79,7 @@ export function AuditEntryRow({ entry, onActorClick }: Props) {
   const path = entityPaths[entry.entityType]?.(entry.entityId);
 
   return (
-    <li className="space-y-2 border-t px-4 py-3 first:border-t-0">
+    <li className="space-y-2 px-4 py-3">
       <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
         <p className="text-sm">
           <span className="font-medium">{entity}</span>

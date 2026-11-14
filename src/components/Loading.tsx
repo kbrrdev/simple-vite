@@ -28,13 +28,16 @@ export function ListSkeleton({
   rows = 5,
   media = false,
   label,
+  bare = false,
 }: {
   rows?: number;
   media?: boolean;
   label?: string;
+  /** Without its own border, inside an `IndexCard`. */
+  bare?: boolean;
 }) {
   return (
-    <Loading label={label} className="overflow-hidden rounded-lg border">
+    <Loading label={label} className={cn(!bare && 'overflow-hidden rounded-lg border')}>
       {Array.from({ length: rows }, (_, index) => (
         <div
           key={index}
