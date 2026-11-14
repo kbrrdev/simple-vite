@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { ApiError, refreshSession, request } from '@/lib/api';
 import { renderApp } from '@/test/render';
@@ -54,7 +54,7 @@ describe('the products list', () => {
     expect(await screen.findByText('Loading…')).toBeInTheDocument();
     const row = await screen.findByRole('link', { name: /Trail Runner/ });
     expect(row).toHaveAttribute('href', '/products/product-1');
-    expect(await within(row).findByText('Men › Shoes · 3 variants')).toBeInTheDocument();
+    await waitFor(() => expect(row).toHaveTextContent('Men › Shoes · 3 variants'));
     expect(within(row).getByText('₱450.00 – ₱650.00')).toBeInTheDocument();
 
     const old = screen.getByRole('link', { name: /Old Boot/ });

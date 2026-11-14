@@ -1,17 +1,25 @@
 import { Link, Navigate, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList, type IndexColumn } from '@/components/IndexCard';
 import { FileTextIcon } from 'lucide-react';
 import { Pagination } from '@/components/Pagination';
 import { ViewTabs } from '@/components/ViewTabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { errorMessage } from '@/lib/api';
 import { usePageParam } from '@/lib/use-page-param';
 import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useBlogs } from './api';
 
 const dateFormat = new Intl.DateTimeFormat('en-PH', { dateStyle: 'medium' });
+
+// The widths match the rows' below, so the headings sit over their values.
+const columns: IndexColumn[] = [
+  { label: 'Post', className: 'md:flex-1' },
+  { label: 'Status', className: 'md:w-28' },
+  { label: 'Author', className: 'md:w-40' },
+  { label: 'Updated', className: 'md:w-32' },
+];
 
 export function BlogsPage() {
   const [page, setPage] = usePageParam();
@@ -55,46 +63,49 @@ export function BlogsPage() {
         }
       />
 
-      <ViewTabs label="Post views" tabs={views} />
+      <IndexCard
+        tabs={<ViewTabs label="Post views" tabs={views} />}
+        columns={blogs.data?.meta.total ? columns : undefined}
+        footer={
+          blogs.data &&
+          blogs.data.meta.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              loading={blogs.isPlaceholderData}
+            />
+          )
+        }
+      >
+        {blogs.isPending && <ListSkeleton bare media />}
 
-      {blogs.isPending && <ListSkeleton media />}
+        {blogs.isError && <IndexError error={blogs.error} onRetry={() => blogs.refetch()} />}
 
-      {blogs.isError && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(blogs.error)}</p>
-          <Button variant="outline" onClick={() => blogs.refetch()}>
-            Try again
-          </Button>
-        </div>
-      )}
-
-      {blogs.data?.meta.total === 0 && (
-        <EmptyState
-          icon={FileTextIcon}
-          title={empty.title}
-          action={
-            published === undefined && (
-              <Button asChild>
-                <Link to="/blogs/new">New post</Link>
-              </Button>
-            )
-          }
-        >
-          {empty.text}
-        </EmptyState>
-      )}
-
-      {blogs.data && blogs.data.meta.total > 0 && (
-        <>
-          <ul
-            aria-label="Posts"
-            className="overflow-hidden rounded-lg border [&>li:first-child>a]:border-t-0"
+        {blogs.data?.meta.total === 0 && (
+          <EmptyState
+            bare
+            icon={FileTextIcon}
+            title={empty.title}
+            action={
+              published === undefined && (
+                <Button asChild>
+                  <Link to="/blogs/new">New post</Link>
+                </Button>
+              )
+            }
           >
+            {empty.text}
+          </EmptyState>
+        )}
+
+        {blogs.data && blogs.data.meta.total > 0 && (
+          <IndexList label="Posts">
             {blogs.data.data.map((blog) => (
               <li key={blog.id}>
                 <Link
                   to={`/blogs/${blog.id}`}
-                  className="flex items-center gap-3 border-t px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
+                  className="flex items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:gap-4"
                 >
                   {blog.coverImageUrl ? (
                     <img
@@ -106,32 +117,33 @@ export function BlogsPage() {
                   ) : (
                     <div className="h-12 w-16 shrink-0 rounded-md bg-muted" />
                   )}
-                  <div className="min-w-0 flex-1">
-                    <p className="flex items-center gap-2 font-medium">
-                      <span className="truncate">{blog.title}</span>
-                      {blog.published ? (
-                        <Badge variant="success">Published</Badge>
-                      ) : (
-                        <Badge variant="secondary">Draft</Badge>
-                      )}
+                  {/* Two lines on phones, and columns from md up. */}
+                  <div className="min-w-0 flex-1 md:flex md:items-center md:gap-4">
+                    <p className="flex items-center gap-2 font-medium md:contents">
+                      <span className="truncate md:flex-1">{blog.title}</span>
+                      <span className="md:w-28">
+                        {blog.published ? (
+                          <Badge variant="success">Published</Badge>
+                        ) : (
+                          <Badge variant="secondary">Draft</Badge>
+                        )}
+                      </span>
                     </p>
-                    <p className="truncate text-sm text-muted-foreground">
-                      {blog.author} · Updated {dateFormat.format(new Date(blog.updatedAt))}
+                    <p className="truncate text-sm text-muted-foreground md:contents">
+                      <span className="md:w-40 md:truncate">{blog.author}</span>
+                      <span className="md:hidden"> · </span>
+                      <span className="tabular-nums md:w-32">
+                        <span className="md:sr-only">Updated </span>
+                        {dateFormat.format(new Date(blog.updatedAt))}
+                      </span>
                     </p>
                   </div>
                 </Link>
               </li>
             ))}
-          </ul>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={blogs.isPlaceholderData}
-          />
-        </>
-      )}
+          </IndexList>
+        )}
+      </IndexCard>
     </div>
   );
 }

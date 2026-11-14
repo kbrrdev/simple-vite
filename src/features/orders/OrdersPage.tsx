@@ -2,13 +2,13 @@ import type { FormEvent } from 'react';
 import { Link, Navigate, useLocation, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList, type IndexColumn } from '@/components/IndexCard';
 import { InboxIcon, SearchIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { errorMessage } from '@/lib/api';
 import { formatCents } from '@/lib/money';
 import { usePageParam } from '@/lib/use-page-param';
 import { ListSkeleton } from '@/components/Loading';
@@ -23,6 +23,14 @@ import {
   statusLabels,
 } from './labels';
 
+// The widths match the row's below, so the headings sit over their values.
+const columns: IndexColumn[] = [
+  { label: 'Order', className: 'md:w-44' },
+  { label: 'Customer', className: 'md:flex-1' },
+  { label: 'Status', className: 'md:w-56' },
+  { label: 'Total', className: 'md:w-28 md:text-right' },
+];
+
 function OrderRow({ order }: { order: Order }) {
   const { search } = useLocation();
   const customer = order.isGuest ? `Guest · ${order.customerEmail}` : order.customerEmail;
@@ -32,7 +40,7 @@ function OrderRow({ order }: { order: Order }) {
       <Link
         to={`/orders/${order.id}`}
         state={{ listSearch: search }}
-        className="flex flex-col gap-1 border-t px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:flex-row md:items-center md:gap-4"
+        className="flex flex-col gap-1 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:flex-row md:items-center md:gap-4"
       >
         <div className="md:w-44">
           <p className="font-medium tabular-nums">{order.orderNumber}</p>
@@ -95,106 +103,105 @@ export function OrdersPage() {
     <div className="space-y-6">
       <PageHeader title="Orders" />
 
-      <form role="search" onSubmit={handleSearch} className="flex max-w-xl gap-2">
-        <Label htmlFor="order-search" className="sr-only">
-          Search orders
-        </Label>
-        {/* Keyed by the URL, so that Back and Clear filters reset the box. */}
-        <Input
-          key={search ?? ''}
-          id="order-search"
-          name="search"
-          type="search"
-          enterKeyHint="search"
-          defaultValue={search ?? ''}
-          placeholder="Search by order number, email, name, or reference"
-        />
-        <Button type="submit" variant="outline">
-          Search
-        </Button>
-      </form>
+      <IndexCard
+        tabs={<OrderTabs status={status} paymentStatus={paymentStatus} search={search} />}
+        filters={
+          <>
+            <form role="search" onSubmit={handleSearch} className="flex gap-2 md:flex-1">
+              <Label htmlFor="order-search" className="sr-only">
+                Search orders
+              </Label>
+              {/* Keyed by the URL, so that Back and Clear filters reset the box. */}
+              <Input
+                key={search ?? ''}
+                id="order-search"
+                name="search"
+                type="search"
+                enterKeyHint="search"
+                defaultValue={search ?? ''}
+                placeholder="Search by order number, email, name, or reference"
+              />
+              <Button type="submit" variant="outline">
+                Search
+              </Button>
+            </form>
+            <div className="grid grid-cols-2 gap-2 md:flex">
+              <Label htmlFor="order-status" className="sr-only">
+                Status
+              </Label>
+              <NativeSelect
+                id="order-status"
+                className="md:w-44"
+                value={status ?? ''}
+                onChange={(event) => setFilter('status', event.target.value)}
+              >
+                <option value="">All statuses</option>
+                {Object.entries(statusLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </NativeSelect>
+              <Label htmlFor="order-payment" className="sr-only">
+                Payment
+              </Label>
+              <NativeSelect
+                id="order-payment"
+                className="md:w-44"
+                value={paymentStatus ?? ''}
+                onChange={(event) => setFilter('paymentStatus', event.target.value)}
+              >
+                <option value="">All payments</option>
+                {Object.entries(paymentLabels).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </NativeSelect>
+            </div>
+            {filtered && (
+              <Button variant="ghost" onClick={() => setSearchParams({})}>
+                Clear filters
+              </Button>
+            )}
+          </>
+        }
+        columns={orders.data?.meta.total ? columns : undefined}
+        footer={
+          orders.data &&
+          orders.data.meta.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              loading={orders.isPlaceholderData}
+            />
+          )
+        }
+      >
+        {orders.isPending && <ListSkeleton bare />}
 
-      <OrderTabs status={status} paymentStatus={paymentStatus} search={search} />
+        {orders.isError && <IndexError error={orders.error} onRetry={() => orders.refetch()} />}
 
-      <div className="grid gap-4 sm:grid-cols-2 md:flex md:items-end">
-        <div className="space-y-2 md:w-48">
-          <Label htmlFor="order-status">Status</Label>
-          <NativeSelect
-            id="order-status"
-            value={status ?? ''}
-            onChange={(event) => setFilter('status', event.target.value)}
-          >
-            <option value="">All statuses</option>
-            {Object.entries(statusLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
-        <div className="space-y-2 md:w-48">
-          <Label htmlFor="order-payment">Payment</Label>
-          <NativeSelect
-            id="order-payment"
-            value={paymentStatus ?? ''}
-            onChange={(event) => setFilter('paymentStatus', event.target.value)}
-          >
-            <option value="">All payments</option>
-            {Object.entries(paymentLabels).map(([value, label]) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
-        {filtered && (
-          <Button variant="ghost" onClick={() => setSearchParams({})}>
-            Clear filters
-          </Button>
-        )}
-      </div>
+        {orders.data?.meta.total === 0 &&
+          (filtered ? (
+            <EmptyState bare icon={SearchIcon} title="No orders match these filters">
+              Try another search or view, or clear the filters.
+            </EmptyState>
+          ) : (
+            <EmptyState bare icon={InboxIcon} title="No orders yet">
+              Orders show here as soon as customers check out.
+            </EmptyState>
+          ))}
 
-      {orders.isPending && <ListSkeleton />}
-
-      {orders.isError && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(orders.error)}</p>
-          <Button variant="outline" onClick={() => orders.refetch()}>
-            Try again
-          </Button>
-        </div>
-      )}
-
-      {orders.data?.meta.total === 0 &&
-        (filtered ? (
-          <EmptyState icon={SearchIcon} title="No orders match these filters">
-            Try another search or view, or clear the filters.
-          </EmptyState>
-        ) : (
-          <EmptyState icon={InboxIcon} title="No orders yet">
-            Orders show here as soon as customers check out.
-          </EmptyState>
-        ))}
-
-      {orders.data && orders.data.meta.total > 0 && (
-        <>
-          <ul
-            aria-label="Orders"
-            className="overflow-hidden rounded-lg border [&>li:first-child>a]:border-t-0"
-          >
+        {orders.data && orders.data.meta.total > 0 && (
+          <IndexList label="Orders">
             {orders.data.data.map((order) => (
               <OrderRow key={order.id} order={order} />
             ))}
-          </ul>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={orders.isPlaceholderData}
-          />
-        </>
-      )}
+          </IndexList>
+        )}
+      </IndexCard>
     </div>
   );
 }

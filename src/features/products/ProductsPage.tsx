@@ -2,6 +2,7 @@ import { type FormEvent } from 'react';
 import { Link, Navigate, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList, type IndexColumn } from '@/components/IndexCard';
 import { SearchIcon, TagIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
@@ -10,7 +11,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { errorMessage } from '@/lib/api';
 import { useCan } from '@/lib/auth';
 import { usePageParam } from '@/lib/use-page-param';
 import { useCategoryTree } from '@/features/categories/api';
@@ -20,6 +20,14 @@ import { ListSkeleton } from '@/components/Loading';
 import { pageSize, useProducts, type Product, type ProductSort } from './api';
 import { priceRange } from './variants';
 
+// The widths match the row's below, so the headings sit over their values.
+const columns: IndexColumn[] = [
+  { label: 'Product', className: 'md:flex-1' },
+  { label: 'Category', className: 'md:w-48' },
+  { label: 'Variants', className: 'md:w-20' },
+  { label: 'Price', className: 'md:w-36 md:text-right' },
+];
+
 function ProductRow({ product, categoryPath }: { product: Product; categoryPath?: string }) {
   const image = product.images[0];
   const count = product.variants.length;
@@ -28,7 +36,7 @@ function ProductRow({ product, categoryPath }: { product: Product; categoryPath?
     <li>
       <Link
         to={`/products/${product.id}`}
-        className="flex items-center gap-3 border-t px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
+        className="flex items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:gap-4"
       >
         {image ? (
           <img
@@ -40,18 +48,26 @@ function ProductRow({ product, categoryPath }: { product: Product; categoryPath?
         ) : (
           <div className="size-12 shrink-0 rounded-md bg-muted" />
         )}
-        <div className="min-w-0 flex-1">
-          <p className="flex flex-wrap items-center gap-2 font-medium">
+        <div className="min-w-0 flex-1 md:flex md:items-center md:gap-4">
+          <p className="flex flex-wrap items-center gap-2 font-medium md:min-w-0 md:flex-1">
             <span className="truncate">{product.name}</span>
             {!product.active && <Badge variant="secondary">Inactive</Badge>}
           </p>
-          <p className="truncate text-sm text-muted-foreground">
-            {categoryPath ?? ''}
-            {categoryPath && ' · '}
-            {count} {count === 1 ? 'variant' : 'variants'}
+          {/* One line under the name on phones, and two columns from md up. */}
+          <p className="truncate text-sm text-muted-foreground md:contents">
+            {categoryPath && (
+              <>
+                <span className="md:w-48 md:truncate">{categoryPath}</span>
+                <span className="md:hidden"> · </span>
+              </>
+            )}
+            {!categoryPath && <span className="hidden md:block md:w-48" />}
+            <span className="tabular-nums md:w-20">
+              {count} {count === 1 ? 'variant' : 'variants'}
+            </span>
           </p>
         </div>
-        <p className="shrink-0 text-right text-sm font-medium tabular-nums">
+        <p className="shrink-0 text-right text-sm font-medium tabular-nums md:w-36">
           {priceRange(product)}
         </p>
       </Link>
@@ -131,93 +147,102 @@ export function ProductsPage() {
         }
       />
 
-      <ViewTabs label="Product views" tabs={views} />
-
-      <div className="grid gap-4 md:grid-cols-[1fr_14rem_10rem] md:items-end">
-        <form role="search" onSubmit={handleSearch} className="space-y-2">
-          <Label htmlFor="product-search">Search</Label>
-          <div className="flex gap-2">
-            {/* Keyed by the URL, so that Back and Clear filters reset the box. */}
-            <Input
-              key={search ?? ''}
-              id="product-search"
-              name="search"
-              type="search"
-              enterKeyHint="search"
-              defaultValue={search ?? ''}
-              placeholder="Product name"
+      <IndexCard
+        tabs={<ViewTabs label="Product views" tabs={views} />}
+        filters={
+          <>
+            <form role="search" onSubmit={handleSearch} className="flex gap-2 md:flex-1">
+              <Label htmlFor="product-search" className="sr-only">
+                Search
+              </Label>
+              {/* Keyed by the URL, so that Back and Clear filters reset the box. */}
+              <Input
+                key={search ?? ''}
+                id="product-search"
+                name="search"
+                type="search"
+                enterKeyHint="search"
+                defaultValue={search ?? ''}
+                placeholder="Search products by name"
+              />
+              <Button type="submit" variant="outline">
+                Search
+              </Button>
+            </form>
+            <div className="grid grid-cols-2 gap-2 md:flex">
+              <Label htmlFor="product-category" className="sr-only">
+                Category
+              </Label>
+              <CategorySelect
+                id="product-category"
+                className="md:w-56"
+                emptyLabel="All categories"
+                value={categoryId ?? ''}
+                onChange={(event) => setFilter('categoryId', event.target.value)}
+              />
+              <Label htmlFor="product-sort" className="sr-only">
+                Sort
+              </Label>
+              <NativeSelect
+                id="product-sort"
+                className="md:w-40"
+                value={sort}
+                onChange={(event) => setFilter('sort', event.target.value === 'name' ? 'name' : '')}
+              >
+                <option value="newest">Newest first</option>
+                <option value="name">Name A to Z</option>
+              </NativeSelect>
+            </div>
+            {filtered && (
+              <Button variant="ghost" onClick={() => setSearchParams({})}>
+                Clear filters
+              </Button>
+            )}
+          </>
+        }
+        columns={products.data?.meta.total ? columns : undefined}
+        footer={
+          products.data &&
+          products.data.meta.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              loading={products.isPlaceholderData}
             />
-            <Button type="submit" variant="outline">
-              Search
-            </Button>
-          </div>
-        </form>
-        <div className="space-y-2">
-          <Label htmlFor="product-category">Category</Label>
-          <CategorySelect
-            id="product-category"
-            emptyLabel="All categories"
-            value={categoryId ?? ''}
-            onChange={(event) => setFilter('categoryId', event.target.value)}
-          />
-        </div>
-        <div className="space-y-2">
-          <Label htmlFor="product-sort">Sort</Label>
-          <NativeSelect
-            id="product-sort"
-            value={sort}
-            onChange={(event) => setFilter('sort', event.target.value === 'name' ? 'name' : '')}
-          >
-            <option value="newest">Newest</option>
-            <option value="name">Name</option>
-          </NativeSelect>
-        </div>
-      </div>
+          )
+        }
+      >
+        {products.isPending && <ListSkeleton bare media />}
 
-      {filtered && (
-        <Button variant="ghost" onClick={() => setSearchParams({})} className="-mt-2">
-          Clear filters
-        </Button>
-      )}
+        {products.isError && (
+          <IndexError error={products.error} onRetry={() => products.refetch()} />
+        )}
 
-      {products.isPending && <ListSkeleton media />}
+        {products.data?.meta.total === 0 &&
+          (filtered ? (
+            <EmptyState bare icon={SearchIcon} title="No products match these filters">
+              Try another search, category, or view, or clear the filters.
+            </EmptyState>
+          ) : (
+            <EmptyState
+              bare
+              icon={TagIcon}
+              title="No products yet"
+              action={
+                canManage && (
+                  <Button asChild>
+                    <Link to="/products/new">New product</Link>
+                  </Button>
+                )
+              }
+            >
+              Create one to start selling.
+            </EmptyState>
+          ))}
 
-      {products.isError && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(products.error)}</p>
-          <Button variant="outline" onClick={() => products.refetch()}>
-            Try again
-          </Button>
-        </div>
-      )}
-
-      {products.data?.meta.total === 0 &&
-        (filtered ? (
-          <EmptyState icon={SearchIcon} title="No products match these filters">
-            Try another search, category, or view, or clear the filters.
-          </EmptyState>
-        ) : (
-          <EmptyState
-            icon={TagIcon}
-            title="No products yet"
-            action={
-              canManage && (
-                <Button asChild>
-                  <Link to="/products/new">New product</Link>
-                </Button>
-              )
-            }
-          >
-            Create one to start selling.
-          </EmptyState>
-        ))}
-
-      {products.data && products.data.meta.total > 0 && (
-        <>
-          <ul
-            aria-label="Products"
-            className="overflow-hidden rounded-lg border [&>li:first-child>a]:border-t-0"
-          >
+        {products.data && products.data.meta.total > 0 && (
+          <IndexList label="Products">
             {products.data.data.map((product) => (
               <ProductRow
                 key={product.id}
@@ -225,16 +250,9 @@ export function ProductsPage() {
                 categoryPath={paths.get(product.categoryId)}
               />
             ))}
-          </ul>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={products.isPlaceholderData}
-          />
-        </>
-      )}
+          </IndexList>
+        )}
+      </IndexCard>
     </div>
   );
 }

@@ -12,24 +12,24 @@ export interface ViewTab {
 }
 
 /**
- * Saved views of a list as tabs, after Shopify Admin. Each is a link that sets the list's URL
- * filters, so Back and shared links work.
+ * Saved views of a list as tabs at the top of its `IndexCard`, after Shopify Admin. Each is a
+ * link that sets the list's URL filters, so Back and shared links work.
  */
 export function ViewTabs({ label, tabs }: { label: string; tabs: ViewTab[] }) {
   return (
     // Phones scroll the row sideways rather than wrapping it.
-    <nav aria-label={label} className="-mx-4 overflow-x-auto px-4 md:mx-0 md:px-0">
-      <ul className="flex min-w-max border-b">
+    <nav aria-label={label} className="overflow-x-auto border-b p-2">
+      <ul className="flex min-w-max gap-1">
         {tabs.map((tab) => (
           <li key={tab.label}>
             <Link
               to={tab.to}
               aria-current={tab.selected ? 'page' : undefined}
               className={cn(
-                '-mb-px flex min-h-11 items-center gap-2 border-b-2 px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset md:min-h-9',
+                'flex min-h-11 items-center gap-2 rounded-md px-3 text-sm whitespace-nowrap outline-none focus-visible:ring-3 focus-visible:ring-ring md:min-h-8',
                 tab.selected
-                  ? 'border-foreground font-medium text-foreground'
-                  : 'border-transparent text-muted-foreground hover:text-foreground',
+                  ? 'bg-muted font-medium text-foreground'
+                  : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
               )}
             >
               {tab.label}

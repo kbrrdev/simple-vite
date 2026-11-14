@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react';
 import { Navigate, useSearchParams } from 'react-router';
 import { PageHeader } from '@/components/PageHeader';
 import { EmptyState } from '@/components/EmptyState';
+import { IndexCard, IndexError, IndexList, type IndexColumn } from '@/components/IndexCard';
 import { SearchIcon, UsersIcon } from 'lucide-react';
 import { NativeSelect } from '@/components/NativeSelect';
 import { Pagination } from '@/components/Pagination';
@@ -30,9 +31,16 @@ interface RowProps {
   onChangeRole: () => void;
 }
 
+// The widths match the rows' below, so the headings sit over their values. The last is the button.
+const columns: IndexColumn[] = [
+  { label: 'Person', className: 'md:flex-1' },
+  { label: 'Role', className: 'md:w-40' },
+  { label: '', className: 'md:w-28' },
+];
+
 function PersonRow({ person, isYou, disabled, onChangeRole }: RowProps) {
   return (
-    <li className="flex flex-col gap-2 border-t px-4 py-3 first:border-t-0 sm:flex-row sm:items-center sm:gap-4">
+    <li className="flex flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:gap-4">
       <div className="min-w-0 flex-1">
         <p className="flex min-w-0 items-center gap-2">
           <span className="truncate font-medium">{person.email}</span>
@@ -42,18 +50,18 @@ function PersonRow({ person, isYou, disabled, onChangeRole }: RowProps) {
           Joined {joinedFormat.format(new Date(person.createdAt))}
         </p>
       </div>
-      <div className="flex items-center justify-between gap-4 sm:contents">
-        <p className="text-sm sm:w-40">{person.role?.name}</p>
+      <div className="flex items-center justify-between gap-4 md:contents">
+        <p className="text-sm md:w-40">{person.role?.name}</p>
         {/* The backend refuses changes to your own role, so that a super admin always remains. */}
         {isYou ? (
-          <span className="text-xs text-muted-foreground sm:w-28 sm:text-right">
+          <span className="text-xs text-muted-foreground md:w-28 md:text-right">
             Cannot change yours
           </span>
         ) : (
           <Button
             variant="outline"
             size="sm"
-            className="sm:w-28"
+            className="md:w-28"
             disabled={disabled}
             aria-label={`Change role for ${person.email}`}
             onClick={onChangeRole}
@@ -117,72 +125,81 @@ export function PeoplePage() {
         }
       />
 
-      <div className="grid gap-4 md:grid-cols-[1fr_14rem] md:items-end">
-        <form role="search" onSubmit={handleSearch} className="space-y-2">
-          <Label htmlFor="people-search">Search</Label>
-          <div className="flex gap-2">
-            {/* Keyed by the URL, so that Back and Clear filters update the field. */}
-            <Input
-              key={search ?? ''}
-              id="people-search"
-              name="search"
-              type="search"
-              placeholder="Email"
-              defaultValue={search}
+      <IndexCard
+        filters={
+          <>
+            <form role="search" onSubmit={handleSearch} className="flex gap-2 md:flex-1">
+              <Label htmlFor="people-search" className="sr-only">
+                Search
+              </Label>
+              {/* Keyed by the URL, so that Back and Clear filters update the field. */}
+              <Input
+                key={search ?? ''}
+                id="people-search"
+                name="search"
+                type="search"
+                enterKeyHint="search"
+                placeholder="Search by email"
+                defaultValue={search}
+              />
+              <Button type="submit" variant="outline">
+                Search
+              </Button>
+            </form>
+            <Label htmlFor="people-role" className="sr-only">
+              Role
+            </Label>
+            <NativeSelect
+              id="people-role"
+              className="md:w-56"
+              value={roleId ?? ''}
+              onChange={(event) => setFilter('roleId', event.target.value)}
+            >
+              <option value="">All roles</option>
+              {roleList.map((role) => (
+                <option key={role.id} value={role.id}>
+                  {role.name}
+                </option>
+              ))}
+            </NativeSelect>
+            {filtered && (
+              <Button variant="ghost" onClick={() => setSearchParams({})}>
+                Clear filters
+              </Button>
+            )}
+          </>
+        }
+        columns={people.data?.meta.total ? columns : undefined}
+        footer={
+          people.data &&
+          people.data.meta.total > 0 && (
+            <Pagination
+              page={page}
+              totalPages={totalPages}
+              onPageChange={setPage}
+              loading={people.isPlaceholderData}
             />
-            <Button type="submit" variant="outline">
-              Search
-            </Button>
-          </div>
-        </form>
-        <div className="space-y-2">
-          <Label htmlFor="people-role">Role</Label>
-          <NativeSelect
-            id="people-role"
-            value={roleId ?? ''}
-            onChange={(event) => setFilter('roleId', event.target.value)}
+          )
+        }
+      >
+        {people.isPending && <ListSkeleton bare />}
+
+        {people.isError && <IndexError error={people.error} onRetry={() => people.refetch()} />}
+
+        {people.data?.meta.total === 0 && (
+          <EmptyState
+            bare
+            icon={filtered ? SearchIcon : UsersIcon}
+            title={filtered ? 'No staff match these filters' : 'No staff yet'}
           >
-            <option value="">All roles</option>
-            {roleList.map((role) => (
-              <option key={role.id} value={role.id}>
-                {role.name}
-              </option>
-            ))}
-          </NativeSelect>
-        </div>
-      </div>
+            {filtered
+              ? 'Try another search or role, or clear the filters.'
+              : 'Add staff from the customers who registered in the store.'}
+          </EmptyState>
+        )}
 
-      {filtered && (
-        <Button variant="ghost" onClick={() => setSearchParams({})} className="-mt-2">
-          Clear filters
-        </Button>
-      )}
-
-      {people.isPending && <ListSkeleton />}
-
-      {people.isError && (
-        <div className="space-y-4">
-          <p role="alert">{errorMessage(people.error)}</p>
-          <Button variant="outline" onClick={() => people.refetch()}>
-            Try again
-          </Button>
-        </div>
-      )}
-
-      {people.data?.meta.total === 0 && (
-        <EmptyState
-          icon={filtered ? SearchIcon : UsersIcon}
-          title={filtered ? 'No staff match these filters' : 'No staff yet'}
-        >
-          {filtered
-            ? 'Try another search or role, or clear the filters.'
-            : 'Add staff from the customers who registered in the store.'}
-        </EmptyState>
-      )}
-
-      {people.data && people.data.meta.total > 0 && (
-        <>
-          <ul aria-label="People" className="overflow-hidden rounded-lg border">
+        {people.data && people.data.meta.total > 0 && (
+          <IndexList label="People">
             {people.data.data.map((person) => (
               <PersonRow
                 key={person.id}
@@ -192,16 +209,9 @@ export function PeoplePage() {
                 onChangeRole={() => setChanging(person)}
               />
             ))}
-          </ul>
-
-          <Pagination
-            page={page}
-            totalPages={totalPages}
-            onPageChange={setPage}
-            loading={people.isPlaceholderData}
-          />
-        </>
-      )}
+          </IndexList>
+        )}
+      </IndexCard>
 
       {roles.isError && (
         <p role="alert" className="text-sm">

@@ -158,12 +158,12 @@ describe('the discounts list', () => {
     expect(await screen.findByText('Loading…')).toBeInTheDocument();
     await screen.findByRole('list', { name: 'Discounts' });
     expect(rowsText()).toEqual([
-      'WELCOME10ActiveCoupon · ₱100.00 off · over ₱500.0014 uses · ₱1,400.00 given',
-      'Socks dealActiveBuy X get Y · Buy 2 get 1 free · 1 category',
-      'Payday saleActiveSale · 20% off · 2 products, 1 category',
-      'FlashActiveFlash sale · 20% off · 2 products, 1 category38 of 100 sold',
-      'SHIPFREEActiveAutomatic · Free shipping1 use · ₱150.00 given',
-      'Gift setActiveBundle · 3 products · ₱50.00 off each set',
+      'WELCOME10Coupon · ₱100.00 off · over ₱500.00Active14 uses · ₱1,400.00 given',
+      'Socks dealBuy X get Y · Buy 2 get 1 free · 1 categoryActive',
+      'Payday saleSale · 20% off · 2 products, 1 categoryActive',
+      'FlashFlash sale · 20% off · 2 products, 1 categoryActive38 of 100 sold',
+      'SHIPFREEAutomatic · Free shippingActive1 use · ₱150.00 given',
+      'Gift setBundle · 3 products · ₱50.00 off each setActive',
     ]);
   });
 
@@ -179,11 +179,11 @@ describe('the discounts list', () => {
     renderApp('/discounts?status=scheduled');
 
     await screen.findByRole('list', { name: 'Discounts' });
-    expect(rowsText()).toEqual([expect.stringMatching(/^LaterScheduled/)]);
+    expect(rowsText()).toEqual([expect.stringMatching(/^Later.*Scheduled$/)]);
 
     const tabs = within(screen.getByRole('navigation', { name: 'Discount views' }));
     await userEvent.click(tabs.getByRole('link', { name: 'Expired' }));
-    expect(rowsText()).toEqual([expect.stringMatching(/^DoneExpired/)]);
+    expect(rowsText()).toEqual([expect.stringMatching(/^Done.*Expired$/)]);
 
     await userEvent.click(tabs.getByRole('link', { name: 'All' }));
     expect(rowsText()).toHaveLength(4);
