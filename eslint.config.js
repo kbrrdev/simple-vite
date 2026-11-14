@@ -7,7 +7,14 @@ import globals from 'globals';
 import tseslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['dist/', 'coverage/', 'src/lib/api-schema.d.ts']),
+  globalIgnores([
+    'dist/',
+    'coverage/',
+    'playwright-report/',
+    'test-results/',
+    'blob-report/',
+    'src/lib/api-schema.d.ts',
+  ]),
   { languageOptions: { globals: globals.browser } },
   js.configs.recommended,
   tseslint.configs.recommended,
@@ -22,6 +29,11 @@ export default defineConfig([
     // shadcn/ui files export helpers next to their components.
     files: ['src/components/ui/**'],
     rules: { 'react-refresh/only-export-components': 'off' },
+  },
+  {
+    // Playwright's fixtures call a function named use, which is not a React hook.
+    files: ['e2e/**'],
+    rules: { 'react-hooks/rules-of-hooks': 'off' },
   },
   prettier,
 ]);

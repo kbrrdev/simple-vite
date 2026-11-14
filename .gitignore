@@ -30,3 +30,8 @@ dist-ssr
 
 # Tests
 coverage
+
+# Browser tests
+test-results
+playwright-report
+blob-report
