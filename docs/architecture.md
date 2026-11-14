@@ -99,7 +99,7 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 
 ## Dashboard
 
-- The Dashboard is the reports page. It starts with **Needs attention**, a to-do list of payments to confirm, orders to confirm, and orders to ship, each linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
+- The Dashboard is the reports page. It starts with **Needs attention**, after Shopify's Home: one card with a row per task, such as "**3 payments** to confirm", for payments to confirm, orders to confirm, and orders to ship, each row linking to the matching orders. Tasks with nothing waiting are left out, and with none it says "All caught up."
 - The metric cards, the chart, the breakdown, Sales by, and best sellers share one date range. Ranges are calendar days in Manila time, both included, kept in the URL as `from` and `to`. With none, the backend uses the last 30 days.
 - After Shopify's Analytics, four **metric cards** show Gross sales, Collected after refunds, Orders placed, and Average order, each with a trend line. Picking one fills the chart, kept in the URL as `metric`. The metrics are listed once, in `features/reports/metrics.ts`.
 - **Compare to previous period** is on unless `compare=off`. It sends `compare=previous_period`, and the backend picks the same number of days just before the range, returns them as `previous`, and works out each card's percent change in `changes`. The browser only shows that change, with an arrow and words for screen readers. A change is null when the previous period had none, and the card says there are no earlier sales to compare.

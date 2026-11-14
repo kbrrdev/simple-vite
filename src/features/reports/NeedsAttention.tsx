@@ -1,37 +1,52 @@
-import { CircleCheckIcon, ChevronRightIcon } from 'lucide-react';
+import {
+  ChevronRightIcon,
+  CircleCheckIcon,
+  ClipboardCheckIcon,
+  CreditCardIcon,
+  TruckIcon,
+} from 'lucide-react';
 import { Link } from 'react-router';
 import { ListSkeleton } from '@/components/Loading';
 import { useOrderStatus } from './api';
 import { LoadState } from './LoadState';
 
+const plural = (count: number, one: string, many: string) => `${count} ${count === 1 ? one : many}`;
+
 const tasks = [
   {
     key: 'paymentsToConfirm',
-    title: 'Confirm payments',
+    icon: CreditCardIcon,
+    what: (count: number) => plural(count, 'payment', 'payments'),
+    rest: 'to confirm',
     caption: 'Customers sent a payment reference',
     // Read aloud as the link's name, such as "Confirm 3 payments".
-    action: (count: number) => `Confirm ${count} ${count === 1 ? 'payment' : 'payments'}`,
+    action: (count: number) => `Confirm ${plural(count, 'payment', 'payments')}`,
     to: '/orders?paymentStatus=submitted',
   },
   {
     key: 'ordersToConfirm',
-    title: 'Confirm orders',
+    icon: ClipboardCheckIcon,
+    what: (count: number) => plural(count, 'order', 'orders'),
+    rest: 'to confirm',
     caption: 'Placed and waiting for you',
-    action: (count: number) => `Confirm ${count} ${count === 1 ? 'order' : 'orders'}`,
+    action: (count: number) => `Confirm ${plural(count, 'order', 'orders')}`,
     to: '/orders?status=pending',
   },
   {
     key: 'ordersToShip',
-    title: 'Ship orders',
+    icon: TruckIcon,
+    what: (count: number) => plural(count, 'order', 'orders'),
+    rest: 'to ship',
     caption: 'Confirmed and ready to send',
-    action: (count: number) => `Ship ${count} ${count === 1 ? 'order' : 'orders'}`,
+    action: (count: number) => `Ship ${plural(count, 'order', 'orders')}`,
     to: '/orders?status=confirmed',
   },
 ] as const;
 
 /**
- * The work waiting for staff right now, as a to-do list linking to the matching orders. Tasks
- * with nothing waiting are left out, and with none at all it says so in one quiet line.
+ * The work waiting for staff right now, after Shopify's Home: one card with a row per task,
+ * each linking to the matching orders. Tasks with nothing waiting are left out, and with none
+ * at all the card says so.
  */
 export function NeedsAttention() {
   const status = useOrderStatus();
@@ -39,14 +54,14 @@ export function NeedsAttention() {
   const waiting = counts ? tasks.filter((task) => counts[task.key] > 0) : [];
 
   return (
-    <section aria-labelledby="needs-attention-heading" className="@container space-y-3">
+    <section aria-labelledby="needs-attention-heading" className="space-y-3">
       <div className="flex items-baseline justify-between gap-4">
         <h2 id="needs-attention-heading" className="text-lg font-semibold">
           Needs attention
         </h2>
         {waiting.length > 0 && (
           <p className="text-sm text-muted-foreground tabular-nums">
-            {waiting.length} {waiting.length === 1 ? 'task' : 'tasks'}
+            {plural(waiting.length, 'task', 'tasks')}
           </p>
         )}
       </div>
@@ -65,38 +80,30 @@ export function NeedsAttention() {
         </p>
       )}
 
-      {waiting.length > 0 && counts && (
-        // A bordered list while the section is narrow, and cards a third of the width once it
-        // is 672px or wider, so that Review stays beside its task. The sidebar takes some of
-        // the window, so this follows the section's width rather than the window's.
-        <ul className="overflow-hidden rounded-lg border @2xl:grid @2xl:grid-cols-3 @2xl:gap-4 @2xl:overflow-visible @2xl:rounded-none @2xl:border-0">
+      {counts && waiting.length > 0 && (
+        <ul className="divide-y overflow-hidden rounded-lg border">
           {waiting.map((task) => {
             const count = counts[task.key];
+            const Icon = task.icon;
             return (
-              <li
-                key={task.key}
-                className="border-t first:border-t-0 @2xl:overflow-hidden @2xl:rounded-lg @2xl:border @2xl:first:border-t"
-              >
-                {/* One link per task, so phones get a large target and keyboards one stop. */}
+              <li key={task.key}>
+                {/* The whole row is one link, so phones get a large target and keyboards one stop. */}
                 <Link
                   to={task.to}
                   aria-label={task.action(count)}
-                  className="group flex min-h-16 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset @2xl:h-full @2xl:flex-col @2xl:items-stretch @2xl:gap-4 @2xl:p-4"
+                  className="flex min-h-12 items-center gap-3 px-4 py-3 outline-none hover:bg-muted/50 focus-visible:ring-3 focus-visible:ring-ring focus-visible:ring-inset"
                 >
-                  <span className="flex min-w-0 flex-1 items-center gap-3 @2xl:items-start">
-                    <span className="flex h-9 min-w-9 shrink-0 items-center justify-center rounded-md bg-primary px-2 text-base font-bold text-primary-foreground tabular-nums">
-                      {count}
-                    </span>
-                    <span className="min-w-0">
-                      <span className="block font-semibold">{task.title}</span>
-                      <span className="block text-xs text-muted-foreground">{task.caption}</span>
-                    </span>
+                  <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-muted">
+                    <Icon aria-hidden className="size-4 text-muted-foreground" />
                   </span>
-                  {/* Looks like a button, but is part of the link. */}
-                  <span className="inline-flex h-9 shrink-0 items-center gap-1 rounded-lg border bg-background px-3 text-sm font-medium group-hover:bg-muted @2xl:self-end">
-                    Review
-                    <ChevronRightIcon aria-hidden className="size-4" />
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm">
+                      <span className="font-semibold tabular-nums">{task.what(count)}</span>{' '}
+                      {task.rest}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">{task.caption}</span>
                   </span>
+                  <ChevronRightIcon aria-hidden className="size-4 shrink-0 text-muted-foreground" />
                 </Link>
               </li>
             );

@@ -187,6 +187,13 @@ describe('needs attention', () => {
       '/orders?status=confirmed',
     );
     expect(screen.getByText('2 tasks')).toBeInTheDocument();
+    // Each row says the count first, as Shopify's to-do list does.
+    expect(screen.getByRole('link', { name: 'Confirm 3 payments' })).toHaveTextContent(
+      '3 payments to confirmCustomers sent a payment reference',
+    );
+    expect(screen.getByRole('link', { name: 'Ship 2 orders' })).toHaveTextContent(
+      '2 orders to ship',
+    );
     // A task with nothing waiting is left out.
     expect(screen.queryByText('Confirm orders')).not.toBeInTheDocument();
     expect(screen.queryByText(/All caught up/)).not.toBeInTheDocument();
