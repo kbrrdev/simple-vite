@@ -65,6 +65,7 @@ const areas: Area[] = [
     icon: FileTextIcon,
     pages: [
       { to: '/blogs', label: 'Blog', permission: 'blogs.manage' },
+      { to: '/pages', label: 'Pages', permission: 'pages.manage' },
       { to: '/banners', label: 'Banners', permission: 'banners.manage' },
       { to: '/files', label: 'Files', permission: 'assets.manage' },
     ],

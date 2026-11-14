@@ -135,6 +135,34 @@ export const routes: RouteObject[] = [
                     ],
                   },
                   {
+                    element: <RequirePermission permission="pages.manage" />,
+                    children: [
+                      {
+                        path: '/pages',
+                        lazy: async () => ({
+                          Component: (await import('@/features/content-pages/ContentPagesPage'))
+                            .ContentPagesPage,
+                        }),
+                      },
+                      {
+                        path: '/pages/new',
+                        lazy: async () => ({
+                          Component: (
+                            await import('@/features/content-pages/ContentPageEditorPage')
+                          ).NewContentPagePage,
+                        }),
+                      },
+                      {
+                        path: '/pages/:id',
+                        lazy: async () => ({
+                          Component: (
+                            await import('@/features/content-pages/ContentPageEditorPage')
+                          ).ContentPageEditorPage,
+                        }),
+                      },
+                    ],
+                  },
+                  {
                     element: <RequirePermission permission="banners.manage" />,
                     children: [
                       {

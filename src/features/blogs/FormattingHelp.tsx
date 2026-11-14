@@ -75,10 +75,10 @@ export function FormattingHelp({ id }: { id: string }) {
             the store.
           </li>
           <li>
-            A single <code>#</code> heading, as the post title already uses that level. Use{' '}
+            A single <code>#</code> heading, as the title already uses that level. Use{' '}
             <code>##</code>.
           </li>
-          <li>HTML. It is left out of the post.</li>
+          <li>HTML. It is left out.</li>
         </ul>
       </div>
     </div>
