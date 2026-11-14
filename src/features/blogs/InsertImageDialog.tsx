@@ -11,6 +11,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { imageSizes } from '@/features/files/image-sizes';
 
 interface Props {
   onInsert: (alt: string, url: string) => void;
@@ -46,6 +47,7 @@ export function InsertImageDialog({ onInsert, onClose }: Props) {
 
           <ImageField
             legend="Image"
+            size={imageSizes.postImage}
             image={image}
             onChange={setImage}
             error={errors.image}

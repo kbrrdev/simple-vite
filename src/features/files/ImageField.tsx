@@ -5,6 +5,7 @@ import { useCan } from '@/lib/auth';
 import { useUploadAsset } from './api';
 import { AssetPicker } from './AssetPicker';
 import { allowedTypes, uploadProblem } from './file-info';
+import { sizeHint, sizeWarning, type ImageSize } from './image-sizes';
 
 /** An uploaded asset chosen for a field. */
 export interface ChosenImage {
@@ -21,11 +22,15 @@ interface Props {
   error?: string;
   /** Tells the form an upload is running, so that it waits before saving. */
   onUploadingChange: (uploading: boolean) => void;
+  /** The size the store shows this image at, shown as a hint and checked once it loads. */
+  size?: ImageSize;
 }
 
 /** Picks one image: uploaded now, chosen from Files, or removed. */
-export function ImageField({ legend, image, onChange, error, onUploadingChange }: Props) {
+export function ImageField({ legend, image, onChange, error, onUploadingChange, size }: Props) {
   const [picking, setPicking] = useState(false);
+  // The real size of the image shown, read when it loads, so either source is checked.
+  const [loaded, setLoaded] = useState<{ url: string; width: number; height: number } | null>(null);
   const [fileProblem, setFileProblem] = useState<string | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const upload = useUploadAsset();
@@ -51,16 +56,26 @@ export function ImageField({ legend, image, onChange, error, onUploadingChange }
   }
 
   const message = fileProblem ?? (upload.error ? errorMessage(upload.error) : error);
+  const warning =
+    size && image?.url && loaded?.url === image.url ? sizeWarning(size, loaded) : null;
 
   return (
     <fieldset className="space-y-2">
       <legend className="text-sm leading-none font-medium">{legend}</legend>
+      {size && <p className="text-xs text-muted-foreground">{sizeHint(size)}</p>}
       <div className="flex items-center gap-3">
         {image?.url ? (
           <img
             src={image.url}
             alt="Selected image"
             className="size-16 shrink-0 rounded-md bg-muted object-cover"
+            onLoad={(event) =>
+              setLoaded({
+                url: image.url ?? '',
+                width: event.currentTarget.naturalWidth,
+                height: event.currentTarget.naturalHeight,
+              })
+            }
           />
         ) : (
           <div className="flex size-16 shrink-0 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
@@ -104,6 +119,7 @@ export function ImageField({ legend, image, onChange, error, onUploadingChange }
           Adding an image needs access to Files. Ask a super admin if you need it.
         </p>
       )}
+      {warning && <p className="text-sm text-warning-foreground">{warning}</p>}
       {message && <p className="text-sm text-destructive">{message}</p>}
 
       {picking && (

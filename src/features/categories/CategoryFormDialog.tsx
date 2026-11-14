@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { useSaveCategory, type CategoryInput, type CategoryNode } from './api';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { imageSizes } from '@/features/files/image-sizes';
 import { IconPicker } from './IconPicker';
 import { parentOptions } from './tree';
 
@@ -152,6 +153,7 @@ export function CategoryFormDialog({ tree, category, parentId: initialParentId, 
 
             <ImageField
               legend="Image"
+              size={imageSizes.category}
               image={image}
               onChange={setImage}
               error={imageError}

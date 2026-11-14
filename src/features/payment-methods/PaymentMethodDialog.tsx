@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ApiError, errorMessage } from '@/lib/api';
 import { ImageField, type ChosenImage } from '@/features/files/ImageField';
+import { imageSizes } from '@/features/files/image-sizes';
 import {
   useCreatePaymentMethod,
   useUpdatePaymentMethod,
@@ -144,6 +145,7 @@ export function PaymentMethodDialog({ method, onClose }: Props) {
 
           <ImageField
             legend="QR code"
+            size={imageSizes.qrCode}
             image={qr}
             onChange={setQr}
             error={fieldError('qrAssetId')}

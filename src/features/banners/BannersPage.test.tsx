@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { refreshSession, request } from '@/lib/api';
 import type { User } from '@/lib/auth';
@@ -131,6 +131,33 @@ describe('adding and editing', () => {
     expect(dialog.getByText('Start the link with / or https://.')).toBeInTheDocument();
     expect(dialog.getByText('End after the start.')).toBeInTheDocument();
     expect(sent('POST')).toHaveLength(0);
+  });
+
+  it('recommends a size, and warns when the chosen image is small and another shape', async () => {
+    serve([]);
+    renderApp('/banners');
+
+    await userEvent.click(await screen.findByRole('button', { name: 'New banner' }));
+    const dialog = within(screen.getByRole('dialog'));
+    expect(
+      dialog.getByText('Recommended: 2400 × 800 pixels (3:1). JPEG, PNG, or WebP, up to 5 MB.'),
+    ).toBeInTheDocument();
+    await userEvent.click(dialog.getAllByRole('button', { name: 'Choose from Files' })[0]);
+    await userEvent.click(
+      await screen.findByRole('button', { name: /^Choose JPEG image uploaded/ }),
+    );
+
+    // jsdom loads no images, so the preview is given the photo's real size.
+    const preview = dialog.getByRole('img', { name: 'Selected image' });
+    Object.defineProperty(preview, 'naturalWidth', { value: 800 });
+    Object.defineProperty(preview, 'naturalHeight', { value: 600 });
+    fireEvent.load(preview);
+
+    expect(
+      dialog.getByText(
+        'This image is 800 × 600 pixels, so it may look soft, and the store crops it to fit. Recommended: 2400 × 800 pixels (3:1).',
+      ),
+    ).toBeInTheDocument();
   });
 
   it('adds a banner after the last one', async () => {
