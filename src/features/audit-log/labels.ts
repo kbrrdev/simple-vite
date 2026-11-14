@@ -29,6 +29,7 @@ export const entityPaths: Partial<Record<AuditEntityType, (id: string) => string
   order: (id) => `/orders/${id}`,
   product: (id) => `/products/${id}`,
   blog: (id) => `/blogs/${id}`,
+  page: (id) => `/pages/${id}`,
   role: (id) => `/roles/${id}`,
   // Banners have no page each, so their entries open the list.
   banner: () => '/banners',

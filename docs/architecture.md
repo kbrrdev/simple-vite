@@ -58,6 +58,7 @@ src/
 | Payment methods | Built  | `GET /api/payment-methods/admin`, `POST /api/payment-methods`, `PATCH` and `DELETE /api/payment-methods/:id`                                           |
 | Store details   | Built  | `GET` and `PUT /api/store-info`, needing `store.manage` to save                                                                                        |
 | Blogs           | Built  | `GET /api/blogs/admin`, `GET /api/blogs/admin/:id`, `POST /api/blogs`, `PATCH` and `DELETE /api/blogs/:id`                                             |
+| Pages           | Built  | `GET /api/pages/admin`, `GET`, `PATCH` and `DELETE /api/pages/admin/:id`, `POST /api/pages`, all needing `pages.manage`                                |
 | Banners         | Built  | `GET /api/banners/admin`, `POST /api/banners`, `PATCH` and `DELETE /api/banners/:id`, all needing `banners.manage`                                     |
 | Discounts       | Built  | `GET /api/sales`, `/api/coupons`, `/api/promotions`, with `PATCH` and `DELETE` on each `/:id`, all needing `promotions.manage`                         |
 | Files           | Built  | `GET`, `POST` and `DELETE /api/assets`, all admin-only                                                                                                 |
@@ -182,6 +183,15 @@ Customer features, such as carts and addresses, belong to the storefront, not th
 - Drafts are hidden from the public. Choosing Draft under Visibility and saving moves a post back to drafts, without a dialog, as it can be undone. Deleting removes it for good, and asks first.
 - The editor asks before leaving with unsaved changes, through `useLeaveGuard`, and the browser asks when the tab is closed.
 - The preview loads `react-markdown` only when it opens.
+
+## Pages
+
+- Pages are the terms, privacy policy, and other pages with their own address, under Content, after Shopify's Online Store › Pages. They need `pages.manage`.
+- The backend returns every page at once, in title order, without their text. The All, Published, and Drafts tabs set `published` in the URL and filter the list in the browser.
+- The editor follows the blog's: the title and text on the left, and Visibility and the URL handle on the right, saved through the save bar, which sends only what changed. It asks before leaving with unsaved changes.
+- The text is **Markdown**, written with the blog's `ContentField`, under the same rules as posts. The storefront must render pages the same way as posts.
+- The URL handle is the page's `slug`, the end of its storefront address. A new page fills it from the title until someone types one. Lowercase letters, numbers, and single dashes are checked as a hint, and `admin` is refused. A taken one is the backend's `409`, shown beside it.
+- Drafts are hidden from the public. Delete removes a page for good, and asks first.
 
 ## Products
 
