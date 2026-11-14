@@ -21,7 +21,11 @@ export function IconPicker({ value, onChange, error }: Props) {
   const [search, setSearch] = useState('');
   const term = search.trim().toLowerCase();
   const shown = categoryIcons.filter(
-    (item) => !term || item.label.toLowerCase().includes(term) || item.name.includes(term),
+    (item) =>
+      !term ||
+      item.label.toLowerCase().includes(term) ||
+      item.name.includes(term) ||
+      item.keywords.includes(term),
   );
   // Another frontend may have stored a name this app does not have, so say so.
   const unknown = value !== null && !categoryIcons.some((item) => item.name === value);

@@ -354,6 +354,9 @@ describe('icons', () => {
     expect(
       dialog.getAllByRole('radio').map((radio) => radio.closest('label')?.textContent),
     ).toEqual(['Shoes']);
+    // Search words find icons by the area they suit, not only by their label.
+    await userEvent.clear(dialog.getByRole('searchbox', { name: 'Search icons' }));
+    await userEvent.type(dialog.getByRole('searchbox', { name: 'Search icons' }), 'footwear');
     await userEvent.click(dialog.getByRole('radio', { name: 'Shoes' }));
     await userEvent.click(dialog.getByRole('button', { name: 'Save' }));
 
